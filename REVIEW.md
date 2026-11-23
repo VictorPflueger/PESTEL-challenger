@@ -6,6 +6,9 @@ from and what changed. A copied file is byte for byte the source; an adapted fil
 | File | Verdict | Source | What changed and why |
 |---|---|---|---|
 | `vici/**` | copy | ViciDesign `eaebdca` | Vici's `dist/`, fonts, portrait, marks and licence, unchanged; `vici/README.md` names the commit |
+| `data/kpis.js` | copy | SWOT Challenger 0.1.0, `617b122` | Unchanged: a shared part the SWOT Challenger merged first (brief §4.1) |
+| `js/risk.js` | copy | SWOT Challenger 0.1.0, `617b122` | Unchanged: a shared part; `js/engine.js` uses its bands, expected values and money format |
+| `schemas/strategy-challenge-1.json` | copy | SWOT Challenger 0.1.0, `617b122` | Unchanged: the shared handoff schema, which keeps its parts under `$defs` |
 | `js/schema.js` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | Only the header comment, which now names this tool's files; the validator's code is unchanged |
 | `js/i18n/index.js` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | The storage key `pestel.lang`, the log prefix, no Diagnostics, and the meta description follows the language |
 | `js/lang.js` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | The storage key, and no loading screen |
@@ -31,7 +34,8 @@ Not taken: the sisters' `js/theme.js`. Its job, applying the theme before the fi
 inline script, now belongs to Vici as `vici/dist/vici-theme.js` (ViciDesign#25), so the next tools copy
 nothing for it.
 
-New in this tool: `js/config.js`, `js/main.js`, `js/risk.js`, `js/engine.js`, `js/schemas.js` (written
-by `tools/sync-schemas.mjs`), `data/kpis.js`, `schemas/`, `favicon.svg`, and the suites `engine`,
-`schemas`, `kpis`, `layout`, `docs`, `unit` and `parity`. `data/kpis.js`, `schemas/strategy-challenge-1.json` and
-`js/risk.js` are shared parts: the other three tools copy them unchanged.
+New in this tool: `js/config.js`, `js/main.js`, `js/engine.js`, `js/schemas.js` (written by
+`tools/sync-schemas.mjs`), the agents' schemas in `schemas/`, `favicon.svg`, and the suites `engine`,
+`schemas`, `kpis`, `layout`, `docs`, `unit` and `parity`. This tool first built its own KPI library,
+money format and handoff schema; when the SWOT Challenger merged its versions first, it took theirs, as
+brief §4.1 asks, and the Business Model Canvas Challenger did the same.

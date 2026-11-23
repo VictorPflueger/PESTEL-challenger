@@ -1,5 +1,5 @@
 {
-  "about": "The golden cases of brief §11, written before the engine. Exact values are fractions as text (\"1125/16\"); tests/engine.mjs compares the engine with them within 1e-9 and every display string in both languages. PLAN.md section 7 recomputed them with exact fractions on 23 November 2026.",
+  "about": "The golden cases of brief §11, written before the engine. Exact values are fractions as text (\"1125/16\"); tests/engine.mjs compares the engine with them within 1e-9 and every display string in both languages. PLAN.md section 7 recomputed them with exact fractions on 23 November 2026. Money shows in the shared format of js/risk.js (SWOT Challenger 0.1.0, 617b122): German puts no-break spaces before Mio., Tsd. and €, which the brief writes as plain spaces. Euro ranges show from 0.2.0 with the factor view and get their cases then.",
   "P0": [
     { "impact": 2, "likelihood": 2, "score": 4, "band": "low" },
     { "impact": 1, "likelihood": 5, "score": 5, "band": "medium" },
@@ -34,16 +34,12 @@
         "en": {
           "at_stake": "€6.5m", "left": "€4.3m", "readiness.before": "50", "readiness.after": "70",
           "pressure.before": "3 of 6", "pressure.after": "1 of 6",
-          "factor.F1.expected": "€2.8m", "factor.F2.expected": "€750k", "factor.F3.expected": "€120k", "factor.F4.expected": "€2.7m", "factor.F5.expected": "€100k",
-          "range.F1": "€3m–€5m", "range.F2": "€1m–€2m", "range.F3": "€200k–€600k", "range.F4": "€2m–€4m", "range.F5": "€100k–€300k",
-          "residual.F1": "€1m–€2m", "residual.F2": "€500k–€1m"
+          "factor.F1.expected": "€2.8m", "factor.F2.expected": "€750k", "factor.F3.expected": "€120k", "factor.F4.expected": "€2.7m", "factor.F5.expected": "€100k"
         },
         "de": {
-          "at_stake": "6,5 Mio. €", "left": "4,3 Mio. €", "readiness.before": "50", "readiness.after": "70",
+          "at_stake": "6,5\u00a0Mio.\u00a0€", "left": "4,3\u00a0Mio.\u00a0€", "readiness.before": "50", "readiness.after": "70",
           "pressure.before": "3 von 6", "pressure.after": "1 von 6",
-          "factor.F1.expected": "2,8 Mio. €", "factor.F2.expected": "750 Tsd. €", "factor.F3.expected": "120 Tsd. €", "factor.F4.expected": "2,7 Mio. €", "factor.F5.expected": "100 Tsd. €",
-          "range.F1": "3–5 Mio. €", "range.F2": "1–2 Mio. €", "range.F3": "200–600 Tsd. €", "range.F4": "2–4 Mio. €", "range.F5": "100–300 Tsd. €",
-          "residual.F1": "1–2 Mio. €", "residual.F2": "500 Tsd. € – 1 Mio. €"
+          "factor.F1.expected": "2,8\u00a0Mio.\u00a0€", "factor.F2.expected": "750\u00a0Tsd.\u00a0€", "factor.F3.expected": "120\u00a0Tsd.\u00a0€", "factor.F4.expected": "2,7\u00a0Mio.\u00a0€", "factor.F5.expected": "100\u00a0Tsd.\u00a0€"
         }
       }
     }
@@ -53,7 +49,7 @@
     "outdated": ["F5"],
     "expected": {
       "sum_risk": "58", "sum_risk_gap": "32", "readiness": "1300/29", "at_stake": "6370000",
-      "display": { "en": { "readiness.before": "45", "at_stake": "€6.4m" }, "de": { "readiness.before": "45", "at_stake": "6,4 Mio. €" } }
+      "display": { "en": { "readiness.before": "45", "at_stake": "€6.4m" }, "de": { "readiness.before": "45", "at_stake": "6,4\u00a0Mio.\u00a0€" } }
     }
   }
 }

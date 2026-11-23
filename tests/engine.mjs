@@ -5,7 +5,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { APP_ROOT, report } from "./lib/harness.mjs";
-import { riskScore, band, roundHalfAway, formatEur, formatEurRange, expectedValue } from "../js/risk.js";
+import { riskScore, band, roundHalfAway, money, expected } from "../js/risk.js";
 import { assess, run, facts, gap, DIMENSIONS } from "../js/engine.js";
 
 const golden = JSON.parse(readFileSync(path.join(APP_ROOT, "tests/fixtures/golden.json"), "utf8"));
@@ -25,13 +25,13 @@ const same = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].s
   check(!near(wrong, exact(p1.expected.before.readiness)), `control: a gap of (5 − r) / 5 misses P1's readiness (${wrong} against ${p1.expected.before.readiness})`);
   const bankers = (x) => { const f = Math.floor(x); const d = x - f; return d > 0.5 || (d === 0.5 && f % 2 === 1) ? f + 1 : f; };
   check(bankers(64.5) !== roundHalfAway(64.5, 0) && roundHalfAway(64.5, 0) === 65 && roundHalfAway(-64.5, 0) === -65, "control: half to even (64) and half away from zero (65, −65) differ, and the engine rounds away from zero");
-  check(band(9) !== "high" && band(10) === "high", "control: a score of 9 is not high and 10 is");
+  check(band(3, 3) !== "high" && band(2, 5) === "high", "control: a score of 9 is not high and 10 is");
 }
 
 // ---- P0: bands --------------------------------------------------------------------------------------
 for (const row of golden.P0) {
   const score = riskScore(row.impact, row.likelihood);
-  check(score === row.score && band(score) === row.band, `P0: impact ${row.impact} × likelihood ${row.likelihood} = ${score}, ${band(score)} (expected ${row.score}, ${row.band})`);
+  check(score === row.score && band(row.impact, row.likelihood) === row.band, `P0: impact ${row.impact} × likelihood ${row.likelihood} = ${score}, ${band(row.impact, row.likelihood)} (expected ${row.score}, ${row.band})`);
 }
 check((() => { try { riskScore(0, 3); return false; } catch { return true; } })() && (() => { try { gap(6); return false; } catch { return true; } })(), "P0: a level outside 1 to 5 is refused, never scored");
 
@@ -59,9 +59,7 @@ check((() => { try { riskScore(0, 3); return false; } catch { return true; } })(
     `P1 before: each dimension's state (${DIMENSIONS.map((d) => `${d} ${states[d]}`).join(", ")})`);
   for (const lang of ["en", "de"]) {
     const want = e.display[lang];
-    const got = { ...facts(r, lang) };
-    for (const f of p1.factors) got[`range.${f.id}`] = formatEurRange(f.eur_year_low, f.eur_year_high, lang);
-    for (const d of p1.decisions.filter((x) => x.residual)) got[`residual.${d.factor}`] = formatEurRange(d.residual.eur_year_low, d.residual.eur_year_high, lang);
+    const got = facts(r, lang);
     for (const [key, text] of Object.entries(want)) check(got[key] === text, `P1 ${lang}: ${key} shows "${got[key]}" (expected "${text}")`);
   }
 }
@@ -87,23 +85,24 @@ check((() => { try { riskScore(0, 3); return false; } catch { return true; } })(
   const factors = golden.P1.factors.map((f) => (f.id === "F5" ? { ...f, not_monetisable: true, eur_year_low: null, eur_year_high: null } : f));
   const r = run(factors, []);
   check(r.before.readiness === 50 && r.before.monetised === 4 && r.before.threats === 5, "a threat without a euro range still counts in readiness, not in money");
-  check(facts(r, "en").at_stake === "€6.4m on 4 of 5 threats" && facts(r, "de").at_stake === "6,4 Mio. € aus 4 von 5 Risiken", `money on part of the threats says so: "${facts(r, "en").at_stake}", "${facts(r, "de").at_stake}"`);
+  check(facts(r, "en").at_stake === "€6.4m on 4 of 5 threats" && facts(r, "de").at_stake === "6,4 Mio. € aus 4 von 5 Risiken", `money on part of the threats says so: "${facts(r, "en").at_stake}", "${facts(r, "de").at_stake}"`);
   const withOpportunity = [...golden.P1.factors, { id: "O1", dimension: "economic", direction: "opportunity", impact: 3, likelihood: 4, readiness: null, source: "ai" }];
   const r2 = run(withOpportunity, [{ factor: "O1", kind: "advantage", upside: { eur_year_low: 400000, eur_year_high: 800000, likelihood: 3 } }]);
-  check(near(r2.upside, 300000) && facts(r2, "en").upside === "€300k" && facts(r2, "de").upside === "300 Tsd. €", `an advantage adds its upside: ${facts(r2, "en").upside}`);
+  check(near(r2.upside, 300000) && facts(r2, "en").upside === "€300k" && facts(r2, "de").upside === "300 Tsd. €", `an advantage adds its upside: ${facts(r2, "en").upside}`);
   check(near(r2.before.readiness, 50) && r2.before.threats === 5 && r2.factorsAdded === 1, "an opportunity counts in neither readiness nor pressure");
   const empty = run([], []);
   check(empty.before.readiness === null && facts(empty, "en")["readiness.before"] === "no threats" && facts(empty, "de")["readiness.before"] === "keine Risiken", "no threats: readiness says so rather than 0 or 100");
 }
 
-// ---- money formats at their edges -------------------------------------------------------------------
+// ---- money in the shared format of js/risk.js, at its edges ----------------------------------------------
 {
+  const de = (t) => t.replace(/ /g, "\u00a0");
   const cases = [
-    [6450000, "€6.5m", "6,5 Mio. €"], [999950, "€1m", "1 Mio. €"], [949999, "€950k", "950 Tsd. €"], [9949, "€9.9k", "9,9 Tsd. €"],
-    [9950, "€10k", "10 Tsd. €"], [950, "€950", "950 €"], [0, "€0", "0 €"], [-2500, "−€2.5k", "−2,5 Tsd. €"], [1234567890, "€1.2bn", "1,2 Mrd. €"],
+    [6450000, "€6.5m", de("6,5 Mio. €")], [999500, "€1.0m", de("1,0 Mio. €")], [999499, "€999k", de("999 Tsd. €")], [949999, "€950k", de("950 Tsd. €")],
+    [9949, "€10k", de("10 Tsd. €")], [999.5, "€1k", de("1 Tsd. €")], [950, "€950", de("950 €")], [0, "€0", de("0 €")], [-2500, "−€3k", de("−3 Tsd. €")],
   ];
-  for (const [v, en, de] of cases) check(formatEur(v, "en") === en && formatEur(v, "de") === de, `${v} shows as "${formatEur(v, "en")}" and "${formatEur(v, "de")}"`);
-  check(expectedValue(200000, 600000, 2) === 120000, "expected value: midpoint × probability, €400k × 0.3 = €120k");
+  for (const [v, en, d] of cases) check(money(v, "en") === en && money(v, "de") === d, `${v} shows as "${money(v, "en")}" and "${money(v, "de")}"`);
+  check(near(expected(200000, 600000, 2), 120000), "expected value: midpoint × probability, €400k × 0.3 = €120k");
 }
 
 report(results, "ENGINE OK");

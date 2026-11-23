@@ -38,7 +38,8 @@ const DOCS = {
 const SOURCES = {
   "Sovereignty Assessment": "sovereigntyassessment",
   "Data Quality Agent": "PROC-data-quality",
-  "Duty Radar": "dutyradar"
+  "Duty Radar": "dutyradar",
+  "SWOT Challenger": "SWOT-challenger"
 };
 
 const results = [];

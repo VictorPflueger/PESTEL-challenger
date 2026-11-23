@@ -40,7 +40,7 @@ jobs:
         run: |
           cd "$GITHUB_WORKSPACE"
           for repo in VIP BMC-challenger SWOT-challenger PrototypeIdeator; do
-            git clone -q --depth 1 "https://github.com/VictorPflueger/$repo" || echo "::warning title=clone::$repo could not be cloned"
+            git clone -q --filter=blob:none "https://github.com/VictorPflueger/$repo" || echo "::warning title=clone::$repo could not be cloned"
           done
           for repo in sovereigntyassessment PROC-data-quality dutyradar; do
             git clone -q --filter=blob:none "https://github.com/VictorPflueger/$repo" || echo "::warning title=clone::$repo could not be cloned"

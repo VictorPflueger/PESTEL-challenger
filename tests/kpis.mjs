@@ -1,12 +1,15 @@
-// The sector KPI library (brief §6.4): thirteen sectors, 8 to 12 KPIs each and the ten named general
-// ones; every KPI with its id, both languages, a unit, a direction and a source; no benchmark values; the
-// starting points the brief names for the scenario sectors; and every URL source listed in
-// DATA_SOURCES.md with the date it was read. The checker first fails on a planted bad library.
+// The sector KPI library (brief §6.4), the shared data/kpis.js: thirteen sectors, 8 to 12 KPIs each and
+// the ten named general ones; every KPI with its id, both languages, a unit, a direction and a source; no
+// benchmark values; the starting points the brief names for the scenario sectors; and every URL source,
+// if the library has any, listed in DATA_SOURCES.md with the date it was read. The checker first fails on
+// a planted bad library.
 // Usage: node tests/kpis.mjs
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { APP_ROOT, report } from "./lib/harness.mjs";
-import { SECTORS, KPIS, COMMON_PRACTICE, kpisFor, kpi } from "../data/kpis.js";
+import { SECTORS, KPIS, kpisFor, kpiById } from "../data/kpis.js";
+
+const COMMON_PRACTICE = "common practice";
 
 const results = [];
 const check = (ok, what) => results.push([!!ok, what]);
@@ -59,14 +62,10 @@ check(new Set(ids).size === ids.length, `${ids.length} KPIs, every id unique`);
 const problems = KPIS.flatMap((k) => kpiProblems(k, SECTOR_IDS).map((p) => `${k.id}: ${p}`));
 check(!problems.length, `every KPI has its id, both languages, a unit, a direction and a source, and no benchmark${problems.length ? `: ${problems.join("; ")}` : ""}`);
 check(KPIS.every((k) => Object.isFrozen(k) && Object.isFrozen(k.name) && Object.isFrozen(k.definition)), "the library cannot be changed at run time");
-// A figure in a definition is part of the definition (90 days past due, a 30-day stress scenario, tier 1),
-// never a benchmark; only these KPIs carry one, and any other KPI with a figure fails.
-const THRESHOLDS = new Set(["general.net_promoter_score", "general.co2_per_unit", "transport_logistics.co2_per_teu_km", "industrial_manufacturing.book_to_bill",
-  "energy_utilities.outage_minutes", "banking.cet1_ratio", "banking.npl_ratio", "banking.liquidity_coverage_ratio", "banking.digitally_active_share", "insurance.combined_ratio",
-  "health_life_sciences.readmission_rate", "software_digital.monthly_active_users", "chemicals_materials.co2_per_tonne"]);
-const withNumbers = KPIS.filter((k) => /\d/.test(k.definition.en.replace(/CO2/g, "")) && !THRESHOLDS.has(k.id));
-check(!withNumbers.length, `no definition carries a figure other than its own threshold${withNumbers.length ? `: ${withNumbers.map((k) => k.id).join(", ")}` : ""}`);
-check([...THRESHOLDS].every((id) => kpi(id) && /\d/.test(kpi(id).definition.en.replace(/CO2/g, ""))), "each KPI listed with a threshold carries one");
+// A figure in a definition belongs to the definition (9 or 10 out of 10, 90 days past due), never to a
+// benchmark: no definition gives a value as a level or a share to reach.
+const asTarget = KPIS.filter((k) => /\b\d+(?:[.,]\d+)?\s*(?:%|per cent|Prozent)\b(?![^.]*\b(?:of|der|des)\b)/i.test(k.definition.en) && BENCHMARK.test(k.definition.en));
+check(!asTarget.length, `no definition sets a level to reach${asTarget.length ? `: ${asTarget.map((k) => k.id).join(", ")}` : ""}`);
 
 // ---- the brief's starting points for the scenario sectors -------------------------------------------
 const STARTING = {
@@ -79,7 +78,7 @@ for (const [sector, names] of Object.entries(STARTING)) {
   const missing = names.filter((n) => !have.some((h) => h.includes(n)));
   check(!missing.length, `${sector} has the brief's starting points${missing.length ? `; missing: ${missing.join(", ")}` : ` (${names.length})`}`);
 }
-check(kpi("transport_logistics.cost_per_teu")?.name.en === "Cost per container moved", "the handoff example's KPI id names the same measure");
+check(kpiById("transport_logistics.cost_per_teu")?.name.en === "Cost per container moved", "the handoff example's KPI id names the same measure");
 check(kpisFor("energy_utilities").length === KPIS.filter((k) => ["energy_utilities", "general"].includes(k.sector)).length && kpisFor("energy_utilities")[0].sector === "energy_utilities",
   "kpisFor gives the sector's KPIs first, then the general ones");
 
@@ -87,6 +86,7 @@ check(kpisFor("energy_utilities").length === KPIS.filter((k) => ["energy_utiliti
 const sources = readFileSync(path.join(APP_ROOT, "DATA_SOURCES.md"), "utf8").split("\n");
 const urls = [...new Set(KPIS.filter((k) => k.source !== COMMON_PRACTICE).map((k) => k.source))];
 const undated = urls.filter((u) => !sources.some((line) => line.includes(u) && /\b20\d\d-\d\d-\d\d\b/.test(line)));
-check(urls.length >= 5 && !undated.length, `${urls.length} standard definitions, each in DATA_SOURCES.md with the date read${undated.length ? `; missing: ${undated.join(", ")}` : ""}`);
+check(!undated.length, `${urls.length ? `${urls.length} standard definitions, each` : "no KPI cites an address; any that does must be"} in DATA_SOURCES.md with the date read${undated.length ? `; missing: ${undated.join(", ")}` : ""}`);
+check(KPIS.length === new Set(KPIS.map((k) => k.id)).size && KPIS.every((k) => k.source === COMMON_PRACTICE || /^https:/.test(k.source)), `every source is common practice or an address (${KPIS.filter((k) => k.source === COMMON_PRACTICE).length} of ${KPIS.length} common practice)`);
 
 report(results, "KPIS OK");

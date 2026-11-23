@@ -3,7 +3,7 @@
 // fields; they never write a figure the page shows as fact. Readiness is this tool's own measure, not
 // part of PESTEL, and the method dialog says so.
 //
-//   risk          impact × likelihood, in the bands of js/risk.js
+//   risk          impact × likelihood, in the bands of the shared js/risk.js
 //   gap           (5 − readiness level) / 4: 1 for unprepared, 0 for ready
 //   readiness     100 × (1 − Σ risk × gap ÷ Σ risk), over the threats not out of date
 //   under pressure  a dimension holding a threat of medium band or higher with readiness 3 or lower
@@ -13,8 +13,12 @@
 // residual likelihood; its impact stays the original, since the Strategist estimates none. An advantage
 // adds its upside to the note; a watched or accepted threat stays as it is.
 
-import { riskScore, band, bandAtLeast, expectedValue, round9, roundHalfAway, formatEur } from "./risk.js";
+import { BANDS, riskScore, band, expected, round9, roundHalfAway, money } from "./risk.js";
 import { t } from "./i18n/index.js";
+
+/** Whether a band is the given one or higher (low < medium < high < critical). */
+const bandIndex = (id) => BANDS.findIndex((b) => b.id === id);
+export const bandAtLeast = (id, floor) => bandIndex(id) >= bandIndex(floor);
 
 /** The six PESTEL dimensions, in the order of the acronym. */
 export const DIMENSIONS = Object.freeze(["political", "economic", "social", "technological", "environmental", "legal"]);
@@ -46,7 +50,7 @@ export function assess(factors) {
   for (const f of factors) {
     if (!DIMENSIONS.includes(f.dimension)) throw new RangeError(`factor ${f.id} names no PESTEL dimension: ${f.dimension}`);
     const risk = riskScore(f.impact, f.likelihood);
-    const entry = { risk, band: band(risk), expected: null, counted: counts(f) };
+    const entry = { risk, band: band(f.impact, f.likelihood), expected: null, counted: counts(f) };
     if (isThreat(f)) {
       entry.gap = gap(f.readiness);
       if (counts(f)) {
@@ -58,7 +62,7 @@ export function assess(factors) {
       }
     }
     if (!f.not_monetisable && Number.isFinite(f.eur_year_low) && Number.isFinite(f.eur_year_high)) {
-      entry.expected = expectedValue(f.eur_year_low, f.eur_year_high, f.likelihood);
+      entry.expected = round9(expected(f.eur_year_low, f.eur_year_high, f.likelihood));
       if (isThreat(f) && counts(f)) {
         atStake += entry.expected;
         monetised++;
@@ -111,7 +115,7 @@ export function run(factors, decisions = []) {
   let upside = 0;
   for (const d of decisions) {
     if (d.kind === "advantage" && d.upside && live.has(d.factor)) {
-      upside += expectedValue(d.upside.eur_year_low, d.upside.eur_year_high, d.upside.likelihood);
+      upside += expected(d.upside.eur_year_low, d.upside.eur_year_high, d.upside.likelihood);
     }
   }
   const kept = factors.filter(counts);
@@ -132,8 +136,8 @@ export function readinessText(value, lang = "en") {
 
 /** The money at stake as a tile shows it, saying so when only part of the threats has a euro range. */
 export function moneyText(result, lang = "en") {
-  const money = formatEur(result.atStake, lang);
-  return result.monetised < result.threats ? t("fig.moneyPart", { money, n: result.monetised, total: result.threats }, lang) : money;
+  const text = money(result.atStake, lang);
+  return result.monetised < result.threats ? t("fig.moneyPart", { money: text, n: result.monetised, total: result.threats }, lang) : text;
 }
 
 /**
@@ -144,7 +148,7 @@ export function facts(r, lang = "en") {
   const out = {
     at_stake: moneyText(r.before, lang),
     left: moneyText(r.after, lang),
-    upside: formatEur(r.upside, lang),
+    upside: money(r.upside, lang),
     "readiness.before": readinessText(r.before.readiness, lang),
     "readiness.after": readinessText(r.after.readiness, lang),
     "pressure.before": t("fig.pressure", { n: r.before.pressure.length }, lang),
@@ -153,6 +157,6 @@ export function facts(r, lang = "en") {
     "factors.added": String(r.factorsAdded),
     "watch.count": String(r.watch.length),
   };
-  for (const [id, f] of Object.entries(r.before.perFactor)) if (f.expected !== null) out[`factor.${id}.expected`] = formatEur(f.expected, lang);
+  for (const [id, f] of Object.entries(r.before.perFactor)) if (f.expected !== null) out[`factor.${id}.expected`] = money(f.expected, lang);
   return out;
 }

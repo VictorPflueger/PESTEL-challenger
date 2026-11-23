@@ -16,18 +16,10 @@ and the method dialog says so wherever the score appears.
 
 ## 2. The KPI library
 
-`data/kpis.js` defines each measure; it holds no benchmark value. Most definitions are common practice in
-their sector. Where a standard body defines a measure, the KPI names that definition as its source:
-
-| KPI | Source | Read on |
-|---|---|---|
-| `general.net_promoter_score` | Bain & Company, Measuring your Net Promoter Score, <https://nps.bain.com/about/measuring-your-net-promoter-score/> | 2026-11-23 |
-| `general.co2_per_unit` | GHG Protocol Corporate Standard, <https://ghgprotocol.org/corporate-standard> | 2026-11-23 |
-| `transport_logistics.co2_per_teu_km` | ISO 14083:2023, greenhouse gas emissions of transport chain operations, <https://www.iso.org/standard/78864.html> | 2026-11-23 |
-| `energy_utilities.outage_minutes` | IEEE 1366-2022, Guide for Electric Power Distribution Reliability Indices (SAIDI), <https://standards.ieee.org/ieee/1366/7243> | 2026-11-23 |
-| `banking.cet1_ratio` | Basel Framework, risk-based capital requirements (RBC20: CET1 against risk-weighted assets), <https://www.bis.org/committees/bcbs/basel-framework/standard/rbc?allChapters=true> | 2026-11-23 |
-| `banking.liquidity_coverage_ratio` | Basel III: The Liquidity Coverage Ratio and liquidity risk monitoring tools, <https://www.bis.org/publ/bcbs238.htm> | 2026-11-23 |
-| `insurance.solvency_ratio` | Solvency II Directive, Article 100 (eligible own funds covering the solvency capital requirement), EIOPA rulebook, <https://www.eiopa.europa.eu/rulebook/solvency-ii/article-2187_en> | 2026-11-23 |
+`data/kpis.js` is the library all four tools share (brief §4.1), taken unchanged from the SWOT
+Challenger at `617b122`, which merged it first. It defines each measure in English and German and holds
+no benchmark value. Every definition is common practice in its sector, so no KPI cites an address; one
+that does is listed here with the date it was read, and `tests/kpis.mjs` fails until it is.
 
 ## 3. Scenario facts
 

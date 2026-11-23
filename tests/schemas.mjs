@@ -127,7 +127,9 @@ for (const name of Object.keys(SCHEMAS).filter((n) => n !== "strategy-challenge-
 {
   const example = JSON.parse(readFileSync(path.join(APP_ROOT, "tests/fixtures/handoff-example.json"), "utf8"));
   const schema = SCHEMAS["strategy-challenge-1"];
-  const v = ok(example, schema);
+  // The shared schema keeps its parts under $defs and refers to them as "#/$defs/<name>".
+  const handoff = (value) => validate(value, schema, schema.$defs);
+  const v = handoff(example);
   check(v.valid, `the brief's handoff example validates against strategy-challenge-1${v.valid ? "" : `: ${describeErrors(v.errors)}`}`);
   const variants = {
     "a figure written as text": (x) => { x.figures.at_stake_eur_year = "€9.5m"; },
@@ -140,7 +142,7 @@ for (const name of Object.keys(SCHEMAS).filter((n) => n !== "strategy-challenge-
   for (const [what, change] of Object.entries(variants)) {
     const x = clone(example);
     change(x);
-    check(!ok(x, schema).valid, `the handoff schema refuses ${what}`);
+    check(!handoff(x).valid, `the handoff schema refuses ${what}`);
   }
   const pestel = clone(example);
   pestel.tool = { id: "pestel-challenger", name: "PESTEL Challenger", version: "0.1.0", url: "https://victorpflueger.github.io/PESTEL-challenger/" };
@@ -148,7 +150,7 @@ for (const name of Object.keys(SCHEMAS).filter((n) => n !== "strategy-challenge-
   pestel.responses[0] = { ...pestel.responses[0], kind: "monitor", residual: null, changes: [{ action: "watch", item: "F1", signal: "Guidance published", trigger: "Deadline moves" }] };
   pestel.figures.score = { name: "readiness", scale: "0-100", before: 50, after: 70 };
   pestel.figures.pressure = { label: "Dimensions under pressure", before: 3, after: 1, of: 6 };
-  const p = ok(pestel, schema);
+  const p = handoff(pestel);
   check(p.valid, `a PESTEL handoff with a watch entry and readiness validates${p.valid ? "" : `: ${describeErrors(p.errors)}`}`);
 }
 

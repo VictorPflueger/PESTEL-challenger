@@ -67,15 +67,15 @@ on Build a prototype, with `storageProblems()` and `storedKeyProblems()` to chec
 
 ## 5. The engine
 
-`js/engine.js` and the shared `js/risk.js` compute every figure (brief §6.5). Values stay at full
-precision; display rounds once, first to 1e-9 and then half away from zero, on the exact decimal digits
-(`roundHalfAway()`), so 6,450,000 shows as €6.5m. Money shows as €6.5m, €750k and €950 in English and as
-6,5 Mio. €, 750 Tsd. € and 950 € in German; a range keeps one unit where both ends share it ("3–5 Mio. €").
-An amount moves up a scale only when its rounding on the scale below reaches a full unit of the next:
-€999,499 shows as €999k, €999,500 as €1m, and €950,000 as €950k rather than €1m.
-Readiness without any threat is "no threats", never 0 or 100. A threat without a euro range counts in
-readiness and the money says so: "€6.4m on 4 of 5 threats". `tests/engine.mjs` holds the golden cases
-P0 to P2 of brief §11, written into `tests/fixtures/golden.json` before the engine.
+`js/engine.js` computes every figure of the method (brief §6.5) with the bands, expected values and money
+format of the shared `js/risk.js`. Values stay at full precision; display rounds once, first to 1e-9 and
+then half away from zero, on the exact decimal digits (`roundHalfAway()`), so 6,450,000 shows as €6.5m.
+Money shows as €6.5m, €750k and €950 in English and as 6,5 Mio. €, 750 Tsd. € and 950 € in German, with
+no-break spaces so a figure never splits from its unit. The unit follows the rounded value: €999,500
+shows as €1.0m, €999,499 as €999k. Readiness without any threat is "no threats", never 0 or 100. A
+threat without a euro range counts in readiness and the money says so: "€6.4m on 4 of 5 threats".
+`tests/engine.mjs` holds the golden cases P0 to P2 of brief §11, written into
+`tests/fixtures/golden.json` before the engine.
 
 ## 6. Schemas
 
@@ -83,7 +83,8 @@ P0 to P2 of brief §11, written into `tests/fixtures/golden.json` before the eng
 imports, with each agent's request format written out without `$ref` (`REQUESTS`). Request formats close
 every object and require every field, with `null` for "not applicable", so no request has an optional
 parameter; ranges, lengths and counts are checked in code. `schemas/strategy-challenge-1.json` is the
-handoff file of brief §4.3 and the same file in all four tools.
+handoff file of brief §4.3, shared by all four tools; it keeps its parts under `$defs`, so it is
+validated with those as the registry.
 
 ## 7. Running the tests
 
@@ -109,5 +110,12 @@ screenshots as the run's `test-screenshots` artefact. After each Pages build the
 - **Not yet run against the real API.** Nothing in 0.1.0 calls a model. The probes that need a key wait
   for Victor's console snippet.
 - **Firefox and Safari print** without page numbers in the footer; checked by hand in M4.
+- **Shared parts taken from the SWOT Challenger.** This tool first built its own KPI library, money
+  format and handoff schema; the SWOT Challenger merged its versions first (`617b122`), so this tool took
+  them unchanged, as brief §4.1 asks. Three things this tool's versions had are proposals for a change
+  agreed in all four tools: a billions scale (the shared format shows €1,234,567,890 as €1234.6m), a
+  standard source for the seven KPIs a standard body defines (net promoter score, CO2 per unit, CO2 per
+  container-kilometre, grid outage minutes, CET1 ratio, liquidity coverage ratio, solvency ratio), and a
+  range format for the factor view of 0.2.0.
 - **The guides describe the finished tool.** Their talk track walks through the scenarios of 0.2.0 and
   says so; version 0.1.0 says on its first screen and in the guide what it holds so far.

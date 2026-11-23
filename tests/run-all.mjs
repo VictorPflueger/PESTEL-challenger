@@ -18,7 +18,7 @@ const SUITES = [
   { id: "page-icon", what: "the page icon: favicon and header cell, as on the website's card once it exists", file: "tests/page-icon.mjs", browser: false },
   { id: "vici-files", what: "vici/ holds exactly the files its README lists, byte for byte Vici's at the named commit", file: "tests/vici-files.mjs", browser: false },
   { id: "vici", what: "Vici's own checks on the page's markup and every text: guide, byline, writing, AI notice, record ids", file: "tests/vici.mjs", browser: false },
-  { id: "parity", what: "the shared parts equal the first sibling that has them", file: "tests/parity.mjs", browser: false },
+  { id: "parity", what: "the shared parts equal every sibling that has them", file: "tests/parity.mjs", browser: false },
   { id: "hygiene", what: "no client, prospect, contact or meeting named in any published file", file: "tests/hygiene.mjs", browser: false },
   { id: "docs", what: "the documents' length, sections, facts with dates, paths, and what REVIEW.md lists", file: "tests/docs.mjs", browser: false },
   { id: "i18n", what: "both languages: the same keys, English first, ?lang=de, the switch without a reload, two guides", file: "tests/i18n.mjs", browser: true },

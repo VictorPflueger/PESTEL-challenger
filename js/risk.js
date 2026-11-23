@@ -1,134 +1,154 @@
-// Risk bands, likelihood as a probability, expected value and money formats: the part of the method the
-// three challengers share, identical in all of them (brief §4.1); the Prototype Ideator imports the money
-// formats. Values stay at full precision. Display rounds once: first to 1e-9, then half away from zero,
-// on the exact decimal digits, so 6,450,000 shows as €6.5m and never as €6.4m (brief §6.5).
+// Risk bands, likelihood to probability, expected euros, what is at stake, what is left, the upside and
+// the money format: the shared part of the three challengers (brief 4.1). Pure functions at full
+// precision; the display rounds once, after rounding to 1e-9, half away from zero (brief 6.5).
+// The same file in the Business Model Canvas, SWOT and PESTEL Challengers; the Prototype Ideator imports
+// its money format. tests/parity.mjs compares it with any sibling checkout beside this repository.
 
-/** Risk = impact × likelihood, from 1 to 25, in four bands (brief §6.5). */
+/** Bands of impact × likelihood (1 to 25). */
 export const BANDS = Object.freeze([
-  Object.freeze({ id: "low", min: 1, max: 4 }),
-  Object.freeze({ id: "medium", min: 5, max: 9 }),
-  Object.freeze({ id: "high", min: 10, max: 15 }),
-  Object.freeze({ id: "critical", min: 16, max: 25 }),
+  { id: "low", min: 1, max: 4 },
+  { id: "medium", min: 5, max: 9 },
+  { id: "high", min: 10, max: 15 },
+  { id: "critical", min: 16, max: 25 }
 ]);
-const ORDER = BANDS.map((b) => b.id);
 
-/** Likelihood 1 (rare) to 5 (almost certain) within the horizon, as a probability (brief §6.3). */
+/** Likelihood 1 (rare) to 5 (almost certain within the horizon), counted as a probability. */
 export const PROBABILITY = Object.freeze({ 1: 0.1, 2: 0.3, 3: 0.5, 4: 0.7, 5: 0.9 });
 
-/** Whether n is a level of a 1-to-5 scale. */
-export function isLevel(n) {
-  return Number.isInteger(n) && n >= 1 && n <= 5;
-}
+const isScale = (n) => Number.isInteger(n) && n >= 1 && n <= 5;
 
-function level(n, what) {
-  if (!isLevel(n)) throw new RangeError(`${what} is a whole number from 1 to 5, not ${JSON.stringify(n)}`);
-  return n;
-}
-
-/** Impact × likelihood. */
-export function riskScore(impact, likelihood) {
-  return level(impact, "impact") * level(likelihood, "likelihood");
-}
-
-/** The band of a risk score: low, medium, high or critical. */
-export function band(score) {
-  const b = BANDS.find((x) => score >= x.min && score <= x.max);
-  if (!b) throw new RangeError(`a risk score runs from 1 to 25, not ${JSON.stringify(score)}`);
-  return b.id;
-}
-
-/** Whether band a is at least band b ("high" is at least "medium"). */
-export function bandAtLeast(a, b) {
-  return ORDER.indexOf(a) >= ORDER.indexOf(b) && ORDER.includes(a) && ORDER.includes(b);
-}
-
-/** The probability of a likelihood level. */
-export function probability(likelihood) {
-  return PROBABILITY[level(likelihood, "likelihood")];
-}
-
-/** Rounds to 1e-9, the precision every figure keeps before display. */
+/**
+ * A number rounded to 1e-9, so that 0.1 + 0.2 counts as 0.3 before any comparison or display.
+ * toFixed works on the double's exact decimal value, which keeps it right for millions of euros too.
+ */
 export function round9(x) {
-  return Number.isFinite(x) ? Number(x.toFixed(9)) || 0 : x;
+  if (!Number.isFinite(x)) throw new TypeError(`not a finite number: ${x}`);
+  return Number(x.toFixed(9)) || 0;
 }
 
-/** The expected euros a year of a range at a likelihood: the midpoint times the probability. */
-export function expectedValue(low, high, likelihood) {
-  if (!Number.isFinite(low) || !Number.isFinite(high) || low < 0 || high < low) {
-    throw new RangeError(`a euro range runs from low to high, both 0 or more: ${low} to ${high}`);
-  }
-  return round9(((low + high) / 2) * probability(likelihood));
+/** |x| rounded to 1e-9, then to `d` places with halves away from zero, as a whole number of 10^-d. */
+function units(x, d) {
+  if (!Number.isFinite(x)) throw new TypeError(`not a finite number: ${x}`);
+  const nine = BigInt(Math.abs(x).toFixed(9).replace(".", ""));
+  if (d >= 9) return nine * 10n ** BigInt(d - 9);
+  const div = 10n ** BigInt(9 - d);
+  return nine / div + ((nine % div) * 2n >= div ? 1n : 0n);
 }
 
-/**
- * x rounded to `decimals` places (negative: to tens, hundreds…), half away from zero, on the exact
- * decimal digits of x rounded to 1e-9. roundHalfAway(4345000, -5) is 4300000; roundHalfAway(64.5, 0) is 65.
- */
+/** x rounded to 1e-9, then to `decimals` places, halves away from zero (2.525 to 2.53, -2.525 to -2.53). */
 export function roundHalfAway(x, decimals = 0) {
-  if (!Number.isFinite(x)) return x;
-  if (!Number.isInteger(decimals) || decimals > 9) throw new RangeError("decimals is a whole number up to 9");
-  const [whole, frac] = Math.abs(x).toFixed(9).split(".");
-  const scaled = BigInt(whole + frac); // |x| × 1e9, exact
-  const unit = 10n ** BigInt(9 - decimals);
-  let q = scaled / unit;
-  if ((scaled % unit) * 2n >= unit) q += 1n;
-  if (q === 0n) return 0;
-  const magnitude = decimals > 0 ? Number(q) / 10 ** decimals : Number(q) * 10 ** -decimals;
-  return x < 0 ? -magnitude : magnitude;
-}
-
-const LOCALES = { en: "en-GB", de: "de-DE" };
-const numberFormats = new Map();
-function number(value, decimals, lang) {
-  const key = `${lang}|${decimals}`;
-  if (!numberFormats.has(key)) {
-    numberFormats.set(key, new Intl.NumberFormat(LOCALES[lang] || LOCALES.en, { maximumFractionDigits: decimals }));
-  }
-  return numberFormats.get(key).format(value);
+  const n = Number(units(x, decimals)) / 10 ** decimals;
+  return x < 0 ? -n || 0 : n;
 }
 
 /**
- * The scale a euro amount shows in: billions and millions to one decimal, thousands whole from €10k and
- * to one decimal below, euros whole. An amount moves up a scale only when its rounding on the scale below
- * would reach a full unit of the next: €999,499 shows as €999k and €999,500 as €1m, €950,000 as €950k.
- * The amount shown is rounded once, from the exact value.
+ * x as text with `decimals` places, rounded once as roundHalfAway does: "2.53" in English, "2,53" in
+ * German. A negative value takes the minus sign (U+2212).
  */
-function scaled(value) {
-  const abs = Math.abs(round9(value));
-  if (roundHalfAway(abs, -5) >= 1e9) return { n: roundHalfAway(abs, -8) / 1e9, unit: "bn" };
-  if (roundHalfAway(abs, -3) >= 1e6) return { n: roundHalfAway(abs, -5) / 1e6, unit: "m" };
-  if (roundHalfAway(abs, 0) >= 1e3) return { n: roundHalfAway(abs, abs >= 9950 ? -3 : -2) / 1e3, unit: "k" };
-  return { n: roundHalfAway(abs, 0), unit: "" };
+export function fixed(x, decimals, lang = "en") {
+  const q = units(x, decimals).toString().padStart(decimals + 1, "0");
+  const whole = decimals ? q.slice(0, -decimals) : q;
+  const text = decimals ? `${whole}${lang === "de" ? "," : "."}${q.slice(-decimals)}` : whole;
+  return x < 0 && /[1-9]/.test(q) ? `\u2212${text}` : text;
 }
 
-const SUFFIX = {
-  en: { bn: "bn", m: "m", k: "k", "": "" },
-  de: { bn: " Mrd. €", m: " Mio. €", k: " Tsd. €", "": " €" },
+/** Impact × likelihood, both 1 to 5. */
+export function riskScore(impact, likelihood) {
+  if (!isScale(impact) || !isScale(likelihood)) throw new RangeError(`impact and likelihood run from 1 to 5, got ${impact} and ${likelihood}`);
+  return impact * likelihood;
+}
+
+/** The band of impact × likelihood: "low", "medium", "high" or "critical". */
+export function band(impact, likelihood) {
+  const s = riskScore(impact, likelihood);
+  return BANDS.find((b) => s >= b.min && s <= b.max).id;
+}
+
+/** The probability a likelihood stands for. */
+export function probability(likelihood) {
+  if (!isScale(likelihood)) throw new RangeError(`likelihood runs from 1 to 5, got ${likelihood}`);
+  return PROBABILITY[likelihood];
+}
+
+/** Expected euros a year: the range's midpoint times the probability of the likelihood. */
+export function expected(low, high, likelihood) {
+  if (!(Number.isFinite(low) && Number.isFinite(high)) || low < 0 || high < low) throw new RangeError(`a euro range needs 0 <= low <= high, got ${low} and ${high}`);
+  return ((low + high) / 2) * probability(likelihood);
+}
+
+/** An issue's expected euros a year, or null when it is not monetisable. */
+export function issueExpected(issue) {
+  if (issue.monetisable === false || issue.eur_year_low == null || issue.eur_year_high == null) return null;
+  return expected(issue.eur_year_low, issue.eur_year_high, issue.likelihood);
+}
+
+/**
+ * What the issues put at stake a year: the sum of the monetisable issues' expected euros.
+ * Returns { value, priced, of }: priced issues of all issues, so a figure on part of them can say so.
+ */
+export function atStake(issues) {
+  let value = 0;
+  let priced = 0;
+  for (const issue of issues) {
+    const e = issueExpected(issue);
+    if (e === null) continue;
+    value += e;
+    priced += 1;
+  }
+  return { value: round9(value), priced, of: issues.length };
+}
+
+/**
+ * What is left a year after the chosen responses: for each monetisable issue, the lowest residual of
+ * the chosen responses that answer it, else its own expected value. A response is
+ * { issue, chosen, residual: { eur_year_low, eur_year_high, likelihood } | null }.
+ */
+export function left(issues, responses) {
+  let value = 0;
+  for (const issue of issues) {
+    const own = issueExpected(issue);
+    if (own === null) continue;
+    const residuals = responses
+      .filter((r) => r.chosen && r.issue === issue.id && r.residual)
+      .map((r) => expected(r.residual.eur_year_low, r.residual.eur_year_high, r.residual.likelihood));
+    value += residuals.length ? Math.min(own, ...residuals) : own;
+  }
+  return round9(value);
+}
+
+/** The upside a year of the chosen responses that turn an issue into an advantage: their sum. */
+export function upside(responses) {
+  let value = 0;
+  for (const r of responses) {
+    if (!r.chosen || !r.upside) continue;
+    value += expected(r.upside.eur_year_low, r.upside.eur_year_high, r.upside.likelihood);
+  }
+  return round9(value);
+}
+
+const NBSP = "\u00a0";
+const decimal = (x, places, lang) => {
+  const s = roundHalfAway(x, places).toFixed(places);
+  return lang === "de" ? s.replace(".", ",") : s;
 };
 
 /**
- * A euro amount as the challengers show it: "€6.5m", "€750k", "€2.5k", "€950" in English; "6,5 Mio. €",
- * "750 Tsd. €", "2,5 Tsd. €", "950 €" in German. A negative amount starts with a minus sign.
+ * Euros for the screen and the report, English or German: from about €1m with one decimal ("€3.7m",
+ * "3,7 Mio. €"), from about €1,000 in whole thousands ("€300k", "300 Tsd. €"), below in whole euros
+ * ("€850", "850 €"). The unit follows the rounded value, so €999,500 reads €1.0m, never €1000k.
  */
-export function formatEur(value, lang = "en") {
-  if (!Number.isFinite(value)) throw new RangeError(`not an amount: ${value}`);
-  const l = lang === "de" ? "de" : "en";
-  const { n, unit } = scaled(value);
-  const sign = n !== 0 && value < 0 ? "−" : "";
-  const digits = number(n, unit ? 1 : 0, l);
-  return l === "en" ? `${sign}€${digits}${SUFFIX.en[unit]}` : `${sign}${digits}${SUFFIX.de[unit]}`;
-}
-
-/**
- * A euro range: "€3m–€5m" or "€500k–€1m" in English; "3–5 Mio. €" in German, or "500 Tsd. € – 1 Mio. €"
- * when its ends differ in scale.
- */
-export function formatEurRange(low, high, lang = "en") {
-  const a = formatEur(low, lang);
-  const b = formatEur(high, lang);
-  if (lang !== "de") return `${a}–${b}`;
-  const unitA = scaled(low).unit;
-  const unitB = scaled(high).unit;
-  if (unitA === unitB && low >= 0) return `${a.slice(0, a.length - SUFFIX.de[unitA].length)}–${b}`;
-  return `${a} – ${b}`;
+export function money(eur, lang = "en") {
+  const v = round9(eur);
+  const sign = v < 0 ? "\u2212" : "";
+  const a = Math.abs(v);
+  let n;
+  let unit;
+  if (a >= 999500) { n = fixed(a / 1e6, 1, lang); unit = "m"; }
+  else if (a >= 999.5) { n = fixed(a / 1e3, 0, lang); unit = "k"; }
+  else { n = fixed(a, 0, lang); unit = ""; }
+  if (lang === "de") {
+    const word = unit === "m" ? `${NBSP}Mio.` : unit === "k" ? `${NBSP}Tsd.` : "";
+    return `${sign}${n}${word}${NBSP}€`;
+  }
+  return `${sign}€${n}${unit}`;
 }

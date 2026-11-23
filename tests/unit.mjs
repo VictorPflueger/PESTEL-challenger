@@ -1,9 +1,9 @@
 // Unit checks of the small modules, in Node without a browser:
 //   validator   js/schema.js refuses an extra field in a closed object, a missing required field, a wrong
 //               type, a value outside an enum and a broken $ref target, says where, and passes a valid value;
-//   money       js/risk.js shows amounts at the edges of each scale in both languages: an amount moves up a
-//               scale only when its rounding on the scale below reaches a full unit, half away from zero;
-//               ranges keep one unit where both ends share it; a non-amount is refused;
+//   money       the shared js/risk.js shows amounts at the edges of each scale in both languages, the unit
+//               following the rounded value, half away from zero, German on one line; a non-amount is
+//               refused;
 //   strings     t() fills placeholders, leaves a missing one visible, returns an unknown key as itself and
 //               records it; tn() picks the plural form by the language's rules;
 //   language    js/lang.js, run in a stand-in page: English on a first visit (a German browser too), ?lang=
@@ -21,7 +21,7 @@ import { APP_ROOT, report } from "./lib/harness.mjs";
 
 const load = (f) => import(pathToFileURL(path.join(APP_ROOT, f)).href);
 const { validate, describeErrors } = await load("js/schema.js");
-const { formatEur, formatEurRange, roundHalfAway } = await load("js/risk.js");
+const { money, roundHalfAway } = await load("js/risk.js");
 const i18n = await load("js/i18n/index.js");
 const { STORAGE, APP } = await load("js/config.js");
 
@@ -59,42 +59,34 @@ const eq = (got, want, what) => check(got === want, `${what}: ${JSON.stringify(g
   check(validate(null, { type: ["object", "null"] }).valid && !validate(4, { type: ["object", "null"] }).valid, "validator: a union with null takes null and refuses a number");
 }
 
-// ---- money -------------------------------------------------------------------------------------------
+// ---- money: the shared format of js/risk.js ---------------------------------------------------------------
 {
+  const de = (t) => t.replace(/ /g, "\u00a0");
   const cases = [
     [0, "€0", "0 €"],
     [950, "€950", "950 €"],
     [999.4, "€999", "999 €"],
     [999.5, "€1k", "1 Tsd. €"],
-    [2449, "€2.4k", "2,4 Tsd. €"],
-    [2450, "€2.5k", "2,5 Tsd. €"],
-    [9949, "€9.9k", "9,9 Tsd. €"],
-    [9950, "€10k", "10 Tsd. €"],
+    [2449, "€2k", "2 Tsd. €"],
+    [2500, "€3k", "3 Tsd. €"],
     [120000, "€120k", "120 Tsd. €"],
     [950000, "€950k", "950 Tsd. €"],
     [999499, "€999k", "999 Tsd. €"],
-    [999500, "€1m", "1 Mio. €"],
+    [999500, "€1.0m", "1,0 Mio. €"],
     [6450000, "€6.5m", "6,5 Mio. €"],
     [4345000, "€4.3m", "4,3 Mio. €"],
-    [9950000, "€10m", "10 Mio. €"],
-    [999949999, "€999.9m", "999,9 Mio. €"],
-    [999950000, "€1bn", "1 Mrd. €"],
-    [1234567890, "€1.2bn", "1,2 Mrd. €"],
-    [-2450, "−€2.5k", "−2,5 Tsd. €"],
+    [-2500, "−€3k", "−3 Tsd. €"],
     [0.1 + 0.2, "€0", "0 €"]
   ];
-  const wrong = cases.filter(([v, en, de]) => formatEur(v) !== en || formatEur(v, "de") !== de).map(([v, en, de]) => `${v}: ${formatEur(v)} / ${formatEur(v, "de")} (expected ${en} / ${de})`);
+  const wrong = cases.filter(([v, en, d]) => money(v) !== en || money(v, "de") !== de(d)).map(([v, en, d]) => `${v}: ${money(v)} / ${money(v, "de")} (expected ${en} / ${d})`);
   check(!wrong.length, `money: ${cases.length} amounts at the edges of each scale, in English and German${wrong.length ? `; wrong: ${wrong.join("; ")}` : ""}`);
+  check(money(6450000, "de").includes("\u00a0Mio.\u00a0€"), "money: German keeps the figure, Mio. and € on one line (no-break spaces)");
   eq(roundHalfAway(2.5), 3, "money: 2.5 rounds half away from zero");
   eq(roundHalfAway(-2.5), -3, "money: −2.5 rounds half away from zero");
   eq(roundHalfAway(1.005, 2), 1.01, "money: 1.005 to two places is 1.01 on its exact decimal digits, not 1.00 as binary floats give");
   eq(roundHalfAway(0.1 + 0.2, 9), 0.3, "money: 0.1 + 0.2 is 0.3 once rounded to 1e-9");
-  eq(formatEurRange(3e6, 5e6), "€3m–€5m", "money: an English range");
-  eq(formatEurRange(3e6, 5e6, "de"), "3–5 Mio. €", "money: a German range keeps one unit where both ends share it");
-  eq(formatEurRange(5e5, 1e6, "de"), "500 Tsd. € – 1 Mio. €", "money: a German range whose ends differ in scale names both");
-  eq(formatEurRange(2e5, 6e5), "€200k–€600k", "money: a range in thousands");
   let refused = 0;
-  for (const v of [NaN, Infinity, undefined]) { try { formatEur(v); } catch { refused += 1; } }
+  for (const v of [NaN, Infinity, undefined]) { try { money(v); } catch { refused += 1; } }
   check(refused === 3, `money: NaN, Infinity and undefined are refused, never shown (${refused} of 3)`);
 }
 

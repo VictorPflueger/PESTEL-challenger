@@ -1,9 +1,10 @@
 // The shared parts of the set of four (brief §4.1) are the same files in every tool that has them: each
-// part this repository holds is compared, byte for byte, with the first sibling checkout beside it that
-// holds it too, in the set's order (the canvas, SWOT, then the Ideator). A part no sibling has yet is
-// skipped and says so; whoever builds a part first, the others copy it unchanged. The tests workflow
-// clones the three siblings beside the app; locally, any checkout of them beside this repository counts.
-// A planted difference proves the comparison can fail.
+// part this repository holds is compared, byte for byte, with every sibling checkout beside it that holds
+// it too. A part no sibling has yet is skipped and says so; the first tool to merge a part is its source,
+// and the others copy it unchanged (this tool took data/kpis.js, js/risk.js and the handoff schema from
+// the SWOT Challenger, REVIEW.md). The SWOT Challenger's parity test follows the same rule. The tests
+// workflow clones the three siblings beside the tool; locally, any checkout of them beside this
+// repository counts. A planted difference proves the comparison can fail.
 // Usage: node tests/parity.mjs
 import { existsSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -14,6 +15,7 @@ import { APP_ROOT } from "./lib/harness.mjs";
 const PARTS = [
   { file: "data/kpis.js", in: "all four" },
   { file: "schemas/strategy-challenge-1.json", in: "all four" },
+  { file: "schemas/strategy-challenge-1.js", in: "the tools that import the handoff schema as a module" },
   { file: "js/risk.js", in: "the three challengers; the Ideator imports its money formats" },
   { file: "js/anthropic.js", in: "all four (the live client)" },
   { file: "js/sse.js", in: "all four (the live client)" },
@@ -47,15 +49,17 @@ function compare(a, b) {
 let compared = 0;
 for (const part of PARTS) {
   const ours = path.join(APP_ROOT, part.file);
-  const owner = checkouts.find((c) => c.dir && existsSync(path.join(c.dir, part.file)));
+  const holders = checkouts.filter((c) => c.dir && existsSync(path.join(c.dir, part.file)));
   if (!existsSync(ours)) {
-    if (owner) notes.push(`${part.file}: ${owner.name} has it and this tool does not yet; copy it unchanged when this tool needs it`);
+    if (holders.length) notes.push(`${part.file}: ${holders.map((c) => c.name).join(" and ")} ${holders.length > 1 ? "have" : "has"} it and this tool does not yet; copy it unchanged when this tool needs it`);
     continue;
   }
-  if (!owner) { notes.push(`${part.file}: no sibling has it yet, so this tool's copy is the one to take (${part.in})`); continue; }
-  const r = compare(readFileSync(ours), readFileSync(path.join(owner.dir, part.file)));
-  compared += 1;
-  check(r.equal, `${part.file} equals ${owner.name}'s${owner.head ? ` (${owner.head})` : ""}${r.equal ? "" : `; first difference at line ${r.line}`}`);
+  if (!holders.length) { notes.push(`${part.file}: no sibling has it yet, so this tool's copy is the one to take (${part.in})`); continue; }
+  for (const owner of holders) {
+    const r = compare(readFileSync(ours), readFileSync(path.join(owner.dir, part.file)));
+    compared += 1;
+    check(r.equal, `${part.file} equals ${owner.name}'s${owner.head ? ` (${owner.head})` : ""}${r.equal ? "" : `; first difference at line ${r.line}`}`);
+  }
 }
 
 // The comparison can fail: a copy of this tool's KPI library with one character changed differs.
@@ -71,5 +75,5 @@ if (failed) {
   console.error(`\n${failed} shared part(s) differ from a sibling. Copy the sibling's file, or agree the change in both.`);
   process.exit(1);
 }
-console.log(`\n${compared} shared part(s) compared with a sibling; the rest wait for one.`);
+console.log(`\n${compared} comparison(s) with a sibling; the parts no sibling has yet wait for one.`);
 console.log("PARITY OK");
