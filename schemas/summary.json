@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/summary.json",
+  "title": "Summary",
+  "description": "The Writer's management summary. Every figure is a placeholder such as {{fact:at_stake}}.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "headline",
+    "situation",
+    "findings",
+    "recommendation",
+    "assumptions"
+  ],
+  "properties": {
+    "headline": {
+      "type": "string"
+    },
+    "situation": {
+      "type": "string"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Exactly three"
+    },
+    "recommendation": {
+      "type": "string"
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Three to five, each one to check"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/requests/responses.json",
+  "title": "Responses",
+  "description": "The Strategist's answer: one or two responses per threat, advantage or monitor per opportunity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "responses"
+  ],
+  "properties": {
+    "responses": {
+      "type": "array",
+      "items": {
+        "$ref": "../response.json"
+      }
+    }
+  }
+}

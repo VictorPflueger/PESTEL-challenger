@@ -1,0 +1,346 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/issue.json",
+  "title": "Issue",
+  "description": "What the Red team found, with its one correction.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "type",
+    "factors",
+    "dimensions",
+    "title",
+    "reason",
+    "evidence",
+    "confidence",
+    "correction"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "I1, I2, …"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "missing",
+        "misrated",
+        "wrong_horizon",
+        "wrong_dimension",
+        "outdated",
+        "cross_impact"
+      ]
+    },
+    "factors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Ids of the factors it concerns"
+    },
+    "dimensions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "political",
+          "economic",
+          "social",
+          "technological",
+          "environmental",
+          "legal"
+        ]
+      }
+    },
+    "title": {
+      "type": "string",
+      "description": "The finding in one line"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Why, in one or two sentences"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs of signals it rests on, exactly as given; empty without research"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "correction": {
+      "type": "object",
+      "description": "The one correction of an issue. Fields that do not apply to its kind are null.",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "factor",
+        "new_factor",
+        "ratings",
+        "dimension",
+        "outdated_reason",
+        "link"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "add_factor",
+            "rerate",
+            "rehorizon",
+            "move",
+            "mark_outdated",
+            "link"
+          ]
+        },
+        "factor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The factor corrected; null for add_factor"
+        },
+        "new_factor": {
+          "anyOf": [
+            {
+              "type": "object",
+              "description": "A factor the Scanner adds. Code checks the text length (90 characters), the count (two to six a dimension) and the ids.",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "dimension",
+                "text",
+                "direction",
+                "likelihood",
+                "impact",
+                "horizon",
+                "readiness",
+                "confidence",
+                "basis",
+                "evidence"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "A new id such as A1, unique in the analysis"
+                },
+                "dimension": {
+                  "type": "string",
+                  "enum": [
+                    "political",
+                    "economic",
+                    "social",
+                    "technological",
+                    "environmental",
+                    "legal"
+                  ]
+                },
+                "text": {
+                  "type": "string",
+                  "description": "The outside force in at most 90 characters, as a manager would say it"
+                },
+                "direction": {
+                  "type": "string",
+                  "enum": [
+                    "threat",
+                    "opportunity"
+                  ]
+                },
+                "likelihood": {
+                  "type": "integer",
+                  "enum": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                  ],
+                  "description": "1 rare to 5 almost certain within the horizon"
+                },
+                "impact": {
+                  "type": "integer",
+                  "enum": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                  ],
+                  "description": "1 negligible to 5 threatens the business model"
+                },
+                "horizon": {
+                  "type": "string",
+                  "enum": [
+                    "now",
+                    "1_3_years",
+                    "later"
+                  ],
+                  "description": "now (12 months), 1_3_years, later (more than 3 years)"
+                },
+                "readiness": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "enum": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    null
+                  ],
+                  "description": "For a threat: 1 unprepared, 2 aware, 3 planned, 4 under way, 5 ready. Null for an opportunity"
+                },
+                "confidence": {
+                  "type": "string",
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                  ]
+                },
+                "basis": {
+                  "type": "string",
+                  "description": "What the rating rests on, in one sentence"
+                },
+                "evidence": {
+                  "type": "array",
+                  "description": "URLs of signals this factor rests on, exactly as the signals gave them; empty without research",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "For add_factor: the missing factor"
+        },
+        "ratings": {
+          "anyOf": [
+            {
+              "type": "object",
+              "description": "New ratings for rerate or rehorizon.",
+              "additionalProperties": false,
+              "required": [
+                "likelihood",
+                "impact",
+                "horizon",
+                "readiness"
+              ],
+              "properties": {
+                "likelihood": {
+                  "type": "integer",
+                  "enum": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                  ]
+                },
+                "impact": {
+                  "type": "integer",
+                  "enum": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                  ]
+                },
+                "horizon": {
+                  "type": "string",
+                  "enum": [
+                    "now",
+                    "1_3_years",
+                    "later"
+                  ]
+                },
+                "readiness": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "enum": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    null
+                  ]
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "dimension": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "political",
+            "economic",
+            "social",
+            "technological",
+            "environmental",
+            "legal",
+            null
+          ],
+          "description": "For move: the dimension the factor belongs under"
+        },
+        "outdated_reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "For mark_outdated: why the factor no longer holds"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "object",
+              "description": "For link: how one factor feeds another.",
+              "additionalProperties": false,
+              "required": [
+                "from",
+                "to",
+                "effect"
+              ],
+              "properties": {
+                "from": {
+                  "type": "string"
+                },
+                "to": {
+                  "type": "string"
+                },
+                "effect": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/audit-event.json",
+  "title": "AuditEvent",
+  "description": "A row of the decision log the report prints: who did what to which factor, issue or response.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "at",
+    "by",
+    "action",
+    "target"
+  ],
+  "properties": {
+    "at": {
+      "type": "string"
+    },
+    "by": {
+      "type": "string",
+      "enum": [
+        "you",
+        "agent"
+      ]
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "kept",
+        "edited",
+        "removed",
+        "undid",
+        "chose",
+        "accepted",
+        "added",
+        "corrected"
+      ]
+    },
+    "target": {
+      "type": "string"
+    },
+    "detail": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

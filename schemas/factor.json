@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/factor.json",
+  "title": "Factor",
+  "description": "A factor as the run keeps it (brief §6.1): what the person entered or the AI added, its ratings and, after Assess, its euro range.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "dimension",
+    "text",
+    "direction",
+    "likelihood",
+    "impact",
+    "horizon",
+    "readiness",
+    "source",
+    "confidence",
+    "basis",
+    "evidence"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,15}$"
+    },
+    "dimension": {
+      "type": "string",
+      "enum": [
+        "political",
+        "economic",
+        "social",
+        "technological",
+        "environmental",
+        "legal"
+      ]
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 90
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "threat",
+        "opportunity"
+      ]
+    },
+    "likelihood": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "impact": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "horizon": {
+      "type": "string",
+      "enum": [
+        "now",
+        "1_3_years",
+        "later"
+      ]
+    },
+    "readiness": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "maximum": 5
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "user",
+        "ai"
+      ]
+    },
+    "confidence": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        null
+      ]
+    },
+    "basis": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "url",
+          "title",
+          "read_on"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "pattern": "^https?://"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "read_on": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    },
+    "outdated": {
+      "type": "boolean"
+    },
+    "outdated_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "eur_year_low": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "eur_year_high": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "not_monetisable": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

@@ -1,0 +1,7 @@
+# Never published: the private term list of tests/hygiene.mjs belongs beside the repository, not in it.
+.hygiene-terms
+# Local tooling and test output.
+node_modules/
+.unlazy/
+.claude/settings.local.json
+.DS_Store

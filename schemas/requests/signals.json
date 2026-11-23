@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/requests/signals.json",
+  "title": "Signals",
+  "description": "The input of the Scout's submit_signals tool: at most eight signals.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "signals"
+  ],
+  "properties": {
+    "signals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "One piece of news the Scout reports.",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "summary",
+          "url",
+          "published",
+          "dimensions"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string",
+            "description": "Two sentences"
+          },
+          "url": {
+            "type": "string",
+            "description": "Exactly as a search result of this request gave it"
+          },
+          "published": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "YYYY-MM-DD when the page says it, else null"
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "political",
+                "economic",
+                "social",
+                "technological",
+                "environmental",
+                "legal"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

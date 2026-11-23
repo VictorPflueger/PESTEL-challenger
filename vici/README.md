@@ -1,0 +1,35 @@
+# Vici, copied into this tool
+
+These files come unchanged from Vici, Victor Pflüger's design system
+(<https://victorpflueger.github.io/ViciDesign/index.html>), from its main branch at commit **`6580c06`**
+(`6580c0615eed7dc33adb130d91044e56f2fb57fd`, 23 November 2026), version v1.0.0 on the way to Vici 2.0.
+That commit holds the two patterns this tool added to Vici first, the rule that nothing a person enters
+is kept (ViciDesign#24) and the blank starter under a strict security policy with `vici-theme.js`
+(ViciDesign#25), and the framework view and the risk matrix the SWOT Challenger added since
+(ViciDesign#26 and #27), which this tool uses from version 0.2.0. The tool loads these files from here rather than from a CDN, so every page is served
+from this site alone.
+
+| File here | What it is |
+|---|---|
+| `dist/vici.min.css` | Vici's stylesheet: tokens, light and dark theme, components, icons |
+| `dist/vici.js` | Vici's small script: theme toggle, tooltips, the guide and the behaviours of its components |
+| `dist/vici-theme.js` | Applies the remembered theme before the first paint, without an inline script |
+| `dist/tokens.json` | Vici's token values, light and dark, for scripts and tests (the colour checks read it) |
+| `assets/fonts/*.woff2` | Bricolage Grotesque, Inter, JetBrains Mono and Vici Mask, as the stylesheet expects them |
+| `assets/fonts/OFL-*.txt` | The SIL Open Font License of each font family |
+| `assets/marks/linkedin.png` | LinkedIn's [in] logo, as LinkedIn publishes it |
+| `assets/marks/README.md` | Where the marks come from and how they may be used (it also names marks this copy leaves out) |
+| `assets/brand/portrait-96.jpg` | Victor's portrait, 96 × 96 px, for the byline |
+| `LICENSE` | Vici's licence |
+
+Keep the folder structure: the stylesheet finds the fonts at `../assets/fonts/`. Never edit these
+files; a fix belongs in Vici and comes here with its next commit.
+
+**Licence.** `LICENSE` covers all of it: Vici's code and its Vici Mask font are MIT-licensed;
+Bricolage Grotesque, Inter and JetBrains Mono are under the SIL Open Font License; Victor Pflüger's
+name, portrait and logo are reserved for his own use; LinkedIn's logo belongs to LinkedIn.
+
+**Updating.** Copy the same files from a newer Vici main (its `dist/` and `assets/` folders, and
+`LICENSE`) over these, and change the commit above and the one the tests workflow checks out.
+`tests/vici-files.mjs` then compares every file with that commit. Run the tests and look at the tool in
+light and dark: a new commit may rename a class or change a token.

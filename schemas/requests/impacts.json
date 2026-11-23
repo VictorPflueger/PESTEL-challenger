@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/requests/impacts.json",
+  "title": "Impacts",
+  "description": "The Analyst's answer: an impact for every factor.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "impacts"
+  ],
+  "properties": {
+    "impacts": {
+      "type": "array",
+      "items": {
+        "$ref": "../impact.json"
+      }
+    }
+  }
+}

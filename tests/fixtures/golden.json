@@ -1,0 +1,55 @@
+{
+  "about": "The golden cases of brief §11, written before the engine. Exact values are fractions as text (\"1125/16\"); tests/engine.mjs compares the engine with them within 1e-9 and every display string in both languages. PLAN.md section 7 recomputed them with exact fractions on 23 November 2026. Money shows in the shared format of js/risk.js (SWOT Challenger 0.1.0, 617b122): German puts no-break spaces before Mio., Tsd. and €, which the brief writes as plain spaces. Euro ranges show from 0.2.0 with the factor view and get their cases then.",
+  "P0": [
+    { "impact": 2, "likelihood": 2, "score": 4, "band": "low" },
+    { "impact": 1, "likelihood": 5, "score": 5, "band": "medium" },
+    { "impact": 3, "likelihood": 3, "score": 9, "band": "medium" },
+    { "impact": 2, "likelihood": 5, "score": 10, "band": "high" },
+    { "impact": 3, "likelihood": 5, "score": 15, "band": "high" },
+    { "impact": 4, "likelihood": 4, "score": 16, "band": "critical" }
+  ],
+  "P1": {
+    "factors": [
+      { "id": "F1", "dimension": "legal", "direction": "threat", "impact": 5, "likelihood": 4, "readiness": 2, "eur_year_low": 3000000, "eur_year_high": 5000000 },
+      { "id": "F2", "dimension": "economic", "direction": "threat", "impact": 4, "likelihood": 3, "readiness": 3, "eur_year_low": 1000000, "eur_year_high": 2000000 },
+      { "id": "F3", "dimension": "political", "direction": "threat", "impact": 3, "likelihood": 2, "readiness": 1, "eur_year_low": 200000, "eur_year_high": 600000 },
+      { "id": "F4", "dimension": "environmental", "direction": "threat", "impact": 4, "likelihood": 5, "readiness": 4, "eur_year_low": 2000000, "eur_year_high": 4000000 },
+      { "id": "F5", "dimension": "technological", "direction": "threat", "impact": 2, "likelihood": 3, "readiness": 5, "eur_year_low": 100000, "eur_year_high": 300000 }
+    ],
+    "decisions": [
+      { "factor": "F1", "kind": "mitigate", "readiness": 4, "residual": { "likelihood": 4, "eur_year_low": 1000000, "eur_year_high": 2000000 } },
+      { "factor": "F2", "kind": "mitigate", "readiness": 4, "residual": { "likelihood": 3, "eur_year_low": 500000, "eur_year_high": 1000000 } },
+      { "factor": "F3", "kind": "monitor" },
+      { "factor": "F4", "kind": "accept" },
+      { "factor": "F5", "kind": "accept" }
+    ],
+    "expected": {
+      "risk": { "F1": 20, "F2": 12, "F3": 6, "F4": 20, "F5": 6 },
+      "band": { "F1": "critical", "F2": "high", "F3": "medium", "F4": "critical", "F5": "medium" },
+      "factor_expected": { "F1": "2800000", "F2": "750000", "F3": "120000", "F4": "2700000", "F5": "100000" },
+      "before": { "sum_risk": "64", "sum_risk_gap": "32", "readiness": "50", "pressure": ["economic", "legal", "political"], "at_stake": "6470000" },
+      "after": { "sum_risk": "64", "sum_risk_gap": "19", "readiness": "1125/16", "pressure": ["political"], "at_stake": "4345000" },
+      "watch": ["F3"],
+      "display": {
+        "en": {
+          "at_stake": "€6.5m", "left": "€4.3m", "readiness.before": "50", "readiness.after": "70",
+          "pressure.before": "3 of 6", "pressure.after": "1 of 6",
+          "factor.F1.expected": "€2.8m", "factor.F2.expected": "€750k", "factor.F3.expected": "€120k", "factor.F4.expected": "€2.7m", "factor.F5.expected": "€100k"
+        },
+        "de": {
+          "at_stake": "6,5\u00a0Mio.\u00a0€", "left": "4,3\u00a0Mio.\u00a0€", "readiness.before": "50", "readiness.after": "70",
+          "pressure.before": "3 von 6", "pressure.after": "1 von 6",
+          "factor.F1.expected": "2,8\u00a0Mio.\u00a0€", "factor.F2.expected": "750\u00a0Tsd.\u00a0€", "factor.F3.expected": "120\u00a0Tsd.\u00a0€", "factor.F4.expected": "2,7\u00a0Mio.\u00a0€", "factor.F5.expected": "100\u00a0Tsd.\u00a0€"
+        }
+      }
+    }
+  },
+  "P2": {
+    "from": "P1, before the decision",
+    "outdated": ["F5"],
+    "expected": {
+      "sum_risk": "58", "sum_risk_gap": "32", "readiness": "1300/29", "at_stake": "6370000",
+      "display": { "en": { "readiness.before": "45", "at_stake": "€6.4m" }, "de": { "readiness.before": "45", "at_stake": "6,4\u00a0Mio.\u00a0€" } }
+    }
+  }
+}
