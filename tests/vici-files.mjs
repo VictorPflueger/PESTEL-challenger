@@ -62,18 +62,22 @@ if (checkout && commit) {
   try { git(["cat-file", "-e", `${commit}^{commit}`]); known = true; } catch { /* a shallow or older checkout */ }
 }
 if (known) {
-  const theirs = (f) => { try { return git(["show", `${commit}:${f}`]); } catch { return null; } };
+  const show = (ref, f) => { try { return git(["show", `${ref}:${f}`]); } catch { return null; } };
+  const theirs = (f) => show(commit, f);
+  theirs.at = show;
   const changed = present.filter((f) => f !== "README.md").filter((f) => {
     const t = theirs(f);
     return !t || !t.equals(readFileSync(path.join(VICI, f)));
   });
   check(!changed.length, `every file is unchanged from ViciDesign ${commit.slice(0, 7)} (${path.relative(APP_ROOT, checkout)})${changed.length ? `; changed or not in Vici: ${changed.join(", ")}` : ` (${present.length - 1} files)`}`);
-  // The comparison can fail: the stylesheet with one byte changed, and the theme script as it stood before
-  // the commit that added it, are both refused.
+  // The comparison can fail: the stylesheet with one byte changed is refused, and so is the stylesheet as
+  // it stood at its previous change in Vici's history.
   const original = theirs("dist/vici.min.css");
   const altered = Buffer.from(original); altered[altered.length - 2] ^= 1;
-  const before = (() => { try { return git(["show", `${commit}~1:dist/vici-theme.js`]); } catch { return null; } })();
-  check(!altered.equals(original) && !(before && before.equals(readFileSync(path.join(VICI, "dist/vici-theme.js")))), "control: a copy with one byte changed, and a file from another commit, are refused");
+  const changes = git(["log", "--format=%H", commit, "--", "dist/vici.min.css"], "utf8").trim().split("\n");
+  const previous = changes[1] ? theirs.at(changes[1], "dist/vici.min.css") : null;
+  const ours = readFileSync(path.join(VICI, "dist/vici.min.css"));
+  check(!altered.equals(ours) && previous && !previous.equals(ours), `control: a copy with one byte changed, and the stylesheet of ${changes[1]?.slice(0, 7) || "an earlier commit"}, are refused`);
 } else if (REQUIRE_VICI) {
   check(false, checkout ? `the ViciDesign checkout (${checkout}) does not hold commit ${commit}` : "no ViciDesign checkout next to this repository, and --require-vici asks for one");
 } else {
