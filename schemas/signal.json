@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/signal.json",
+  "title": "Signal",
+  "description": "A dated piece of news the Scout found, as the run keeps it: the URL came from the request's own search results.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "title",
+    "summary",
+    "url",
+    "published",
+    "dimensions",
+    "read_on"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "url": {
+      "type": "string",
+      "pattern": "^https?://"
+    },
+    "published": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    },
+    "dimensions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "enum": [
+          "political",
+          "economic",
+          "social",
+          "technological",
+          "environmental",
+          "legal"
+        ]
+      }
+    },
+    "read_on": {
+      "type": "string",
+      "format": "date"
+    }
+  }
+}

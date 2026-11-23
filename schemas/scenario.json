@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/scenario.json",
+  "title": "Scenario",
+  "description": "A recorded run (brief §7): what the team entered, every agent's answer in both languages, the recorded choices and the frozen figures the checker compares.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "as_of",
+    "source",
+    "company",
+    "texts",
+    "team",
+    "answers",
+    "choices",
+    "frozen"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "enum": [
+        "s1",
+        "s2",
+        "s3"
+      ]
+    },
+    "as_of": {
+      "type": "string",
+      "format": "date"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "authored",
+        "recorded"
+      ]
+    },
+    "company": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "sector",
+        "country",
+        "fictional"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "sector": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "fictional": {
+          "const": true
+        }
+      }
+    },
+    "texts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "en",
+        "de"
+      ],
+      "properties": {
+        "en": {
+          "type": "object"
+        },
+        "de": {
+          "type": "object"
+        }
+      }
+    },
+    "team": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "research": {
+      "type": "boolean"
+    },
+    "answers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scanner",
+        "red_team",
+        "analyst",
+        "strategist",
+        "writer"
+      ],
+      "properties": {
+        "scout": {
+          "type": "object"
+        },
+        "scanner": {
+          "type": "object"
+        },
+        "red_team": {
+          "type": "object"
+        },
+        "analyst": {
+          "type": "object"
+        },
+        "strategist": {
+          "type": "object"
+        },
+        "writer": {
+          "type": "object"
+        }
+      }
+    },
+    "choices": {
+      "type": "array",
+      "items": {
+        "$ref": "decision.json"
+      }
+    },
+    "frozen": {
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/requests/scan.json",
+  "title": "Scan",
+  "description": "The Scanner's answer: new factors, ratings for the person's unrated factors, and the sector when the person left it to the agents.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sector",
+    "factors",
+    "ratings"
+  ],
+  "properties": {
+    "sector": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "A sector id of the KPI library when the person left the sector open, else null"
+    },
+    "factors": {
+      "type": "array",
+      "items": {
+        "$ref": "../factor-new.json"
+      }
+    },
+    "ratings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "Ratings for a factor the person entered without them. The person's text is never changed.",
+        "additionalProperties": false,
+        "required": [
+          "factor",
+          "direction",
+          "likelihood",
+          "impact",
+          "horizon",
+          "readiness",
+          "confidence",
+          "basis"
+        ],
+        "properties": {
+          "factor": {
+            "type": "string",
+            "description": "The id of the person's factor"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "threat",
+              "opportunity"
+            ]
+          },
+          "likelihood": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          "impact": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          "horizon": {
+            "type": "string",
+            "enum": [
+              "now",
+              "1_3_years",
+              "later"
+            ]
+          },
+          "readiness": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "enum": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              null
+            ]
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "basis": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

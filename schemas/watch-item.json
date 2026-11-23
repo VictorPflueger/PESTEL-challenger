@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/watch-item.json",
+  "title": "WatchItem",
+  "description": "A row of the watch list: code builds one from every chosen monitor response (brief §6.6).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "factor",
+    "signal",
+    "trigger",
+    "where",
+    "how_often"
+  ],
+  "properties": {
+    "factor": {
+      "type": "string"
+    },
+    "signal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "trigger": {
+      "type": "string",
+      "minLength": 1
+    },
+    "where": {
+      "type": "string",
+      "minLength": 1
+    },
+    "how_often": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

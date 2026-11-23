@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/response.json",
+  "title": "Response",
+  "description": "One way to respond to a factor. The fields of the other kinds are null.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "factor",
+    "kind",
+    "title",
+    "first_step",
+    "owner",
+    "effort",
+    "time_to_impact",
+    "recommended",
+    "mitigate",
+    "advantage",
+    "monitor"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "R1, R2, …"
+    },
+    "factor": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "mitigate",
+        "advantage",
+        "monitor"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "first_step": {
+      "type": "string",
+      "description": "A step a manager can start this quarter"
+    },
+    "owner": {
+      "type": "string",
+      "description": "A function, never a person's name"
+    },
+    "effort": {
+      "type": "string",
+      "enum": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    "time_to_impact": {
+      "type": "string",
+      "enum": [
+        "0-3 months",
+        "3-6 months",
+        "6-12 months",
+        "12+ months"
+      ]
+    },
+    "recommended": {
+      "type": "boolean",
+      "description": "Exactly one recommended response per factor"
+    },
+    "mitigate": {
+      "anyOf": [
+        {
+          "type": "object",
+          "description": "For mitigate: the readiness reached and what is left.",
+          "additionalProperties": false,
+          "required": [
+            "readiness",
+            "residual_likelihood",
+            "residual_eur_year_low",
+            "residual_eur_year_high"
+          ],
+          "properties": {
+            "readiness": {
+              "type": "integer",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ]
+            },
+            "residual_likelihood": {
+              "type": "integer",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ]
+            },
+            "residual_eur_year_low": {
+              "type": "number"
+            },
+            "residual_eur_year_high": {
+              "type": "number"
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "advantage": {
+      "anyOf": [
+        {
+          "type": "object",
+          "description": "For advantage: the upside a year.",
+          "additionalProperties": false,
+          "required": [
+            "eur_year_low",
+            "eur_year_high",
+            "likelihood"
+          ],
+          "properties": {
+            "eur_year_low": {
+              "type": "number"
+            },
+            "eur_year_high": {
+              "type": "number"
+            },
+            "likelihood": {
+              "type": "integer",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ]
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "monitor": {
+      "anyOf": [
+        {
+          "type": "object",
+          "description": "For monitor: what to watch and when to act.",
+          "additionalProperties": false,
+          "required": [
+            "signal",
+            "trigger",
+            "where",
+            "how_often"
+          ],
+          "properties": {
+            "signal": {
+              "type": "string"
+            },
+            "trigger": {
+              "type": "string"
+            },
+            "where": {
+              "type": "string"
+            },
+            "how_often": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  }
+}

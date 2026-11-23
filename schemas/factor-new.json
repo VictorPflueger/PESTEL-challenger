@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/factor-new.json",
+  "title": "NewFactor",
+  "description": "A factor the Scanner adds. Code checks the text length (90 characters), the count (two to six a dimension) and the ids.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "dimension",
+    "text",
+    "direction",
+    "likelihood",
+    "impact",
+    "horizon",
+    "readiness",
+    "confidence",
+    "basis",
+    "evidence"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "A new id such as A1, unique in the analysis"
+    },
+    "dimension": {
+      "type": "string",
+      "enum": [
+        "political",
+        "economic",
+        "social",
+        "technological",
+        "environmental",
+        "legal"
+      ]
+    },
+    "text": {
+      "type": "string",
+      "description": "The outside force in at most 90 characters, as a manager would say it"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "threat",
+        "opportunity"
+      ]
+    },
+    "likelihood": {
+      "type": "integer",
+      "enum": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "description": "1 rare to 5 almost certain within the horizon"
+    },
+    "impact": {
+      "type": "integer",
+      "enum": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "description": "1 negligible to 5 threatens the business model"
+    },
+    "horizon": {
+      "type": "string",
+      "enum": [
+        "now",
+        "1_3_years",
+        "later"
+      ],
+      "description": "now (12 months), 1_3_years, later (more than 3 years)"
+    },
+    "readiness": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "enum": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        null
+      ],
+      "description": "For a threat: 1 unprepared, 2 aware, 3 planned, 4 under way, 5 ready. Null for an opportunity"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "basis": {
+      "type": "string",
+      "description": "What the rating rests on, in one sentence"
+    },
+    "evidence": {
+      "type": "array",
+      "description": "URLs of signals this factor rests on, exactly as the signals gave them; empty without research",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

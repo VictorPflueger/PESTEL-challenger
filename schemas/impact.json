@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/impact.json",
+  "title": "Impact",
+  "description": "The Analyst's estimate for one factor: KPI effects and euros a year, or why it has no euro figure.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "factor",
+    "kpis",
+    "eur_year_low",
+    "eur_year_high",
+    "not_monetisable",
+    "upside",
+    "basis",
+    "confidence"
+  ],
+  "properties": {
+    "factor": {
+      "type": "string"
+    },
+    "kpis": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "The effect of a threat on one KPI of the sector.",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "new_kpi",
+          "change_low",
+          "change_high",
+          "unit",
+          "direction",
+          "basis"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "A KPI id from the library given, such as energy_utilities.customer_churn"
+          },
+          "new_kpi": {
+            "anyOf": [
+              {
+                "type": "object",
+                "description": "A KPI outside the library, shown as new.",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "unit",
+                  "better",
+                  "definition"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "unit": {
+                    "type": "string"
+                  },
+                  "better": {
+                    "type": "string",
+                    "enum": [
+                      "higher",
+                      "lower"
+                    ]
+                  },
+                  "definition": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "change_low": {
+            "type": "number"
+          },
+          "change_high": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "description": "The unit of the change, such as percentage points or EUR per container"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "up",
+              "down"
+            ]
+          },
+          "basis": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "One to three for a threat"
+    },
+    "eur_year_low": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Euros a year at the low end; null when not monetisable or for an opportunity"
+    },
+    "eur_year_high": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "not_monetisable": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Why no euro figure is honest here; null when there is one"
+    },
+    "upside": {
+      "anyOf": [
+        {
+          "type": "object",
+          "description": "For an opportunity: the upside a year.",
+          "additionalProperties": false,
+          "required": [
+            "eur_year_low",
+            "eur_year_high",
+            "likelihood"
+          ],
+          "properties": {
+            "eur_year_low": {
+              "type": "number"
+            },
+            "eur_year_high": {
+              "type": "number"
+            },
+            "likelihood": {
+              "type": "integer",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ]
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "basis": {
+      "type": "string",
+      "description": "What the figures rest on, such as the company's size times a sector rate"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    }
+  }
+}

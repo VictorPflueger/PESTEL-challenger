@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/run-event.json",
+  "title": "RunEvent",
+  "description": "An event on the run's bus: a step starts or ends, an agent answers, a check refuses, the person acts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "at",
+    "step"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "step_start",
+        "step_end",
+        "agent_answer",
+        "repair",
+        "refused",
+        "person",
+        "cost",
+        "stopped",
+        "error"
+      ]
+    },
+    "at": {
+      "type": "string"
+    },
+    "step": {
+      "type": "string",
+      "enum": [
+        "start",
+        "scan",
+        "challenge",
+        "assess",
+        "respond",
+        "summary"
+      ]
+    },
+    "agent": {
+      "type": "string",
+      "enum": [
+        "scout",
+        "scanner",
+        "red_team",
+        "analyst",
+        "strategist",
+        "writer"
+      ]
+    },
+    "text": {
+      "type": "string"
+    },
+    "detail": {
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,72 @@
+# Runs every suite on every push and pull request. The tool has no build step and no dependencies;
+# Playwright is installed here only for the browser suites (TECH_NOTES.md section 7). ViciDesign is checked
+# out next to the tool at the commit vici/ was copied from, so the suites run Vici's own checks and compare
+# vici/ with it byte for byte. The website and the three sibling tools are cloned beside it too, for the
+# page-icon and parity suites; a clone that fails leaves those parts skipped, and the suites say so.
+# Adapted from the Sovereignty Assessment 2.0.0 (35c0dea): this tool's checkouts and output folder.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+# A newer push to the same branch or pull request cancels the run still in progress.
+concurrency:
+  group: tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Engine, contracts, Vici's checks, documents, and the page in Chromium
+    # Pinned image: Playwright 1.56's system dependencies are known to install on Ubuntu 24.04.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: app
+      - uses: actions/checkout@v4
+        with:
+          repository: VictorPflueger/ViciDesign
+          ref: eaebdca51b747f275feafd5e6d0dcaf5c7420713
+          path: ViciDesign
+          fetch-depth: 0
+      # Beside the tool: Victor's website (the page icon), the three siblings (the shared parts) and the
+      # prototypes this tool copied files from (REVIEW.md, compared at the commits it names).
+      - name: Clone the website, the siblings and the sources
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          for repo in VIP BMC-challenger SWOT-challenger PrototypeIdeator; do
+            git clone -q --depth 1 "https://github.com/VictorPflueger/$repo" || echo "::warning title=clone::$repo could not be cloned"
+          done
+          for repo in sovereigntyassessment PROC-data-quality dutyradar; do
+            git clone -q --filter=blob:none "https://github.com/VictorPflueger/$repo" || echo "::warning title=clone::$repo could not be cloned"
+          done
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Cache the Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-1.56.0-chromium-${{ runner.os }}
+      - run: npm install -g playwright@1.56.0 && npx playwright install --with-deps chromium
+      # The hygiene check reads its private term list from the HYGIENE_TERMS secret if the repository has
+      # one; without it only the generic checks run and it prints HYGIENE GENERIC OK (tests/hygiene.mjs).
+      - name: All suites
+        working-directory: app
+        run: NODE_PATH="$(npm root -g)" node tests/run-all.mjs --require-vici
+        env:
+          HYGIENE_TERMS: ${{ secrets.HYGIENE_TERMS }}
+          PESTEL_TEST_OUT: ${{ runner.temp }}/pestel-challenger-tests
+      # The layout suite's screenshots (both sizes, themes and languages), and anything a failed suite saved.
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-screenshots
+          path: ${{ runner.temp }}/pestel-challenger-tests
+          retention-days: 14
+          if-no-files-found: ignore

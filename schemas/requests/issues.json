@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://victorpflueger.github.io/PESTEL-challenger/schemas/requests/issues.json",
+  "title": "Issues",
+  "description": "The Red team's answer: up to eight issues, the strongest first.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "issues"
+  ],
+  "properties": {
+    "issues": {
+      "type": "array",
+      "items": {
+        "$ref": "../issue.json"
+      }
+    }
+  }
+}

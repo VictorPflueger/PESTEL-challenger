@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en-GB" data-vc-theme-default="light">
+<head>
+  <meta charset="utf-8">
+  <!-- The frame is adapted from the Data Quality Agent 2.2.0 (831f050): the header, the key figures, the strip
+       with the sentence and the byline, and the guides. Everything inside the frame is this tool's own. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The browser enforces where this page may connect: an API key can only ever reach api.anthropic.com,
+       the one outside host. Scripts, styles, fonts and images come from this site only, and no inline
+       script or style runs. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src https://api.anthropic.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="AI agents complete a PESTEL analysis, challenge it, put a figure on each outside force and propose what to do or watch. Fictional companies in the simulation; your company and your Claude key in a live run.">
+  <title>PESTEL Challenger: outside forces, put to the test</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="vici/dist/vici.min.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script src="vici/dist/vici-theme.js"></script>
+  <script src="vici/dist/vici.js" defer></script>
+  <script type="module" src="js/main.js"></script>
+</head>
+<body class="app-shell">
+  <a class="vc-skip-link" href="#stage" data-i18n="p.skip">Skip to the first screen</a>
+
+  <header class="app-header">
+    <div class="brand">
+      <span class="vc-cell vc-cell--lilac" aria-hidden="true"><span class="vc-icon vc-icon--radar"></span></span>
+      <span class="brand-name">PESTEL Challenger</span>
+    </div>
+    <div class="header-actions">
+      <span class="vc-tooltip-anchor">
+        <span class="vc-tag vc-tag--lg mode-tag" id="mode-tag" data-mode="simulation" tabindex="0" aria-describedby="tip-mode"><span data-i18n="p.mode.sim">SIMULATION</span></span>
+        <span class="vc-tooltip vc-tooltip--bottom" role="tooltip" id="tip-mode" data-i18n="p.mode.tip">Simulation: recorded runs of the agents, played without a key. They arrive in version 0.2.0; a live run on your own key follows in 0.3.0.</span>
+      </span>
+      <button type="button" class="vc-button vc-button--secondary guide-open" data-vc-guide-open="guide-en" lang="en"><span class="vc-icon vc-icon--info" aria-hidden="true"></span>How it works</button>
+      <button type="button" class="vc-button vc-button--secondary guide-open" data-vc-guide-open="guide-de" lang="de" hidden><span class="vc-icon vc-icon--info" aria-hidden="true"></span>So funktioniert's</button>
+      <span class="vc-tooltip-anchor">
+        <button type="button" class="vc-icon-button" data-vc-theme-toggle aria-labelledby="tip-theme"><span class="vc-icon vc-icon--moon vc-when-light" aria-hidden="true"></span><span class="vc-icon vc-icon--sun vc-when-dark" aria-hidden="true"></span></button>
+        <span class="vc-tooltip vc-tooltip--bottom" role="tooltip" id="tip-theme" data-i18n="p.theme">Dark or light theme</span>
+      </span>
+      <div class="vc-button-group lang-switch" role="group" aria-label="Language" data-i18n-attr="aria-label:p.lang">
+        <button type="button" class="vc-button vc-button--secondary lang-option" data-lang="en" lang="en" title="English" aria-pressed="true">EN</button>
+        <button type="button" class="vc-button vc-button--secondary lang-option" data-lang="de" lang="de" title="Deutsch" aria-pressed="false">DE</button>
+      </div>
+    </div>
+
+    <!-- The four key figures. data-vc-kpi names each in English, data-vc-kpi-de in German; each guide
+         explains them in a row of its How it works chapter. They answer first: from version 0.2.0 a
+         scenario shows its figures before it plays. Version 0.1.0 has no run yet, so each says what it
+         waits for. -->
+    <section class="kpis" aria-label="Key figures" data-i18n-attr="aria-label:p.kpis">
+      <article class="vc-stat kpi" id="kpi-stake" data-vc-kpi="At stake a year" data-vc-kpi-de="Auf dem Spiel pro Jahr" data-state="waiting">
+        <p class="vc-stat__label" data-i18n="kpi.atStake">At stake a year</p>
+        <p class="vc-stat__value"><s class="vc-stat__was kpi-was" hidden></s><span class="kpi-value" data-i18n="kpi.wait">…</span></p>
+        <p class="vc-stat__note kpi-note" data-i18n="kpi.note.version">from version 0.2.0</p>
+      </article>
+      <article class="vc-stat kpi" id="kpi-pressure" data-vc-kpi="Dimensions under pressure" data-vc-kpi-de="Dimensionen unter Druck" data-state="waiting">
+        <p class="vc-stat__label" data-i18n="kpi.pressure">Dimensions under pressure</p>
+        <p class="vc-stat__value"><s class="vc-stat__was kpi-was" hidden></s><span class="kpi-value" data-i18n="kpi.wait">…</span></p>
+        <p class="vc-stat__note kpi-note" data-i18n="kpi.note.version">from version 0.2.0</p>
+      </article>
+      <article class="vc-stat kpi" id="kpi-readiness" data-vc-kpi="Readiness" data-vc-kpi-de="Vorbereitungsgrad" data-state="waiting">
+        <p class="vc-stat__label" data-i18n="kpi.readiness">Readiness</p>
+        <p class="vc-stat__value"><s class="vc-stat__was kpi-was" hidden></s><span class="kpi-value" data-i18n="kpi.wait">…</span></p>
+        <p class="vc-stat__note kpi-note" data-i18n="kpi.note.version">from version 0.2.0</p>
+      </article>
+      <article class="vc-stat kpi" id="kpi-cost" data-vc-kpi="Session cost" data-vc-kpi-de="Sitzungskosten" data-state="waiting">
+        <p class="vc-stat__label" data-i18n="kpi.cost">Session cost</p>
+        <p class="vc-stat__value"><s class="vc-stat__was kpi-was" hidden></s><span class="kpi-value" data-i18n="kpi.wait">…</span></p>
+        <p class="vc-stat__note kpi-note" data-i18n="kpi.note.version">from version 0.2.0</p>
+      </article>
+    </section>
+  </header>
+
+  <div class="intro">
+    <p class="intro-text" data-i18n="intro.sentence">AI agents complete a PESTEL analysis, challenge it, put a figure on each outside force and propose what to do or watch. The simulation uses fictional companies; a live run uses your company and your Claude key.</p>
+    <p class="vc-byline">
+      <span class="vc-byline__label" data-i18n="byline.label">Built by</span>
+      <a class="vc-byline__person" href="https://www.linkedin.com/in/victorpflueger" rel="author noopener" target="_blank">
+        <span class="vc-avatar vc-avatar--xs"><img src="vici/assets/brand/portrait-96.jpg" alt="" width="96" height="96"></span>
+        <span class="vc-byline__name">Victor Pflüger</span>
+        <img class="vc-platform-mark" src="vici/assets/marks/linkedin.png" alt="" width="840" height="779">
+        <span class="vc-visually-hidden" data-i18n="byline.linkedin"> on LinkedIn (opens in a new tab)</span>
+      </a>
+      <span class="vc-tooltip-anchor">
+        <a class="vc-byline__icon" href="https://victorpflueger.github.io/VIP/index.html" rel="author noopener" target="_blank" aria-label="Victor Pflüger's website (opens in a new tab)" data-i18n-attr="aria-label:byline.site"><span class="vc-icon vc-icon--globe-hex" aria-hidden="true"></span></a>
+        <span class="vc-tooltip vc-tooltip--bottom" aria-hidden="true" data-i18n="byline.siteTip">Website</span>
+      </span>
+    </p>
+  </div>
+
+  <p class="vc-visually-hidden" id="announce" aria-live="polite"></p>
+
+  <main id="stage" class="stage" tabindex="-1">
+    <section class="story" aria-labelledby="start-title">
+      <h1 class="story-title" id="start-title" data-i18n="start.title">Six outside forces, put to the test</h1>
+      <p class="story-lead" data-i18n="start.lead">PESTEL looks at a company from the outside, in six dimensions. Each asks a question; the agents answer it, rate what they find and put a figure on every threat.</p>
+      <div class="version-note">
+        <span class="vc-cell vc-cell--sm" aria-hidden="true"><span class="vc-icon vc-icon--info"></span></span>
+        <p><strong class="version-title" data-i18n="start.version.title">Version 0.1.0 holds the method and the engine that computes its figures.</strong> <span data-i18n="start.version.text">The three scenarios play without a key from version 0.2.0. A live run on your company with your own Claude API key follows in 0.3.0, and the report as a PDF in 0.4.0.</span></p>
+      </div>
+    </section>
+    <section class="dims" aria-labelledby="dims-title">
+      <h2 class="vc-visually-hidden" id="dims-title" data-i18n="start.dims">The six dimensions of PESTEL</h2>
+      <ol class="dim-list">
+        <li class="dim" data-dim="political"><span class="vc-cell dim-letter" aria-hidden="true">P</span><span class="dim-text"><span class="dim-name" data-i18n="dim.political">Political</span><span class="dim-q" data-i18n="dim.political.q">Which government decisions and political events could affect us?</span></span></li>
+        <li class="dim" data-dim="economic"><span class="vc-cell dim-letter" aria-hidden="true">E</span><span class="dim-text"><span class="dim-name" data-i18n="dim.economic">Economic</span><span class="dim-q" data-i18n="dim.economic.q">Which shifts in growth, rates, prices or currencies could affect us?</span></span></li>
+        <li class="dim" data-dim="social"><span class="vc-cell dim-letter" aria-hidden="true">S</span><span class="dim-text"><span class="dim-name" data-i18n="dim.social">Social</span><span class="dim-q" data-i18n="dim.social.q">Which changes in society, demography and attitudes could affect us?</span></span></li>
+        <li class="dim" data-dim="technological"><span class="vc-cell dim-letter" aria-hidden="true">T</span><span class="dim-text"><span class="dim-name" data-i18n="dim.technological">Technological</span><span class="dim-q" data-i18n="dim.technological.q">Which technologies could change our market or our operations?</span></span></li>
+        <li class="dim" data-dim="environmental"><span class="vc-cell dim-letter" aria-hidden="true">E</span><span class="dim-text"><span class="dim-name" data-i18n="dim.environmental">Environmental</span><span class="dim-q" data-i18n="dim.environmental.q">Which environmental changes and expectations could affect us?</span></span></li>
+        <li class="dim" data-dim="legal"><span class="vc-cell dim-letter" aria-hidden="true">L</span><span class="dim-text"><span class="dim-name" data-i18n="dim.legal">Legal</span><span class="dim-q" data-i18n="dim.legal.q">Which laws, rules and rulings could affect us?</span></span></li>
+      </ol>
+    </section>
+  </main>
+
+  <!-- How it works: one guide per language. js/lang.js leaves data-vc-guide-auto only on the guide in the
+       page's language, so vici.js opens that one by itself once per tab. -->
+  <dialog class="vc-dialog vc-guide" id="guide-en" lang="en-GB" aria-labelledby="guide-en-title" data-vc-guide data-vc-guide-auto data-vc-guide-count="{n} of {total}" data-vc-guide-rail="Chapters">
+    <header class="vc-dialog__header">
+      <h2 class="vc-dialog__title" id="guide-en-title">How the prototype works</h2>
+      <button type="button" class="vc-icon-button" data-vc-close aria-label="Close"><span class="vc-icon vc-icon--close" aria-hidden="true"></span></button>
+    </header>
+    <div class="vc-guide__chapters">
+      <section class="vc-guide__chapter" data-vc-chapter="what" data-vc-nav="What it does">
+        <h3>Which outside forces a company isn't ready for</h3>
+        <p class="vc-guide__lead">Name a company and list the outside forces you see under six headings. AI agents complete them, challenge the analysis, put a figure on each threat and propose what to do or watch.</p>
+        <p>The six headings are political, economic, social, technological, environmental and legal: PESTEL. The run ends with a management summary and a watch list, which you download as a PDF, as an HTML file and as a file for the Prototype Ideator. On your own Claude key a run takes minutes and stops at the budget cap you set.</p>
+      </section>
+      <section class="vc-guide__chapter" data-vc-chapter="how" data-vc-nav="How it works">
+        <h3>Five agents, and code that does the sums</h3>
+        <p class="vc-guide__lead">The Scanner, Red team, Analyst, Strategist and Writer each take one step. Code checks their answers and works out every key figure.</p>
+        <div class="vc-table-wrap"><table class="vc-table vc-table--compact">
+          <caption>Key figures</caption>
+          <thead><tr><th scope="col">Figure</th><th scope="col">What it measures</th><th scope="col">Value</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">At stake a year</th><td>Expected loss a year: each euro range's midpoint times its likelihood</td><td>… from 0.2.0</td></tr>
+            <tr><th scope="row">Dimensions under pressure</th><td>Dimensions holding a threat of medium band or higher the company isn't ready for</td><td>… from 0.2.0</td></tr>
+            <tr><th scope="row">Readiness</th><td>0 to 100: how ready the company is for its threats; this tool's own measure</td><td>… from 0.2.0</td></tr>
+            <tr><th scope="row">Session cost</th><td>What the agents cost: measured live against your cap, estimated in the simulation</td><td>… from 0.2.0</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+      <section class="vc-guide__chapter" data-vc-chapter="real" data-vc-nav="What is real">
+        <h3>Fictional companies, real facts, nothing kept</h3>
+        <p class="vc-guide__lead">The scenario companies are fictional and their own figures illustrative. What a scenario says about the world, such as a law or a price, is real and shows its source and the date it was read.</p>
+        <ul>
+          <li>Version 0.1.0 holds the method and the engine that computes its figures. The scenarios play from 0.2.0, a live run follows in 0.3.0 and the report in 0.4.0.</li>
+          <li>A live run sends what you enter to Anthropic's API under your own key. Its controls say: You are interacting with an AI system.</li>
+          <li>Your key and what you enter stay in this tab's memory and are gone when you close or reload it. You keep a result only by downloading it.</li>
+          <li>Public information only: never enter confidential, personal or otherwise protected data.</li>
+        </ul>
+      </section>
+      <section class="vc-guide__chapter" data-vc-chapter="present" data-vc-nav="How to present">
+        <h3>Show it in five minutes</h3>
+        <p class="vc-guide__lead">Five steps for a room that has never seen the tool, from version 0.2.0.</p>
+        <ol class="vc-guide__path">
+          <li><strong>The key figures.</strong> “Before anything runs, four figures say what is at stake.” <span class="vc-guide__time">1 min</span></li>
+          <li><strong>Auental Energie.</strong> “A town utility listed two forces; the agents fill the gaps.” <span class="vc-guide__time">1 min</span></li>
+          <li><strong>The challenge.</strong> “A deadline the team thought far off turns its dimension red.” <span class="vc-guide__time">1 min</span></li>
+          <li><strong>Your decision.</strong> “A mitigation and a watch move readiness and the money at stake.” <span class="vc-guide__time">1.5 min</span></li>
+          <li><strong>The report.</strong> “The PDF ends with the watch list, the footer on every page.” <span class="vc-guide__time">0.5 min</span></li>
+        </ol>
+      </section>
+    </div>
+    <footer class="vc-dialog__footer vc-guide__footer">
+      <span class="vc-guide__count"></span>
+      <button type="button" class="vc-button vc-button--ghost" data-vc-guide-back><span class="vc-icon vc-icon--chevron-left" aria-hidden="true"></span>Back</button>
+      <button type="button" class="vc-button" data-vc-guide-next data-vc-guide-done="Start">Next<span class="vc-icon vc-icon--chevron-right" aria-hidden="true"></span></button>
+    </footer>
+  </dialog>
+
+  <dialog class="vc-dialog vc-guide" id="guide-de" lang="de" aria-labelledby="guide-de-title" data-vc-guide data-vc-guide-auto data-vc-guide-count="{n} von {total}" data-vc-guide-rail="Kapitel">
+    <header class="vc-dialog__header">
+      <h2 class="vc-dialog__title" id="guide-de-title">So funktioniert der Prototyp</h2>
+      <button type="button" class="vc-icon-button" data-vc-close aria-label="Schließen"><span class="vc-icon vc-icon--close" aria-hidden="true"></span></button>
+    </header>
+    <div class="vc-guide__chapters">
+      <section class="vc-guide__chapter" data-vc-chapter="what" data-vc-nav="Was er tut">
+        <h3>Worauf ein Unternehmen nicht vorbereitet ist</h3>
+        <p class="vc-guide__lead">Nennen Sie ein Unternehmen und die äußeren Kräfte, die Sie sehen, unter sechs Überschriften. KI‑Agenten vervollständigen sie, hinterfragen die Analyse, beziffern jedes Risiko und schlagen vor, was zu tun oder zu beobachten ist.</p>
+        <p>Die sechs Überschriften sind politisch, ökonomisch, gesellschaftlich, technologisch, ökologisch und rechtlich: PESTEL. Am Ende stehen eine Management-Zusammenfassung und eine Beobachtungsliste, die Sie als PDF, als HTML-Datei und als Datei für den Prototype Ideator herunterladen. Mit Ihrem eigenen Claude-Schlüssel dauert ein Lauf Minuten und stoppt an der Kostenobergrenze, die Sie festlegen.</p>
+      </section>
+      <section class="vc-guide__chapter" data-vc-chapter="how" data-vc-nav="So funktioniert er">
+        <h3>Fünf Agenten und Code, der rechnet</h3>
+        <p class="vc-guide__lead">Scanner, Red Team, Analyst, Stratege und Autor übernehmen je einen Schritt. Code prüft ihre Antworten und berechnet jede Kennzahl.</p>
+        <div class="vc-table-wrap"><table class="vc-table vc-table--compact">
+          <caption>Kennzahlen</caption>
+          <thead><tr><th scope="col">Kennzahl</th><th scope="col">Was sie misst</th><th scope="col">Wert</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Auf dem Spiel pro Jahr</th><td>Erwarteter Verlust pro Jahr: Mitte jeder Euro-Spanne mal ihre Wahrscheinlichkeit</td><td>… ab 0.2.0</td></tr>
+            <tr><th scope="row">Dimensionen unter Druck</th><td>Dimensionen mit einem mindestens mittleren Risiko, auf das das Unternehmen nicht vorbereitet ist</td><td>… ab 0.2.0</td></tr>
+            <tr><th scope="row">Vorbereitungsgrad</th><td>0 bis 100: wie gut das Unternehmen auf seine Risiken vorbereitet ist; ein eigenes Maß</td><td>… ab 0.2.0</td></tr>
+            <tr><th scope="row">Sitzungskosten</th><td>Was die Agenten kosten: live gemessen gegen Ihre Obergrenze, in der Simulation geschätzt</td><td>… ab 0.2.0</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+      <section class="vc-guide__chapter" data-vc-chapter="real" data-vc-nav="Was echt ist">
+        <h3>Fiktive Unternehmen, echte Fakten, nichts gespeichert</h3>
+        <p class="vc-guide__lead">Die Unternehmen der Szenarien sind fiktiv, ihre eigenen Zahlen veranschaulichen nur. Was ein Szenario über die Welt sagt, etwa ein Gesetz oder ein Preis, ist echt und nennt Quelle und Lesedatum.</p>
+        <ul>
+          <li>Version 0.1.0 enthält die Methode und die Rechenlogik für ihre Kennzahlen. Die Szenarien spielen ab 0.2.0, ein Live‑Lauf folgt in 0.3.0, der Bericht in 0.4.0.</li>
+          <li>Ein Live‑Lauf sendet Ihre Eingaben unter Ihrem eigenen Schlüssel an die API von Anthropic. Seine Bedienelemente sagen: Sie interagieren mit einem KI-System.</li>
+          <li>Schlüssel und Eingaben bleiben im Speicher dieses Tabs und sind weg, wenn Sie ihn schließen oder neu laden. Ein Ergebnis behalten Sie nur als Download.</li>
+          <li>Nur öffentliche Informationen: Geben Sie niemals vertrauliche, personenbezogene oder anderweitig geschützte Daten ein.</li>
+        </ul>
+      </section>
+      <section class="vc-guide__chapter" data-vc-chapter="present" data-vc-nav="So präsentieren Sie">
+        <h3>In fünf Minuten zeigen</h3>
+        <p class="vc-guide__lead">Fünf Schritte für ein Publikum ohne Vorwissen, ab Version 0.2.0.</p>
+        <ol class="vc-guide__path">
+          <li><strong>Die Kennzahlen.</strong> „Bevor etwas läuft, zeigen vier Zahlen, was auf dem Spiel steht.“ <span class="vc-guide__time">1 min</span></li>
+          <li><strong>Auental Energie.</strong> „Ein Stadtwerk nennt zwei Kräfte; die Agenten füllen die Lücken.“ <span class="vc-guide__time">1 min</span></li>
+          <li><strong>Die Prüfung.</strong> „Eine Frist, die das Team für fern hielt, färbt ihre Dimension rot.“ <span class="vc-guide__time">1 min</span></li>
+          <li><strong>Ihre Entscheidung.</strong> „Minderung und Beobachtung bewegen Vorbereitungsgrad und Betrag.“ <span class="vc-guide__time">1,5 min</span></li>
+          <li><strong>Der Bericht.</strong> „Das PDF endet mit der Beobachtungsliste, mit Fußzeile auf jeder Seite.“ <span class="vc-guide__time">0,5 min</span></li>
+        </ol>
+      </section>
+    </div>
+    <footer class="vc-dialog__footer vc-guide__footer">
+      <span class="vc-guide__count"></span>
+      <button type="button" class="vc-button vc-button--ghost" data-vc-guide-back><span class="vc-icon vc-icon--chevron-left" aria-hidden="true"></span>Zurück</button>
+      <button type="button" class="vc-button" data-vc-guide-next data-vc-guide-done="Starten">Weiter<span class="vc-icon vc-icon--chevron-right" aria-hidden="true"></span></button>
+    </footer>
+  </dialog>
+
+  <script src="js/lang.js"></script>
+</body>
+</html>
