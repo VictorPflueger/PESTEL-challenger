@@ -37,25 +37,40 @@ export const SEPARATIONS = [
 ];
 
 /**
- * The hexagon test's tour of the page (tests/hexagon.mjs): the guide that opens by itself, each of its four
- * chapters, the first screen, and the German page with its guide. The page has just been opened, without
- * ?guide=0, so the guide opens by itself. visit(name, { settle }) checks the page as it is, settle ms (250)
- * after the step.
+ * The hexagon test's tour of the page (tests/hexagon.mjs): the guide that opens by itself and each of its
+ * six chapters, the first screen, the method dialog, then every step of the default scenario in English and
+ * German with every closed part of the stage opened (factor items, signals, the tables behind the risk
+ * matrix and the horizon strip), and the German guide. The page has just been opened, without ?guide=0, so
+ * the guide opens by itself. visit(name, { settle }) checks the page as it is, settle ms (250) after the step.
  */
+/** The steps in order, as #stage's data-step names them (js/run.js STEPS). */
+export const STEP_NAMES = ["start", "scan", "challenge", "assess", "respond", "summary"];
+
 export async function hexagonTour(page, visit) {
   await page.waitForSelector('html[data-ready="true"]', { timeout: 20000 });
   await page.waitForSelector("#guide-en[open]", { timeout: 10000 });
   await visit("the guide, opened by itself: What it does");
-  for (const chapter of ["How it works", "What is real", "How to present"]) {
+  for (const chapter of ["How it works", "The six steps", "The cost estimate", "What is real", "How to present"]) {
     await page.click("#guide-en [data-vc-guide-next]");
     await visit(`the guide: ${chapter}`, { settle: 200 });
   }
   await page.keyboard.press("Escape");
   await page.waitForFunction(() => !document.querySelector("dialog[open]"), null, { timeout: 5000 });
   await visit("the first screen");
-  await page.click('.lang-option[data-lang="de"]');
-  await page.waitForSelector('html[lang="de"]', { timeout: 5000 });
-  await visit("the German page");
+  await page.click('[data-vc-open="method"]');
+  await page.waitForSelector("#method[open]", { timeout: 5000 });
+  await visit("the method dialog");
+  await page.keyboard.press("Escape");
+  const base = page.url().split("?")[0];
+  for (const lang of ["en", "de"]) {
+    for (let step = 0; step <= 5; step += 1) {
+      await page.goto(`${base}?guide=0&lang=${lang}&scenario=s3&step=${step}`);
+      await page.waitForSelector('html[data-ready="true"]', { timeout: 20000 });
+      await page.waitForSelector(`#stage[data-step="${STEP_NAMES[step]}"]`, { timeout: 10000 });
+      await page.evaluate(() => { for (const d of document.querySelectorAll("#stage details")) d.open = true; });
+      await visit(`${lang}, step ${step} with everything open`, { settle: 300 });
+    }
+  }
   await page.click('[data-vc-guide-open="guide-de"]');
   await page.waitForSelector("#guide-de[open]", { timeout: 5000 });
   await visit("the German guide");

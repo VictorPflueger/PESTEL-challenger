@@ -1,6 +1,9 @@
 // The documents are complete for the version js/config.js names, short, and consistent with the code:
-//   length     README.md at most 900 words, DESIGN.md at most 700, DATA_SOURCES.md at most 900, each demo
-//              script at most 700 (a word is anything between spaces, table bars included);
+//   length     README.md at most 900 words, DESIGN.md at most 700, DATA_SOURCES.md at most 1,500 (from
+//              0.2.0 it holds the dated fact table of each of the three scenarios, project requirement 13,
+//              which grows with the facts and not with prose; the Business Model Canvas Challenger raised
+//              its limit for the same reason), each demo script at most 700 (a word is anything between
+//              spaces, table bars included);
 //   sections   each carries its sections and names the version; DEMO_SCRIPT.md and DEMO_SCRIPT.de.md are
 //              required from 0.2.0, when the talk track is complete (PLAN.md section 11);
 //   facts      TECH_NOTES.md gives every model id and price with the date it was read, and every decision
@@ -30,7 +33,7 @@ const DOCS = {
   "README.md": { max: 900, sections: ["What it will do", "What is real and what is simulated", "Running it", "Part of a set of four"], version: `Version ${APP.version}` },
   "DESIGN.md": { max: 700, numbered: 6 },
   "TECH_NOTES.md": { numbered: 8, version: `Version ${APP.version}` },
-  "DATA_SOURCES.md": { max: 900, numbered: 3 },
+  "DATA_SOURCES.md": { max: 1500, numbered: 3 },
   "REVIEW.md": {},
   "DEMO_SCRIPT.md": { max: 700, from: "0.2.0" },
   "DEMO_SCRIPT.de.md": { max: 700, from: "0.2.0" }

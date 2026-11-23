@@ -1,10 +1,13 @@
 // Boot: the language first (js/lang.js has already set <html lang> and picked the guide), then every
-// string in place and the EN | DE switch. The presenter, the scenarios and the live run join this module
-// in versions 0.2.0 and 0.3.0. Nothing here touches storage: js/i18n/index.js keeps the language choice,
-// the only thing this tool remembers.
+// string in place and the EN | DE switch, the method dialog and the presenter with its recorded runs. The
+// live run joins in 0.3.0. Nothing here touches storage: js/i18n/index.js keeps the language choice, the
+// only thing this tool remembers.
 
 import { APP } from "./config.js";
 import { initLang, applyStatic, setLang, getLang, onLang, t } from "./i18n/index.js";
+import { initPresenter } from "./presenter.js";
+import { initMethod, setSectorSource } from "./method.js";
+import { scenarioById } from "./simulation.js";
 
 /** <html lang>, the pressed language button and the header button of the guide in this language. */
 function drawLanguage() {
@@ -31,6 +34,9 @@ function boot() {
   drawLanguage();
   for (const b of document.querySelectorAll(".lang-option")) b.addEventListener("click", () => chooseLanguage(b.dataset.lang));
   onLang(drawLanguage);
+  const presenter = initPresenter();
+  setSectorSource(() => scenarioById(presenter.state.scenarioId)?.company.sector ?? "general");
+  initMethod();
   document.documentElement.dataset.ready = "true";
   console.info(`[${APP.name}] ${APP.version} ready.`);
 }

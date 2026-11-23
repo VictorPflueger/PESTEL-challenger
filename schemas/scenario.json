@@ -85,6 +85,17 @@
     "research": {
       "type": "boolean"
     },
+    "checked": {
+      "type": "object",
+      "description": "Facts the agents state from their own knowledge, checked at source by the scenario's author: factor id to the addresses of the sources, each listed in data/sources.js and DATA_SOURCES.md.",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^https?://"
+        }
+      }
+    },
     "answers": {
       "type": "object",
       "additionalProperties": false,
