@@ -118,10 +118,10 @@ export default {
   "f.readiness": "ready {n} of 5",
 
   "state.pressure": "Under pressure",
-  "state.watch": "Watch",
+  "state.watch": "On watch",
   "state.addressed": "Addressed",
   "state.pressure.long": "Under pressure: a threat of medium band or higher it is not ready for",
-  "state.watch.long": "Watch: threats, none of them pressing",
+  "state.watch.long": "On watch: threats, none of them pressing",
   "state.addressed.long": "Addressed: under pressure before your responses, no longer",
 
   "ring.factors.one": "{n} factor",
@@ -142,6 +142,7 @@ export default {
   "item.link": "Linked:",
   "item.basis": "Why:",
   "item.confidence": "Confidence: {c}.",
+  "issue.confidence": "Confidence: {c}",
   "item.ratedByAi": "The team gave no rating; the Scanner rated it.",
   "item.ratedByTeam": "Rated by the team.",
   "item.aiEstimate": "AI estimate",
@@ -208,6 +209,8 @@ export default {
   "assess.title.part": "{money} a year at stake, on {n} of {total} threats",
   "assess.lead": "Each hexagon is a threat, numbered by what it puts at stake. On the right: when each one arrives.",
   "assess.lead.none": "No threat with a euro figure yet.",
+  "assess.top": "Most at stake",
+  "assess.top.money": "{money} a year",
   "matrix.title": "{n} threats by impact and likelihood",
   "matrix.subtitle": "Each cell shows its score, impact times likelihood; a larger hexagon puts more at stake",
   "matrix.impact": "Impact",
@@ -278,7 +281,7 @@ export default {
   "summary.noWatch": "Nothing to watch: no response chose to watch a force.",
   "summary.assumptions": "Assumptions to check",
   "summary.sources": "Sources",
-  "summary.turn": "The report as a PDF, an HTML file and a file for the Prototype Ideator arrives in version 0.4.0.",
+  "summary.turn": "Change a response and the figures move with it. The report to download arrives in version 0.4.0.",
   "summary.cta": "Back to your decision",
 
   "method.title": "The method",

@@ -117,10 +117,10 @@ export default {
   "f.readiness": "vorbereitet {n} von 5",
 
   "state.pressure": "Unter Druck",
-  "state.watch": "Beobachten",
+  "state.watch": "Im Blick",
   "state.addressed": "Angegangen",
   "state.pressure.long": "Unter Druck: ein mindestens mittleres Risiko, auf das es nicht vorbereitet ist",
-  "state.watch.long": "Beobachten: Risiken, keines davon drängend",
+  "state.watch.long": "Im Blick: Risiken, keines davon drängend",
   "state.addressed.long": "Angegangen: vor Ihren Antworten unter Druck, jetzt nicht mehr",
 
   "ring.factors.one": "{n} Faktor",
@@ -141,6 +141,7 @@ export default {
   "item.link": "Verknüpft:",
   "item.basis": "Warum:",
   "item.confidence": "Sicherheit: {c}.",
+  "issue.confidence": "Sicherheit: {c}",
   "item.ratedByAi": "Das Team hat nicht bewertet; der Scanner hat es getan.",
   "item.ratedByTeam": "Vom Team bewertet.",
   "item.aiEstimate": "KI-Schätzung",
@@ -207,6 +208,8 @@ export default {
   "assess.title.part": "{money} pro Jahr auf dem Spiel, aus {n} von {total} Risiken",
   "assess.lead": "Jedes Sechseck ist ein Risiko, nummeriert nach dem, was es aufs Spiel setzt. Rechts: wann jedes eintritt.",
   "assess.lead.none": "Noch kein Risiko mit Euro-Zahl.",
+  "assess.top": "Am meisten auf dem Spiel",
+  "assess.top.money": "{money} pro Jahr",
   "matrix.title": "{n} Risiken nach Auswirkung und Wahrscheinlichkeit",
   "matrix.subtitle": "Jede Zelle zeigt ihren Wert, Auswirkung mal Wahrscheinlichkeit; ein größeres Sechseck setzt mehr aufs Spiel",
   "matrix.impact": "Auswirkung",
@@ -277,7 +280,7 @@ export default {
   "summary.noWatch": "Nichts zu beobachten: Keine Antwort beobachtet eine Kraft.",
   "summary.assumptions": "Annahmen zum Prüfen",
   "summary.sources": "Quellen",
-  "summary.turn": "Der Bericht als PDF, als HTML-Datei und als Datei für den Prototype Ideator kommt in Version 0.4.0.",
+  "summary.turn": "Ändern Sie eine Antwort, und die Zahlen ziehen mit. Den Bericht zum Herunterladen gibt es ab Version 0.4.0.",
   "summary.cta": "Zurück zu Ihrer Entscheidung",
 
   "method.title": "Die Methode",

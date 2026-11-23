@@ -273,14 +273,14 @@ export default {
     },
     writer: {
       summary: {
-        headline: L("Security and data duties apply now; at stake a year: {{fact:at_stake}}",
-          "Sicherheits- und Datenpflichten gelten jetzt; pro Jahr auf dem Spiel: {{fact:at_stake}}"),
+        headline: L("Security and data duties apply now; at stake a year after your responses: {{fact:left}}",
+          "Sicherheits- und Datenpflichten gelten jetzt; pro Jahr auf dem Spiel nach Ihren Antworten: {{fact:left}}"),
         situation: L("Arvento worries most about energy, which is easing. The larger threats are US tariffs, the technician gap and two EU laws that already apply: {{fact:pressure.before}} dimensions are under pressure, and readiness is {{fact:readiness.before}}.",
           "Arvento sorgt sich am meisten um Energie, die günstiger wird. Größer sind die US-Zölle, die Lücke bei Technikern und zwei EU-Gesetze, die bereits gelten: {{fact:pressure.before}} Dimensionen stehen unter Druck, der Vorbereitungsgrad liegt bei {{fact:readiness.before}}."),
         findings: [
           L("US tariffs on the metal in drives are the largest threat, at {{fact:factor.a1.expected}} a year.",
             "US-Zölle auf das Metall in Antrieben sind mit {{fact:factor.a1.expected}} pro Jahr das größte Risiko."),
-          L("The security reporting duties apply since 11 September 2026, not in 2027: {{fact:factor.a9.expected}} a year.",
+          L("The security reporting duties have applied since 11 September 2026, not from 2027: {{fact:factor.a9.expected}} a year.",
             "Die Meldepflichten zur Sicherheit gelten seit 11. September 2026, nicht erst 2027: {{fact:factor.a9.expected}} pro Jahr."),
           L("The Data Act lets customers take their drives' data to rivals, which puts the planned maintenance service at risk: {{fact:factor.a10.expected}} a year.",
             "Der Data Act lässt Kunden die Daten ihrer Antriebe zu Wettbewerbern mitnehmen; das gefährdet den geplanten Wartungsdienst: {{fact:factor.a10.expected}} pro Jahr."),

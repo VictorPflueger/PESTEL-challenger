@@ -329,8 +329,8 @@ export default {
     },
     writer: {
       summary: {
-        headline: L("Heat plan due by 31 December 2026; at stake a year: {{fact:at_stake}}",
-          "Wärmeplan bis 31. Dezember 2026 fällig; pro Jahr auf dem Spiel: {{fact:at_stake}}"),
+        headline: L("Heat plan due by 31 December 2026; at stake a year after your responses: {{fact:left}}",
+          "Wärmeplan bis 31. Dezember 2026 fällig; pro Jahr auf dem Spiel nach Ihren Antworten: {{fact:left}}"),
         situation: L("Gas prices, the heat plan and a strained waterworks put {{fact:pressure.before}} dimensions under pressure. The team was ready for little of it: readiness is {{fact:readiness.before}}.",
           "Gaspreise, der Wärmeplan und ein belastetes Wasserwerk setzen {{fact:pressure.before}} Dimensionen unter Druck. Darauf war das Team kaum vorbereitet: Der Vorbereitungsgrad liegt bei {{fact:readiness.before}}."),
         findings: [

@@ -24,15 +24,14 @@ It follows the Data Quality Agent, so a partner who has shown one knows where to
 
 ## 3. The steps
 
-Each step answers one question in its title and shows at once; Play walks the steps and stops where the
-person acts.
+Each step answers one question in its title; Play walks the steps and stops where the person acts.
 
 | Step | Left: the story | Right |
 |---|---|---|
 | Start | The scenarios as a segmented choice, "Fictional company, illustrative figures", the team's list, "Your turn" | The ring: the company in the centre, the six dimensions around it |
 | Scan | The dated signals, or the note that the model's knowledge ends in June 2026; what the agents added, in lilac | The ring with counts and states; the chosen dimension's factors |
 | Challenge | One card per issue, its correction in words and an Undo | The ring turns coral where a dimension comes under pressure |
-| Assess | The whole stage: the risk matrix and the horizon strip under it, each with its numbers one click away | |
+| Assess | The whole stage: the risk matrix, the horizon strip and the three threats that put most at stake, with tables one click away | |
 | Respond | The whole stage: each factor's options as cards, the recommended one chosen, the threats under pressure first | |
 | Summary | The summary with figures filled in by code, the chosen responses and the watch list | The ring with what was addressed |
 

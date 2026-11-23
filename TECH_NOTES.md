@@ -59,10 +59,11 @@ Decided while building 0.2.0, each within the brief and the plan:
 
 | What | Decision |
 |---|---|
-| The fictional company | "Fictional company, illustrative figures" stands among Start's tags and above every later step's title, beside the header's SIMULATION tag, which is the simulation's tape (AC-05) |
+| The fictional company | "Fictional company, illustrative figures" stands among Start's tags and with every later step's title, beside the header's SIMULATION tag, which is the simulation's tape (AC-05) |
 | Facts from the agents' own knowledge | Each scenario's `checked` lists, per factor, the address its author read for a fact the agents state without a signal; the factor shows it as "checked at source by the scenario's author". S2, without research, also shows the note that the model's knowledge ends in June 2026 |
 | German words | A threat is a "Risiko", an opportunity a "Chance", readiness the "Vorbereitungsgrad"; the steps are Start, Scan, Prüfung, Bewertung, Antworten and Zusammenfassung |
-| Assess | The whole stage: the risk matrix and the horizon strip as one picture. At 1280 × 720 the matrix's key stands beside its grid and the step's button under the strip, so all of it is in view |
+| Assess | The whole stage: the risk matrix, the horizon strip and the three threats that put most at stake by their numbers, so the room reads what "1" is. At 1280 × 720 the matrix's key stands beside its grid, the step's button under the strip, the three names run as one paragraph and the lead gives way to them, so all of it is in view |
+| A dimension's state | "Under pressure", "On watch" or "Addressed" ("Unter Druck", "Im Blick", "Angegangen"), so a state never reads like the response "Watch it" |
 | Marker sizes | Thirds of the largest expected loss: smaller below a third, larger from two thirds, with Vici's `vc-risk__marker--sm` and `--lg` (ViciDesign#29); the key names each size in euros |
 | The session cost of a simulation | An estimate on Balanced, said on the tile: each agent's request rebuilt from what it reads and answers at about four characters a token, a 1,500-token prompt, each answer counted twice for thinking, five searches of 4,000 tokens with research, the prices above and €0.894 to the dollar (`js/estimate.js`) |
 | The talk track | The brief's draft (§8): five steps in five minutes, with action labels and figures from the engine. Its last step shows the PDF from 0.4.0; until then it shows the summary and the watch list |

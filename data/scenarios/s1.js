@@ -327,8 +327,8 @@ export default {
     },
     writer: {
       summary: {
-        headline: L("Allowances are due now; at stake a year: {{fact:at_stake}}",
-          "Zertifikate sind jetzt fällig; pro Jahr auf dem Spiel: {{fact:at_stake}}"),
+        headline: L("Allowances are due now; at stake a year after your responses: {{fact:left}}",
+          "Zertifikate sind jetzt fällig; pro Jahr auf dem Spiel nach Ihren Antworten: {{fact:left}}"),
         situation: L("Routes are reopening, rates are falling and the EU's emission rules apply now. {{fact:pressure.before}} dimensions are under pressure, and readiness is {{fact:readiness.before}}.",
           "Routen öffnen sich, die Raten fallen, und die EU-Emissionsregeln gelten jetzt. {{fact:pressure.before}} Dimensionen stehen unter Druck, der Vorbereitungsgrad liegt bei {{fact:readiness.before}}."),
         findings: [
@@ -344,7 +344,7 @@ export default {
         assumptions: [
           L("The company, its fleet and its costs are fictional; the euro ranges are AI estimates.", "Das Unternehmen, seine Flotte und seine Kosten sind erfunden; die Euro-Spannen sind KI-Schätzungen."),
           L("Most cargo moves at spot or short-term rates.", "Der Großteil der Ladung fährt zu Spot- oder kurzfristigen Raten."),
-          L("The fleet burns fossil fuel only today.", "Die Flotte fährt heute nur mit fossilem Kraftstoff."),
+          L("Today the fleet burns only fossil fuel.", "Die Flotte fährt heute nur mit fossilem Kraftstoff."),
           L("Some ships on the transatlantic services were built in China.", "Einige Schiffe der Atlantikdienste wurden in China gebaut."),
         ],
       },

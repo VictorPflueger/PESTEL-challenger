@@ -109,7 +109,16 @@ export function initPresenter() {
       if (state.person.decided) { state.person.decided = false; state.reached = 4; }
       render();
     },
-    setDim: (d) => { state.ui.dim = d; render(); document.querySelector(`.vc-ring__cell[data-dim="${d}"]`)?.focus({ preventScroll: true }); },
+    // A cell lists its dimension's factors: the list opens if it was closed and scrolls into view in its
+    // panel, so the room sees what the click did; focus stays on the cell for the next one.
+    setDim: (d) => {
+      state.ui.dim = d;
+      render();
+      const details = stage.querySelector(".dim-details");
+      if (details) details.open = true;
+      stage.querySelector(".dim-panel")?.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      document.querySelector(`.vc-ring__cell[data-dim="${d}"]`)?.focus({ preventScroll: true });
+    },
     setFactor: (i) => { state.ui.factor = i; render(); document.getElementById("decide-title")?.scrollIntoView?.({ block: "nearest" }); },
     chooseScenario: (id) => chooseScenario(id),
   };
@@ -130,9 +139,9 @@ export function initPresenter() {
     stage.dataset.step = R.STEPS[state.step];
     stage.dataset.layout = view.layout || "split";
     const story = h("section", { class: "story", "aria-labelledby": "step-title" }, view.story);
-    // From Scan on, whose company it is and that it is fictional stand above every title; Start shows both
-    // among its own tags.
-    if (state.step > 0) story.querySelector(".story-head")?.prepend(h("p", { class: "story-eyebrow" },
+    // From Scan on, whose company it is and that it is fictional stand with every title, under it or, on the
+    // full stage, beside it; Start shows both among its own tags.
+    if (state.step > 0) story.querySelector(".story-title")?.after(h("p", { class: "story-meta" },
       h("span", { class: "story-company" }, r.company.name),
       r.mode === "simulation" ? h("span", { class: "vc-tag vc-tag--sm fictional" }, h("span", { class: "vc-icon vc-icon--info", "aria-hidden": "true" }), t("start.fictional")) : null));
     stage.append(story);

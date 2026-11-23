@@ -20,7 +20,7 @@ function issueCard(issue, run, byId, handlers) {
       h("header", { class: "issue-head" },
         h("span", { class: "vc-tag vc-tag--sm issue-type" }, icon(issue.type === "missing" ? "plus" : issue.type === "outdated" ? "minus" : "warning"), issueType(issue.type)),
         h("span", { class: "issue-dims" }, issue.dimensions.map((d) => dimName(d)).join(", ")),
-        h("span", { class: "issue-conf" }, t("item.confidence", { c: confidenceName(issue.confidence) }))),
+        h("span", { class: "issue-conf" }, t("issue.confidence", { c: confidenceName(issue.confidence) }))),
       h("h3", { class: "issue-title", id: `issue-${issue.id}` }, issue.title),
       h("p", { class: "issue-reason ai-text" }, issue.reason),
       h("p", { class: "issue-fix" },

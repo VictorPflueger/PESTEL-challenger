@@ -6,7 +6,8 @@
 //   matrix    the risk matrix and the horizon strip keep Vici's rules (riskMatrixProblems,
 //             horizonProblems), and each has a table of its numbers one click away, a row per threat;
 //   click     at Scan and Challenge a click on a cell lists that dimension's factors, as the run model holds
-//             them, with their states, and marks the cell pressed;
+//             them, with their states, opens the list if it was closed and brings it into view, and marks
+//             the cell pressed;
 // and each Vici check first fails on a planted control made from a rendered screen.
 // The functions come from a ViciDesign checkout (VICI_DIR, or ../ViciDesign); without one the suite says
 // so and passes, unless --require-vici is given or it runs on GitHub Actions.
@@ -90,14 +91,16 @@ if (sample) {
 
 // ---- click: a cell lists its dimension's factors ------------------------------------------------------------
 for (const [sc, lang, step] of [["s3", "en", 1], ["s3", "de", 2], ["s1", "en", 2], ["s2", "de", 1]]) {
-  const ctx = await browser.newContext({ viewport: { width: 1600, height: 900 } });
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, reducedMotion: "reduce" });
   const page = await ctx.newPage();
   await page.goto(`${server.base}?guide=0&lang=${lang}&scenario=${sc}&step=${step}`);
   await page.waitForSelector(`#stage[data-step="${STEP_NAMES[step]}"]`);
   const wrong = [];
   for (const dim of ["political", "economic", "social", "technological", "environmental", "legal"]) {
+    // Open the signals first at Scan, so the list starts out of view.
+    if (step === 1 && dim === "political") await page.evaluate(() => { const s = document.querySelector("#stage .signals"); if (s) s.open = true; document.querySelector("#stage .panel").scrollTop = 0; });
     await page.click(`.vc-ring__cell[data-dim="${dim}"]`);
-    await page.waitForTimeout(60);
+    await page.waitForTimeout(80);
     const m = await page.evaluate(async ({ sc, lang, step, dim }) => {
       const S = await import("/js/simulation.js");
       const R = await import("/js/run.js");
@@ -113,10 +116,14 @@ for (const [sc, lang, step] of [["s3", "en", 1], ["s3", "de", 2], ["s1", "en", 2
       want.splice(0, want.length, ...want.map(plain));
       const pressed = [...document.querySelectorAll(".vc-ring__cell[aria-pressed='true']")].map((c) => c.dataset.dim);
       const states = items.every((i) => i.querySelector(".vc-item__mark") && i.querySelector(".vc-item__state")?.textContent.trim());
-      return { want, got, title, name: P.dimName(dim, lang), pressed, states };
+      const panel = document.querySelector("#stage .panel").getBoundingClientRect();
+      const list = document.querySelector("#stage .dim-panel");
+      const r = list.getBoundingClientRect();
+      const inView = (!list.closest("details") || list.closest("details").open) && r.top < panel.bottom - 40 && r.bottom > panel.top;
+      return { want, got, title, name: P.dimName(dim, lang), pressed, states, inView };
     }, { sc, lang, step, dim });
     const same = m.want.length === m.got.length && m.want.every((t) => m.got.includes(t));
-    if (!same || !m.title.includes(m.name) || m.pressed.join() !== dim || !m.states) wrong.push(`${dim}: ${m.got.length} of ${m.want.length} factors, title "${m.title}", pressed [${m.pressed}]${m.states ? "" : ", an item without its mark or word"}`);
+    if (!same || !m.title.includes(m.name) || m.pressed.join() !== dim || !m.states || !m.inView) wrong.push(`${dim}: ${m.got.length} of ${m.want.length} factors, title "${m.title}", pressed [${m.pressed}]${m.states ? "" : ", an item without its mark or word"}${m.inView ? "" : ", the list out of view"}`);
   }
   check(!wrong.length, `click (${sc} ${lang} ${STEP_NAMES[step]}): each of the six cells lists its dimension's factors with their states and is marked pressed${wrong.length ? `; ${wrong.slice(0, 3).join("; ")}` : ""}`);
   await ctx.close();
