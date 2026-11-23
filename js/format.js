@@ -85,6 +85,15 @@ export function daysBetween(a, b) {
   return Math.round((db - da) / 86400000);
 }
 
+/** How many days a scenario's facts stay current before the page says "Check for updates" (project rule 13). */
+export const FRESH_DAYS = 90;
+
+/** True when facts read on asOf are older than FRESH_DAYS on today (both ISO dates). */
+export function needsUpdate(asOf, today) {
+  if (!asOf || !today) return false;
+  return daysBetween(asOf, today) > FRESH_DAYS;
+}
+
 /** An amount in euros with cents for the cost meter: "€0.03", "0,03 €"; under a cent "< €0.01". */
 export function fmtCost(eur, lang = getLang()) {
   if (!has(eur)) return "";

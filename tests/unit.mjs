@@ -11,7 +11,11 @@
 //               English, only the guide in the page's language opens by itself, and the guide's
 //               opened-once note carries over to the other language;
 //   theme       the page starts light unless the visitor chose dark (Vici's vici-theme.js with the page's
-//               data-vc-theme-default). Version 0.1.0 shows no dates; their format joins with the scenarios.
+//               data-vc-theme-default);
+//   formats     euro ranges, KPI changes with their units and the session cost in both languages; dates with
+//               the month written out and a month with its year, in both languages, a bare ISO date read as
+//               that day; whole days between two dates; and the 90-day rule: a scenario's facts read more
+//               than 90 days ago show "Check for updates", on day 90 they do not.
 // Usage: node tests/unit.mjs
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -146,6 +150,35 @@ const eq = (got, want, what) => check(got === want, `${what}: ${JSON.stringify(g
   check(carried.session.get("vc-guide:/PESTEL-challenger/#guide-de") === "1", "language: once the English guide has opened in this tab, the German one does not open again on a reload in German");
   const fresh = pick({ search: "?lang=de" });
   check(!fresh.session.has("vc-guide:/PESTEL-challenger/#guide-de"), "language: without that note the German guide still opens by itself");
+}
+
+// ---- formats: ranges, changes, cost, dates and the 90-day rule -------------------------------------------
+{
+  const F = await load("js/format.js");
+  const NB = "\u00a0";
+  eq(F.moneyRange(1200000, 2500000, "en"), "€1.2m to €2.5m", "formats: a euro range in English");
+  eq(F.moneyRange(1200000, 2500000, "de"), `1,2${NB}Mio.${NB}€ bis 2,5${NB}Mio.${NB}€`, "formats: a euro range in German");
+  eq(F.moneyRange(750000, 750000, "en"), "€750k", "formats: a range of one value is that value");
+  eq(F.moneyRange(null, 2500000, "en"), "", "formats: a range without its low end shows nothing");
+  eq(F.fmtChange(-2, -4, "%", "en"), `−2 to −4${NB}%`, "formats: a KPI change in per cent, signed with a real minus");
+  eq(F.fmtChange(0.5, 1.5, "pp", "de"), `+0,5 bis +1,5${NB}pp`, "formats: a KPI change in points, German decimals");
+  eq(F.fmtChange(3, 3, "days", "en"), `+3${NB}days`, "formats: a change of one value");
+  eq(F.fmtCost(0.0512, "en"), "€0.05", "formats: the session cost in English");
+  eq(F.fmtCost(0.0512, "de"), `0,05${NB}€`, "formats: the session cost in German");
+  eq(F.fmtCost(0.004, "en"), `<${NB}€0.01`, "formats: a cost under a cent");
+  eq(F.fmtDate("2026-12-31", "en"), "31 December 2026", "formats: a date in English");
+  eq(F.fmtDate("2026-12-31", "de"), "31. Dezember 2026", "formats: a date in German");
+  eq(F.fmtDate("2026-01-01", "en"), "1 January 2026", "formats: a bare ISO date is that day, not the day before");
+  eq(F.fmtDate("not a date", "en"), "", "formats: no date, no text");
+  eq(F.fmtMonth("2026-07", "en"), "July 2026", "formats: a month with its year in English");
+  eq(F.fmtMonth("2026-03-10", "de"), "März 2026", "formats: a month with its year in German");
+  eq(F.daysBetween("2026-11-23", "2027-02-21"), 90, "formats: 90 days from 23 November 2026 to 21 February 2027");
+  eq(F.daysBetween("2026-03-28", "2026-03-30"), 2, "formats: whole days across the change to summer time");
+  eq(F.FRESH_DAYS, 90, "update: facts stay current for 90 days");
+  eq(F.needsUpdate("2026-11-23", "2027-02-21"), false, "update: on day 90 a scenario does not ask for an update");
+  eq(F.needsUpdate("2026-11-23", "2027-02-22"), true, "update: on day 91 it shows Check for updates");
+  eq(F.needsUpdate("2026-11-23", "2026-11-23"), false, "update: on the day it was read it is current");
+  eq(F.needsUpdate(null, "2027-02-22"), false, "update: without a date no update is asked for");
 }
 
 // ---- the theme at start, in a stand-in page ----------------------------------------------------------

@@ -4,6 +4,9 @@
 // live run (aiNoticeProblems) and names rather than record ids (recordIdProblems). They run on the page,
 // on every string of both languages and on the documents. Also the page's frame from Vici's brief:
 // SIMULATION in the header, one sentence and the byline under it, and the four key figures in order.
+// From 0.2.0 the same writing and record-id checks run on every text of the three scenarios in both
+// languages and on every step's rendered screen, where Vici's framework and risk-matrix checks run too
+// (tests/lib/screens.mjs renders them in Chromium).
 // Each imported check first fails on a planted control. Prints VICI CONTROLS OK and VICI STANDARDS OK.
 // The functions come from a ViciDesign checkout (VICI_DIR, or ../ViciDesign); without one the suite says
 // so and passes, unless --require-vici is given or it runs on GitHub Actions.
@@ -12,7 +15,8 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { APP_ROOT, REQUIRE_VICI, viciDir } from "./lib/harness.mjs";
+import { APP_ROOT, REQUIRE_VICI, viciDir, launchBrowser, serveStatic } from "./lib/harness.mjs";
+import { eachScreen } from "./lib/screens.mjs";
 import EN from "../js/i18n/en.js";
 import DE from "../js/i18n/de.js";
 import { KPIS, SECTORS } from "../data/kpis.js";
@@ -29,6 +33,10 @@ const { bylineProblems } = await lib("byline.mjs");
 const { writingProblems } = await lib("writing.mjs");
 const { aiNoticeProblems, AI_NOTICE } = await lib("ai.mjs");
 const { recordIdProblems } = await lib("ids.mjs");
+const { frameworkProblems } = await lib("framework.mjs");
+const { riskMatrixProblems } = await lib("risk.mjs");
+const { SCENARIOS } = await import(pathToFileURL(path.join(APP_ROOT, "js/simulation.js")).href);
+const { SOURCES } = await import(pathToFileURL(path.join(APP_ROOT, "data/sources.js")).href);
 
 const read = (f) => readFileSync(path.join(APP_ROOT, f), "utf8");
 const html = read("index.html");
@@ -51,6 +59,9 @@ control(bylineProblems(html.replace(/href="https:\/\/victorpflueger\.github\.io\
 control(writingProblems(page(["The tiles waited for 62 days — far too long."])).length > 0 && writingProblems(page(["A seamless fix."])).length > 0, "control: writingProblems catches an em dash and a stock word");
 control(aiNoticeProblems(html.split(AI_NOTICE.en).join("An assistant").split(AI_NOTICE.de).join("Ein Assistent")).length > 0, "control: aiNoticeProblems catches a page that can run live and never says it is an AI");
 control(recordIdProblems("Churn moved in energy_utilities.customer_churn", ids).length > 0 && recordIdProblems("Supply customer churn moved", ids).length === 0, "control: recordIdProblems catches a KPI id on screen and passes its name");
+const AREA = '<section class="vc-framework__area"><header class="vc-framework__head"><h2 class="vc-framework__title">Legal</h2></header><ul class="vc-framework__items"><li><details class="vc-item" data-source="ai"><summary class="vc-item__summary"><span class="vc-item__mark"><span class="vc-icon vc-icon--sparkle"></span></span><span class="vc-item__text">A rule</span><span class="vc-item__states">STATE</span></summary></details></li></ul></section>';
+control(frameworkProblems(AREA.replace("STATE", "")).length > 0 && !frameworkProblems(AREA.replace("STATE", '<span class="vc-tag vc-tag--sm vc-item__state vc-item__state--source">AI</span>')).length, "control: frameworkProblems catches an AI item without its word and passes one with it");
+control(riskMatrixProblems('<figure class="vc-risk"><figcaption>Threats</figcaption><div class="vc-risk__grid"></div></figure>').length > 0, "control: riskMatrixProblems catches a matrix without its axes, key and table");
 
 // ---- the page ---------------------------------------------------------------------------------------
 const g = guideProblems(html);
@@ -94,6 +105,48 @@ for (const k of KPIS) {
 check(true, `${KPIS.length} KPI names and definitions show no record id`);
 const kw = writingProblems(page(KPIS.flatMap((k) => [k.name.en, k.definition.en, k.name.de, k.definition.de])));
 check(!kw.length, `the KPI library's words keep Vici's writing rules${kw.length ? `: ${kw.join("; ")}` : ""}`);
+
+// ---- every scenario text and every source, in both languages ------------------------------------------
+// A scenario's prose is every text it holds in both languages ({ en, de }), plus what the company does.
+const isText = (v) => v && typeof v === "object" && !Array.isArray(v) && Object.keys(v).length === 2 && typeof v.en === "string" && typeof v.de === "string";
+const proseOf = (v, lang, out = []) => { if (isText(v)) out.push(v[lang]); else if (Array.isArray(v)) v.forEach((x) => proseOf(x, lang, out)); else if (v && typeof v === "object") Object.values(v).forEach((x) => proseOf(x, lang, out)); return out; };
+for (const sc of SCENARIOS) {
+  for (const lang of ["en", "de"]) {
+    const texts = [...proseOf(sc, lang), sc.texts?.[lang]?.what ?? ""].filter((x) => x.trim());
+    const ws = writingProblems(page(texts));
+    check(!ws.length, `${sc.id} ${lang}: ${texts.length} scenario texts keep Vici's writing rules${ws.length ? `: ${ws.join("; ")}` : ""}`);
+    const rs = recordIdProblems(texts.join("\n"), ids);
+    check(!rs.length, `${sc.id} ${lang}: no scenario text shows a record id${rs.length ? `: ${rs.join("; ")}` : ""}`);
+  }
+}
+{
+  const texts = SOURCES.flatMap((x) => [x.title.en, x.title.de, x.fact?.en, x.fact?.de]).filter(Boolean);
+  const ws = writingProblems(page(texts));
+  check(!ws.length, `the ${SOURCES.length} sources' titles and facts keep Vici's writing rules${ws.length ? `: ${ws.join("; ")}` : ""}`);
+}
+
+// ---- every step's rendered screen ----------------------------------------------------------------------
+{
+  const server = await serveStatic(APP_ROOT);
+  const browser = await launchBrowser();
+  const found = { writing: [], ids: [], framework: [], matrix: [] };
+  let screens = 0;
+  const errors = await eachScreen(browser, server.base, ({ sc, lang, name, html, text }) => {
+    screens += 1;
+    const where = `${sc} ${lang} ${name}`;
+    for (const p of writingProblems(page(text.split(/\n+/).filter((t) => t.trim())))) found.writing.push(`${where}: ${p}`);
+    for (const p of recordIdProblems(text, ids)) found.ids.push(`${where}: ${p}`);
+    if (/\bvc-framework__area\b/.test(html)) for (const p of frameworkProblems(html)) found.framework.push(`${where}: ${p}`);
+    if (/\bvc-risk__grid\b/.test(html)) for (const p of riskMatrixProblems(html)) found.matrix.push(`${where}: ${p}`);
+  });
+  await browser.close();
+  await server.close();
+  check(screens === 36 && !errors.length, `all ${screens} screens rendered (three scenarios, two languages, six steps) without a page error${errors.length ? `: ${errors[0]}` : ""}`);
+  check(!found.writing.length, `every screen's words keep Vici's writing rules${found.writing.length ? `: ${found.writing.slice(0, 3).join("; ")}` : ""}`);
+  check(!found.ids.length, `no screen shows a record id${found.ids.length ? `: ${found.ids.slice(0, 3).join("; ")}` : ""}`);
+  check(!found.framework.length, `every factor list on screen keeps Vici's framework rules${found.framework.length ? `: ${found.framework.slice(0, 3).join("; ")}` : ""}`);
+  check(!found.matrix.length, `every risk matrix on screen keeps Vici's rules${found.matrix.length ? `: ${found.matrix.slice(0, 3).join("; ")}` : ""}`);
+}
 
 // ---- the documents ----------------------------------------------------------------------------------
 for (const doc of ["README.md", "DATA_SOURCES.md", "TECH_NOTES.md", "REVIEW.md", "DESIGN.md"]) {

@@ -45,7 +45,7 @@ export default {
   "kpi.readiness": "Readiness",
   "kpi.cost": "Session cost",
   "kpi.wait": "…",
-  "kpi.note.version": "from version 0.2.0",
+  "kpi.note.start": "worked out as the page starts",
   "kpi.note.before": "before your decision",
   "kpi.note.after": "after your responses",
   "kpi.note.left": "left after your responses",

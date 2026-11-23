@@ -3,7 +3,7 @@
 
 export const APP = Object.freeze({
   name: "PESTEL Challenger",
-  version: "0.1.0",
+  version: "0.2.0",
   url: "https://victorpflueger.github.io/PESTEL-challenger/",
 });
 
@@ -19,8 +19,8 @@ export const POLICY =
   "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src https://api.anthropic.com; object-src 'none'; base-uri 'none'; form-action 'none'";
 
 /**
- * Prices in US dollars per million tokens, read on 23 November 2026 at
- * https://platform.claude.com/docs/en/about-claude/pricing (TECH_NOTES.md logs the reading). Haiku 5.5
+ * Prices in US dollars per million tokens, read on 23 November 2026 and again, unchanged, on 24 November
+ * 2026 at https://platform.claude.com/docs/en/about-claude/pricing (TECH_NOTES.md logs each reading). Haiku 5.5
  * prompts over 100,000 tokens cost more, so no request comes near that. Web search costs $10 per 1,000.
  */
 export const PRICES = Object.freeze({

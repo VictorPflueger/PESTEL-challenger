@@ -5,7 +5,7 @@ from and what changed. A copied file is byte for byte the source; an adapted fil
 
 | File | Verdict | Source | What changed and why |
 |---|---|---|---|
-| `vici/**` | copy | ViciDesign `ad02a3a` | Vici's `dist/`, fonts, portrait, marks and licence, unchanged; `vici/README.md` names the commit |
+| `vici/**` | copy | ViciDesign `2759b7a` | Vici's `dist/`, fonts, portrait, marks and licence, unchanged; `vici/README.md` names the commit |
 | `data/kpis.js` | copy | SWOT Challenger 0.1.0, `617b122` | Unchanged: a shared part the SWOT Challenger merged first (brief §4.1) |
 | `js/risk.js` | copy | SWOT Challenger 0.1.0, `617b122` | Unchanged: a shared part; `js/engine.js` uses its bands, expected values and money format |
 | `schemas/strategy-challenge-1.json` | copy | SWOT Challenger 0.1.0, `617b122` | Unchanged: the shared handoff schema, which keeps its parts under `$defs` |
@@ -37,7 +37,7 @@ from and what changed. A copied file is byte for byte the source; an adapted fil
 | `tests/page-icon.mjs` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | No loading screen, since the page is drawn before any script runs; the website's card is compared once it exists |
 | `tests/run-all.mjs` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | This tool's suites; every flag goes to every suite; "ALL SUITES OK" only when all have run |
 | `tests/live_site.mjs` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | This tool's files and first screen; a scenario played to its end joins in 0.2.0 |
-| `.github/workflows/tests.yml` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | ViciDesign at `ad02a3a`, and the website, the siblings and the sources cloned beside the tool |
+| `.github/workflows/tests.yml` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | ViciDesign at `2759b7a`, and the website, the siblings and the sources cloned beside the tool |
 | `.github/workflows/live-site.yml` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | Only its header comment |
 
 Not taken: the sisters' `js/theme.js`. Its job, applying the theme before the first paint without an

@@ -323,7 +323,13 @@ export function checkScenario(sc, { dataSources = null } = {}) {
     }
 
     const run = runFromScenario(sc, lang);
-    for (const m of guardrails(sc, run, lang)) say(m);
+    // A value the schema refuses can stop the engine itself (a readiness outside 1 to 5): say so, and go on.
+    try {
+      for (const m of guardrails(sc, run, lang)) say(m);
+    } catch (e) {
+      say(`${lang}: the engine cannot compute this run: ${e.message}`);
+      continue;
+    }
 
     // The fact audit on every agent's text; the summary's placeholders against the run's fact keys.
     const keys = new Set(Object.keys(R.runFacts({ ...run, decided: true }, lang)));
@@ -341,15 +347,20 @@ export function checkScenario(sc, { dataSources = null } = {}) {
 
   // The frozen figures, then the run along two other sets of choices.
   const run = runFromScenario(sc, "en");
-  const figures = frozenFigures(run);
-  for (const m of compareFrozen(sc.frozen, figures)) say(`frozen figures: ${m}`);
-  for (const lang of LANGS) {
-    for (const m of play(sc, lang, "along the recorded choices", (r, f) => r.recorded.get(f.id) ?? "accept")) say(m);
-    for (const m of play(sc, lang, "accepting every threat as it is", () => "accept")) say(m);
-    for (const m of play(sc, lang, "with every factor's other option", (r, f) => R.optionsFor(r, f.id).find((o) => !o.recommended)?.id ?? "accept")) say(m);
+  let figures = null;
+  try {
+    figures = frozenFigures(run);
+    for (const m of compareFrozen(sc.frozen, figures)) say(`frozen figures: ${m}`);
+    for (const lang of LANGS) {
+      for (const m of play(sc, lang, "along the recorded choices", (r, f) => r.recorded.get(f.id) ?? "accept")) say(m);
+      for (const m of play(sc, lang, "accepting every threat as it is", () => "accept")) say(m);
+      for (const m of play(sc, lang, "with every factor's other option", (r, f) => R.optionsFor(r, f.id).find((o) => !o.recommended)?.id ?? "accept")) say(m);
+    }
+    // The recorded choices cover every factor the person decides on.
+    for (const f of R.decisionFactors(run)) if (!run.recorded.has(f.id)) say(`no recorded choice for ${f.id}`);
+  } catch (e) {
+    say(`the engine cannot compute the figures: ${e.message}`);
   }
-  // The recorded choices cover every factor the person decides on.
-  for (const f of R.decisionFactors(run)) if (!run.recorded.has(f.id)) say(`no recorded choice for ${f.id}`);
 
   return { id: sc.id, problems, figures };
 }

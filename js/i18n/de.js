@@ -44,7 +44,7 @@ export default {
   "kpi.readiness": "Vorbereitungsgrad",
   "kpi.cost": "Sitzungskosten",
   "kpi.wait": "…",
-  "kpi.note.version": "ab Version 0.2.0",
+  "kpi.note.start": "wird beim Start berechnet",
   "kpi.note.before": "vor Ihrer Entscheidung",
   "kpi.note.after": "nach Ihren Antworten",
   "kpi.note.left": "bleibt nach Ihren Antworten",

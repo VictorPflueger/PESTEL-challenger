@@ -8,12 +8,12 @@ import { head, cta, yourTurn, icon, storyFoot } from "./common.js";
 import { ring, factorItem } from "../hexagon.js";
 import { SCENARIOS } from "../simulation.js";
 import * as R from "../run.js";
-import { fmtDate, daysBetween } from "../format.js";
+import { fmtDate, needsUpdate } from "../format.js";
 
 export function startView(ctx) {
   const { run, handlers, today } = ctx;
   const team = R.teamFactors(run);
-  const old = today ? daysBetween(run.as_of, today) > 90 : false;
+  const old = needsUpdate(run.as_of, today);
   const chooser = h("div", { class: "vc-segmented scenario-choice", role: "radiogroup", "aria-label": t("start.choose") },
     SCENARIOS.map((sc) => h("label", {},
       h("input", { type: "radio", name: "scenario", value: sc.id, checked: sc.id === run.scenario, on: { change: () => handlers.chooseScenario(sc.id) } }),

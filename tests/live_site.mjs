@@ -3,10 +3,12 @@
 // this on every Pages build) or by hand.
 //   files   the page, its styles, scripts, strings, data and Vici's files as served equal this checkout
 //           (Pages caches for up to ten minutes, so it retries for up to twelve);
-//   start   the page opens in English and in German with its name, its four key figures waiting for
-//           0.2.0, and the guide opening by itself on a first visit; api.anthropic.com is refused, so this
-//           check never calls the real API (up to three tries a minute apart, for a deployment the CDN is
-//           still taking up). From 0.2.0 it also plays a scenario to its end.
+//   start   the page opens in English and in German with its name, its four key figures answering first
+//           (the default scenario's figures and the cost estimate), and the guide opening by itself on a
+//           first visit; api.anthropic.com is refused, so this check never calls the real API (up to three
+//           tries a minute apart, for a deployment the CDN is still taking up);
+//   play    in each language the default scenario plays from Start to Summary by its "Your turn" buttons
+//           and Next, and adopting the responses strikes the old figures through.
 // In GitHub Actions every problem is also printed as an annotation (::error / ::warning).
 // Adapted from the Sovereignty Assessment 2.0.0 (35c0dea): this tool's files and first screen.
 // Usage: node tests/live_site.mjs [url]   (default: the address in js/config.js; LIVE_URL)
@@ -18,9 +20,11 @@ import { APP_ROOT, launchBrowser } from "./lib/harness.mjs";
 
 const { APP } = await import(pathToFileURL(path.join(APP_ROOT, "js/config.js")).href);
 const URL_BASE = (process.argv[2] || process.env.LIVE_URL || APP.url).replace(/\/?$/, "/");
+// Every file the page can load: the page, its styles, every module and data file, and Vici's.
+const walk = (dir) => fs.readdirSync(path.join(APP_ROOT, dir), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(`${dir}/${e.name}`) : [`${dir}/${e.name}`]));
 const FILES = [
-  "index.html", "favicon.svg", "css/app.css", "js/config.js", "js/main.js", "js/lang.js", "js/i18n/index.js",
-  "js/i18n/en.js", "js/i18n/de.js", "js/risk.js", "js/engine.js", "js/schema.js", "js/schemas.js", "data/kpis.js",
+  "index.html", "favicon.svg",
+  ...["css", "js", "data"].flatMap(walk).filter((f) => /\.(css|js)$/.test(f)).sort(),
   "vici/dist/vici.min.css", "vici/dist/vici.js", "vici/dist/vici-theme.js"
 ];
 const WAIT_MS = Number(process.env.LIVE_WAIT_MS || 12 * 60 * 1000);
@@ -55,7 +59,7 @@ async function startCheck() {
   const hosts = new Set();
   const errors = [];
   try {
-    for (const [lang, waits, guide] of [["en", "from version 0.2.0", "#guide-en[open]"], ["de", "ab Version 0.2.0", "#guide-de[open]"]]) {
+    for (const [lang, guide] of [["en", "#guide-en[open]"], ["de", "#guide-de[open]"]]) {
       // A fresh context each time: a first visit, so the guide opens by itself.
       const context = await browser.newContext({ viewport: { width: 1600, height: 900 } });
       // Never the real API from a test.
@@ -69,9 +73,23 @@ async function startCheck() {
       const name = (await page.locator(".app-header .brand-name").innerText()).trim();
       if (name !== APP.name) found.push(`the ${lang} page is named "${name}"`);
       if ((await page.getAttribute("html", "data-lang")) !== lang) found.push(`?lang=${lang} did not open the page in that language`);
-      const notes = await page.locator(".kpi .kpi-note").allInnerTexts();
-      if (notes.length !== 4 || notes.some((n) => n.trim() !== waits)) found.push(`the ${lang} key figures read ${JSON.stringify(notes)}`);
+      const tiles = await page.evaluate(() => [...document.querySelectorAll(".kpi")].map((k) => ({ state: k.dataset.state, value: k.querySelector(".kpi-value").textContent.trim(), was: k.querySelector(".kpi-was").hidden ? null : k.querySelector(".kpi-was").textContent })));
+      if (tiles.length !== 4 || tiles.some((x) => !["ready", "estimate"].includes(x.state) || !x.value || x.value === "…")) found.push(`the ${lang} key figures do not answer first: ${JSON.stringify(tiles)}`);
       if (!(await page.waitForSelector(guide, { timeout: 10000 }).then(() => true, () => false))) found.push(`the ${lang} guide did not open by itself on a first visit`);
+      // play: the default scenario from Start to Summary.
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(() => !document.querySelector("dialog[open]"), null, { timeout: 5000 });
+      const walked = [];
+      const step = async () => walked.push(await page.$eval("#stage", (s) => s.dataset.step));
+      await step();
+      for (const [button, to] of [["#btn-cta", "scan"], ["#btn-cta", "challenge"], ["#btn-next", "assess"], ["#btn-next", "respond"], ["#btn-cta", "summary"]]) {
+        await page.click(button);
+        await page.waitForSelector(`#stage[data-step="${to}"]`, { timeout: 10000 });
+        await step();
+      }
+      if (walked.join() !== "start,scan,challenge,assess,respond,summary") found.push(`the ${lang} run went ${walked.join(" → ")}`);
+      const struck = await page.evaluate(() => ["stake", "pressure", "readiness"].every((k) => !document.querySelector(`#kpi-${k} .kpi-was`).hidden));
+      if (!struck) found.push(`adopting the responses in ${lang} did not strike the old figures through`);
       await context.close();
     }
   } catch (e) {
@@ -91,7 +109,7 @@ const annotate = (level, text) => { if (process.env.GITHUB_ACTIONS === "true") c
 if (!stale.length) {
   for (let attempt = 1; attempt <= 3; attempt++) {
     const found = await startCheck();
-    if (!found.length) { console.log(`PASS  start: the page opens in English and German on the published site, its figures waiting and its guide opening by itself${attempt > 1 ? ` (try ${attempt})` : ""}`); break; }
+    if (!found.length) { console.log(`PASS  start and play: the page opens in English and German on the published site, its figures answering first and its guide opening by itself, and the default scenario plays to its end in each language${attempt > 1 ? ` (try ${attempt})` : ""}`); break; }
     if (attempt === 3) { problems.push(...found); break; }
     for (const f of found) { console.log(`WARN  try ${attempt}: ${f}`); annotate("warning", `try ${attempt}: ${f}`); }
     await new Promise((r) => setTimeout(r, 60000));
