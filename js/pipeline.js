@@ -37,7 +37,7 @@ const SEARCH_TOKENS_WORST = 6000;
 
 /** Why a run stopped: cap, checks, error, aborted or requests, with the agent and what was done. */
 export class RunStop extends Error {
-  constructor(reason, { agent = null, after = null, error = null, problems = [], repaired = true } = {}) {
+  constructor(reason, { agent = null, after = null, error = null, problems = [], repaired = true, retry = false, held = false } = {}) {
     super(reason);
     this.name = "RunStop";
     this.reason = reason;
@@ -46,6 +46,8 @@ export class RunStop extends Error {
     this.error = error;
     this.problems = problems;
     this.repaired = repaired;
+    this.retry = retry;   // the cap stopped a retry of a request cut off mid-stream
+    this.held = held;     // an Abort stopped a request under way, whose worst case is now held
   }
 }
 
@@ -84,7 +86,7 @@ export function createLiveRun({ inputs, lang, today, setting, research, cap }) {
     unchecked: new Set(),// ids whose texts failed the fact audit twice
     log: [],             // per request: agent, repair, max_tokens, tokens, searches, ms, stop reason
     spend: { usd: 0, eur: 0 },
-    unmetered: 0,        // euros held against the cap for attempts cut off mid-stream, which report no usage
+    unmetered: 0,        // euros held against the cap for attempts cut off mid-stream or aborted under way, which report no usage
     requests: 0,
     repairs: 0,
     ms: 0,               // time spent waiting for the agents
@@ -151,13 +153,16 @@ export function createPipeline({ run, view = () => run, key, hooks = {}, stream 
   };
   let done = run.summary ? "summary" : run.responses ? "respond" : run.impacts ? "assess" : run.issues ? "challenge" : run.scan ? "scan" : "start";
 
-  /** Lowers max_tokens to the step's minimum when the worst case would pass the cap; stops when even that does. */
-  function fit(agent, body, searches) {
+  /**
+   * Lowers max_tokens to the step's minimum when the worst case would pass the cap; stops when even that does.
+   * retry: the check before the shared client tries a request again.
+   */
+  function fit(agent, body, searches, retry = false) {
     const spent = run.spend.eur + (run.unmetered || 0);
     if (spent + worstCaseEur(body, { searches }) <= run.cap) return;
     body.max_tokens = Math.min(body.max_tokens, MIN_TOKENS[agent]);
     if (spent + worstCaseEur(body, { searches }) <= run.cap) { emit({ type: "tokens", agent, max_tokens: body.max_tokens }); return; }
-    throw new RunStop("cap", { agent, after: done });
+    throw new RunStop("cap", { agent, after: done, retry });
   }
 
   /** One request: the cap, the request limit, the retries, the meter and the log. */
@@ -169,26 +174,32 @@ export function createPipeline({ run, view = () => run, key, hooks = {}, stream 
     const started = clock();
     emit({ type: "request", agent, repair, n: run.requests, max_tokens: body.max_tokens });
     let res;
+    let held = false;
     try {
       res = await withRetry(async () => {
+        if (controller.signal.aborted) throw new RunStop("aborted", { agent, after: done });
         try {
           return await stream({ key, body, signal: controller.signal });
         } catch (e) {
+          // An attempt cut off mid-stream, or stopped by Abort while under way, may be billed for its input and
+          // what it wrote, which the shared client cannot report: its worst case is held against the cap from
+          // here on, every such attempt, the last one too. A retry goes only if it still fits (fit() stops the
+          // run otherwise), and so does any request after it. An error before the stream bills nothing.
+          const aborted = !e?.midStream && (e?.name === "AbortError" || controller.signal.aborted);
+          if (e?.midStream || aborted) run.unmetered = (run.unmetered || 0) + worstCaseEur(body, { searches });
+          if (aborted) held = true;
           if (e instanceof ApiError && e.retryable && !mayRetry(e)) throw new NoRetry(e);
           throw e;
         }
       }, { signal: controller.signal, onRetry: ({ attempt, waitMs, error }) => {
-        // An attempt cut off mid-stream was billed for its input and what it wrote, which the shared client
-        // cannot report: its worst case is held against the cap from here on, and the retry goes only if it
-        // still fits (fit() stops the run otherwise). An error before the stream bills nothing.
-        if (error?.midStream) run.unmetered = (run.unmetered || 0) + worstCaseEur(body, { searches });
-        fit(agent, body, searches);
+        fit(agent, body, searches, true);
         emit({ type: "retry", agent, attempt, waitMs, status: error.status });
       } });
     } catch (e) {
       const err = e instanceof NoRetry ? e.cause : e;
       run.ms += clock() - started;
-      if (err?.name === "AbortError" || controller.signal.aborted) throw new RunStop("aborted", { agent, after: done });
+      if (err instanceof RunStop) throw err;
+      if (err?.name === "AbortError" || controller.signal.aborted) throw new RunStop("aborted", { agent, after: done, held });
       throw err;
     }
     const message = res.message;
@@ -250,9 +261,9 @@ export function createPipeline({ run, view = () => run, key, hooks = {}, stream 
     working(null);
     if (!error) return true;
     if (error instanceof RunStop) {
-      run.stopped = { reason: error.reason, agent: error.agent, after: error.after, problems: error.problems, repaired: error.repaired };
+      run.stopped = { reason: error.reason, agent: error.agent, after: error.after, problems: error.problems, repaired: error.repaired, retry: error.retry, held: error.held };
     } else {
-      run.stopped = { reason: "error", agent, after: done, error: { status: error.status ?? 0, type: error.type ?? "", message: redactSecrets(String(error.message || "")), details: error.details ?? null } };
+      run.stopped = { reason: "error", agent, after: done, error: { status: error.status ?? 0, type: error.type ?? "", message: redactSecrets(String(error.message || "")), details: error.details ?? null, midStream: !!error.midStream } };
     }
     emit({ type: "stopped", stopped: run.stopped });
     return false;

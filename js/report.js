@@ -301,7 +301,8 @@ function responsesPage(run, o, { page, H, byId }) {
       // A threat without a euro figure counts in readiness, not in money: no residual range.
       return t(f && !priced(f) ? "report.r.mitigate.unpriced" : "report.r.mitigate", words);
     }
-    if (x.kind === "advantage" && x.advantage) return t("opt.upside", { range: moneyRange(x.advantage.eur_year_low, x.advantage.eur_year_high), n: x.advantage.likelihood });
+    // The report shows no factor line with figures above it, so the upside names the Analyst's.
+    if (x.kind === "advantage" && x.advantage) return t("report.r.advantage", { range: moneyRange(x.advantage.eur_year_low, x.advantage.eur_year_high), n: x.advantage.likelihood });
     if (x.kind === "monitor" && x.monitor) return t("report.r.monitor", { signal: x.monitor.signal, trigger: x.monitor.trigger });
     return "";
   };

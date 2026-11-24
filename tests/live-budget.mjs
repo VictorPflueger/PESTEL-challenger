@@ -5,7 +5,9 @@
 //     minimum first, and a run that still does not fit stops before the request with "Stopped at your
 //     budget cap after" the last step done, or before the first request when even that does not fit;
 //   - an attempt cut off mid-stream, which the API bills but reports nothing for, is held against the cap at
-//     its worst case, and the retry goes only if it still fits.
+//     its worst case, and the retry goes only if it still fits; so is every such attempt, the last one too,
+//     and a request the person aborts while it is under way; Go on after them starts no request whose worst
+//     case, with what was spent and held before it, passes the cap.
 // The worst case is the pipeline's own function (js/pipeline.js worstCaseEur), recomputed here for every
 // request the stand-in received, with what the run had spent before it.
 // Usage: node tests/live-budget.mjs
@@ -114,7 +116,96 @@ let cutWorst = 0;
   const scans = t.standIn.requests.filter((r) => r.agent === "scanner").length;
   check(cap > cutWorst && cap < 2 * cutWorst && scans === 1 && run.stopped?.reason === "cap",
     `with a €${cap.toFixed(2)} cap the cut attempt's worst case leaves no room for a retry: the run stops at the cap (${scans} attempt, ${JSON.stringify(run.stopped?.reason)})`);
-  check(/first request was cut off mid-way/.test(await text(t.page, ".stop-alert")) && /counts here at its worst case/.test(await text(t.page, ".stop-alert")), `and the stop says why the cap was reached: "${await text(t.page, ".stop-alert")}"`);
+  check(/a request was cut off mid-way/.test(await text(t.page, ".stop-alert")) && /counts against your cap at its worst case/.test(await text(t.page, ".stop-alert")), `and the stop says why the cap was reached: "${await text(t.page, ".stop-alert")}"`);
+  await t.context.close();
+}
+
+/**
+ * Each request the stand-in received, with what the run had at stake before it: the answers before it at
+ * USAGE each, and the worst case of every attempt before it that was cut off or aborted (`broken`, by index).
+ */
+function atStake(standIn, model, broken) {
+  let usd = 0;
+  let held = 0;
+  return standIn.requests.map((r, i) => {
+    const worst = worstCaseEur(r.req);
+    const before = usd * CONFIG.FX_USD_EUR + held;
+    if (broken.has(i)) held += worst;
+    else usd += usageCostUsd(model, USAGE);
+    return { agent: r.agent, before, worst };
+  });
+}
+
+/** The largest cap the dialog offers (a multiple of €0.05) that is below x. */
+const capBelow = (x) => Math.round(Math.floor((x - 1e-9) / 0.05) * 5) / 100;
+
+/** Go on from a stop with the same cap, and wait until the run stops again or the scan is done. */
+async function goOn(page) {
+  await page.click("#btn-cta");
+  await page.waitForSelector("#live-dialog[open]");
+  const estimate = await text(page, "#live-estimate");
+  await page.check("#live-ack");
+  await page.click("#live-start");
+  await page.waitForFunction(() => { const r = window.__pestel?.run(); return r && !r.working && (r.stopped || r.scan) && !document.querySelector("#live-dialog[open]"); }, null, { timeout: 30000 });
+  return estimate;
+}
+
+// ---- every attempt cut off counts, the last one too, and Go on stays within the cap ------------------------
+{
+  // Room for the three attempts, but less than the four worst cases that are at stake once Go on asks again.
+  const cap = Math.min(3, capBelow(4 * cutWorst));
+  const faults = [1, 2, 3].map((attempt) => ({ agent: "scanner", attempt, cut: true }));
+  const t = await livePage(suite, { standIn: { faults, usage: USAGE } });
+  try {
+    await fillForm(t.page);
+    await startRun(t.page, { preset: "thorough", cap, waitFor: "none" });
+    await t.page.waitForFunction(() => window.__pestel?.run()?.stopped, null, { timeout: 30000 });
+    const run = await runOf(t.page);
+    const cut = t.standIn.requests.filter((r) => r.agent === "scanner");
+    const held = cut.reduce((a, r) => a + worstCaseEur(r.req), 0);
+    check(cut.length === 3 && run.stopped?.reason === "error" && Math.abs(run.unmetered - held) < 1e-12,
+      `three Scanner attempts cut off mid-way each count at their worst case, the last one too (held €${run.unmetered.toFixed(4)} against €${held.toFixed(4)})`);
+    check(/broke off while the answer was coming in/.test(await text(t.page, ".stop-alert")) && /counts against your cap at its worst case/.test(await text(t.page, ".stop-alert")), `and the stop says what happened and that it counts: "${await text(t.page, ".stop-alert")}"`);
+    const estimate = await goOn(t.page);
+    check(/more counts against your cap, for requests cut off or aborted/.test(estimate), `Go on's dialog says what is held against the cap: "${estimate}"`);
+    const rows = atStake(t.standIn, "claude-sonnet-5-5", new Set([0, 1, 2]));
+    const over = rows.filter((r) => r.before + r.worst > cap + 1e-12);
+    check(cap >= 3 * cutWorst && cap < 4 * cutWorst && rows.length >= 3 && !over.length,
+      `after Go on with the same €${cap.toFixed(2)} cap, no request started whose worst case, with what was spent and held before it, passed the cap (${rows.length} sent${over.length ? `; over: ${over.map((r) => `${r.agent} €${(r.before + r.worst).toFixed(4)}`).join(", ")}` : ""})`);
+  } catch (e) {
+    check(false, `three cut attempts: ${e.message.split("\n")[0]}`);
+  }
+  await t.context.close();
+}
+
+// ---- a request aborted under way counts at its worst case, and Go on stays within the cap --------------------
+{
+  // Room for the Scanner's request, but less than two of its worst cases.
+  const cap = Math.min(3, capBelow(2 * cutWorst));
+  const t = await livePage(suite, { standIn: { usage: USAGE } });
+  try {
+    await fillForm(t.page);
+    const release = t.net.holdAt(0);
+    await startRun(t.page, { preset: "thorough", cap, waitFor: "none" });
+    await t.net.held(0);
+    await t.page.waitForSelector("#btn-abort");
+    await t.page.click("#btn-abort");
+    release();
+    await t.page.waitForFunction(() => window.__pestel?.run()?.stopped, null, { timeout: 15000 });
+    await t.page.waitForTimeout(100);
+    const run = await runOf(t.page);
+    const w0 = t.standIn.requests[0] ? worstCaseEur(t.standIn.requests[0].req) : NaN;
+    check(run.stopped?.reason === "aborted" && run.stopped.held === true && Math.abs(run.unmetered - w0) < 1e-12,
+      `Abort while the Scanner's request is under way holds its worst case against the cap (held €${run.unmetered.toFixed(4)} against €${w0.toFixed(4)})`);
+    check(/aborted/.test(await text(t.page, ".stop-alert")) && /counts against your cap at its worst case/.test(await text(t.page, ".stop-alert")), `and the stop says so: "${await text(t.page, ".stop-alert")}"`);
+    await goOn(t.page);
+    const rows = atStake(t.standIn, "claude-sonnet-5-5", new Set([0]));
+    const over = rows.filter((r) => r.before + r.worst > cap + 1e-12);
+    check(cap >= cutWorst && cap < 2 * cutWorst && !over.length,
+      `after Go on with the same €${cap.toFixed(2)} cap, no request started past it (${rows.length} sent${over.length ? `; over: ${over.map((r) => `${r.agent} €${(r.before + r.worst).toFixed(4)}`).join(", ")}` : ""})`);
+  } catch (e) {
+    check(false, `abort under way: ${e.message.split("\n")[0]}`);
+  }
   await t.context.close();
 }
 

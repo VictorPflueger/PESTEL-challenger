@@ -137,15 +137,16 @@ Decided while building 1.0.0, each within the brief and the plan:
 | What a mitigation leaves | Never more than the threat as it stands now: after an Undo the threat may stand lower than the Strategist saw it, so `residualOf()` in `js/run.js` keeps the response's readiness at least the threat's, its likelihood at most the threat's, and its euros at most what the threat puts at stake, as `js/risk.js` reads what is left. The engine, the options, the report and the handoff file all read it (O1) |
 | A threat without a euro figure | It stays without one after a mitigation: it counts in readiness, not in money, whatever residual range the Strategist gives. Its option shows no money left, the report says it counts in readiness, and the handoff file gives it no residual range (R5) |
 | The handoff file's opportunities and score | An opportunity's euro range is the Analyst's upside, so the issue carries the likelihood that goes with it, and its expected value is its range at that likelihood, as js/risk.js reads an issue. With no threat at all the page says so where readiness would stand; the schema needs a number, and the file writes 100, since there is nothing to be unready for (R12) |
-| Typing at Scan | The editor of an AI factor opens with its wording and the notice "Public information only" in view, and warns, as the live-run dialog does, when the words the person brings in look private; the AI's own words never count, and a warning comes into view as it appears. It does not block. Text shaped like an API key is redacted as the edit is saved (R2, N1, N3) |
-| The private-data warning | A date that stands alone (01.01.2027, 1/7/26, 2026-09-30) never counts as a phone number, while digits in dotted pairs (01.23.45.67.89) still do, and "internal combustion" is no keyword. Text shaped like an API key counts: the dialog names it, the run redacts it before a prompt reads it, and "Save run as simulation" redacts it as the other files do (R8, R9, N2) |
+| Typing at Scan | The editor of an AI factor opens with its wording and, under it, "Public information only" and the line on where the words go (brief §5.10), in view. It warns, as the live-run dialog does, of what the person brings in that looks private, occurrence by occurrence: the AI's own words never count, a second "internal" does. The warning stays in view as it grows, with the field, at 1280 × 720 in both languages, and does not block. Text shaped like an API key is redacted as the edit is saved (R2, N1, N3, N6, N7, N11) |
+| The private-data warning | A date that stands alone (01.01.2027, 1/7/26, 2026-09-30) or a range of two dates (01.01.26-31.12.26, 01.01.-31.12.2027) never counts as a phone number, while digits in dotted pairs (01.23.45.67.89) still do, and "internal combustion" is no keyword. Text shaped like an API key counts: the dialog names it, the run redacts it before a prompt reads it, and "Save run as simulation" redacts it as the other files do (R8, R9, N2, N10) |
 | The key in memory | The live-run dialog keeps no copy of a checked key: a key typed now is checked, and the key in js/keystore.js passed that check when it was set, so "Clear everything" leaves none behind (R10) |
 | A live run's tiles | A live run cannot answer first: until the Analyst is done, the pressure and readiness tiles say after which step their figures stand ("after the scan", "after the challenge"). After Adopt, a stop or a wait shows the ring after the decision, as the tiles do (R3, N4) |
-| A stream cut off mid-way | The API bills an attempt cut off after its stream began, but the shared client reports no usage for it. The run holds that attempt's worst case against the cap (`run.unmetered`), and the shared client's retry goes only if it still fits; a stop that this reaches says so. The meter shows what the API reported (R11) |
+| A request cut off or aborted under way | The API may bill a request cut off after its stream began, or aborted while under way, but the shared client reports no usage for it. The run holds each such attempt's worst case against the cap (`run.unmetered`), the last of the shared client's three attempts too, and a retry, or any request after it with Go on, goes only if it still fits. The stops it shapes and Go on's dialog say so, and a stream that broke off says that rather than "could not reach the API". The meter shows what the API reported (R11, N8) |
 | A run out of requests | Once a run has used its ten requests, its stop offers no "Go on", which could not work, and says to take what is done or start again with Clear everything (R6) |
-| Long company names | The ring's centre steps a long name down in three sizes and leaves out the sector, so up to the form's 80 characters stay inside the cell at 1280 × 720. A name over 40 characters from a German-speaking country is marked German, so a browser with German hyphenation breaks its long words at a syllable (R13) |
+| Long company names | The ring's centre steps a long name down in three sizes and leaves out the sector, so up to the form's 80 characters stay inside the cell at 1280 × 720. A name from a German-speaking country, however the form names it ("DE", "Bundesrepublik Deutschland", "Schweiz"), is marked German, so a browser with German hyphenation breaks its long words at a syllable, on an English page too (R13, O3) |
 | Targets of 40 px | Every target takes 40 px each way, measured by the layout suite on buttons, links, disclosures and controls: Vici's segmented options, switches, sliders and the numbers' summary first fell short, fixed in Vici first (ViciDesign#47), and the tool's own disclosures and the Accept option reach 40 px the same way (R4) |
-| AI marks | A lilac AI tag stands on each of the Red team's cards, on each option the Strategist wrote (the recommended one carries "Recommended" in lilac) and beside the Summary's title, the Writer's headline; each says in its title what the agent wrote. What a mitigation leaves reads "AI estimate from the range above", the Analyst's range over the options (R17) |
+| AI marks | A lilac AI tag stands on each of the Red team's cards, on each option the Strategist wrote (the recommended one carries "Recommended" in lilac) and beside the Summary's title, the Writer's headline; each says in its title what the agent wrote. Every AI figure says what it rests on: what a mitigation leaves reads "AI estimate from the range above", the Analyst's range over the options, and an advantage's upside "AI estimate from the factor and figures above"; the report says "from the Analyst's range" and "from the factor and the Analyst's figures" (R17, N9) |
+| The mode tag | The header's SIMULATION or LIVE tag takes focus only so the keyboard reaches its tooltip, which screen readers also read through `aria-describedby`. It starts nothing, so the 40 px rule for targets does not bind it; at 125 × 30 px it is above the 24 px of WCAG 2.5.8, and it keeps Vici's large tag (O4) |
 
 ## 4. Security policy and what is kept
 
@@ -244,12 +245,13 @@ languages, and the default scenario plays to its end in each.
   tile, the dialog and the guide say it is an estimate and what it rests on. Its three characters a token
   follows the model pages' 30 percent and has not been counted on this tool's own prompts, since the free
   token count needs a key.
-- **Streams cut off and the meter.** A stream aborted or cut off after it started is billed for its input
-  and what it wrote, but the shared client (`js/anthropic.js`, unchanged from the Prototype Ideator)
-  returns no usage then. The cap holds, since the run counts such an attempt at its worst case (section 3),
-  but the meter shows only what the API reported. Reporting a cut stream's usage needs a change to the
-  shared client, for all four tools. The Scout's worst case assumes 6,000 input tokens a search; Victor's
-  first research run on Thorough measures it (independent review R11).
+- **Streams cut off and the meter.** A stream cut off after it started, or aborted while under way, may be
+  billed for its input and what it wrote, but the shared client (`js/anthropic.js`, unchanged from the Prototype
+  Ideator) returns no usage then. The cap holds against them, since the run counts every such attempt at its
+  worst case, the last one and an Abort too (section 3), but the meter shows only what the API reported. Reporting a cut
+  stream's usage needs a change to the shared client, for all four tools. The Scout's worst case assumes 6,000
+  input tokens a search; were a search's results larger, its one request could pass the cap by the difference.
+  Victor's first research run on Thorough measures it (independent review R11, N8).
 - **Run it live on smaller screens.** Brief §7 puts "Run it live" after the steps. On the Start panel it
   shows without scrolling from 1920 × 1080; at smaller sizes the panel scrolls to it, and the guide's first
   chapter names it. Moving it into the first view changes the brief's layout, which is Victor's call (R7).
@@ -280,9 +282,10 @@ What was checked for 1.0.0, on 24 November 2026.
   documents. They changed three things: the file note said all browsers refuse a file, now this browser;
   its region label stayed English on a German page, now gone; Scan's count reads as a first look.
 - **Reviews.** The independent review, the Steve Jobs review and Vici's partner review are in REVIEW.md,
-  parts 2 and 3. The independent review found two high, three medium and twelve low findings; a first
-  confirming look found two of the fixes incomplete and five new findings (one medium); after the second
-  round every high and medium finding is fixed and two low ones stay, with their reasons in section 8.
+  parts 2 and 3. The independent review found two high, three medium and twelve low findings. A first
+  confirming look found two of the fixes incomplete and five new findings, one of them medium; a second
+  confirmed every high and medium fix and found six more low findings, which a third round fixed. Every high and
+  medium finding is fixed; two low findings and one observation stay, with their reasons in sections 3 and 8.
   REVIEW.md part 2 names the commit each confirming look read and what it found.
 - **Not checked.** Printing in Firefox and Safari, by Victor's decision, and a run with a real key, which
   is Victor's (section 8).

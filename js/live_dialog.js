@@ -119,6 +119,8 @@ export function initLiveDialog({ onStart }) {
     if (c.cap < e.eur.high) el.append(document.createTextNode(` ${t(c.cap < e.eur.low ? "dlg.estimate.capLow" : "dlg.estimate.cap")}`));
     if (e.last) el.append(document.createTextNode(` ${t("dlg.estimate.last", { cost: fmtCost(e.last.eur), time: fmtMinutes(e.last.seconds, e.last.seconds) })}`));
     if (continuing && s.run) el.append(document.createTextNode(` ${t("dlg.estimate.spent", { cost: fmtCost(s.run.spend.eur) })}`));
+    // Requests cut off or aborted under way report no usage: their worst case counts against the cap.
+    if (continuing && s.run?.unmetered > 0) el.append(document.createTextNode(` ${t("dlg.estimate.held", { cost: fmtCost(s.run.unmetered) })}`));
   }
 
   function drawStart() {

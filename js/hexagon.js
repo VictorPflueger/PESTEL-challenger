@@ -11,7 +11,7 @@ import * as R from "./run.js";
 import { dimName, ratingLine, issueType, estimateWords, kpiEffect, confidenceName, kindName, sectorName } from "./plain.js";
 import { money, fmtDate } from "./format.js";
 import { sourceLink } from "./views/common.js";
-import { findPrivate } from "./privacy.js";
+import { findAdded } from "./privacy.js";
 
 const icon = (name) => h("span", { class: `vc-icon vc-icon--${name}`, "aria-hidden": "true" });
 const STATE_ICON = { pressure: "warning", watch: "eye", addressed: "check" };
@@ -43,9 +43,9 @@ export function ring(run, step, { selected = null, onSelect = null, lang = getLa
     h("ol", { class: "vc-ring__cells" },
       // A long name steps down a size or two and takes the sector's place, so it stays inside the cell.
       h("li", {}, h("p", { class: "vc-ring__centre", dataset: { name: ["", "long", "longer", "longest"][[16, 40, 64].filter((n) => run.company.name.length > n).length] } },
-        // A long name has words longer than the cell is wide: marked German where the company is, the browser
-        // breaks them at a syllable with a hyphen rather than anywhere.
-        h("span", { class: "vc-ring__name", lang: run.company.name.length > 40 && GERMAN_SPEAKING.test(String(run.company.country || "").trim()) ? "de" : null }, run.company.name),
+        // A name can hold words longer than the cell is wide: marked German where the company is, the browser
+        // breaks them at a syllable with a hyphen rather than anywhere, on an English page too.
+        h("span", { class: "vc-ring__name", lang: GERMAN_SPEAKING.test(String(run.company.country || "").trim()) ? "de" : null }, run.company.name),
         h("span", { class: "vc-ring__note" }, sectorName(run.company.sector, lang)))),
       DIMENSIONS.map(cell)),
     h("figcaption", {},
@@ -138,8 +138,11 @@ export function factorItem(f, run, step, { number = null, dimLabel = false, edit
 }
 
 const RATINGS = [1, 2, 3, 4, 5];
-/** Countries whose company names are German, as the form's free text may name them. */
-const GERMAN_SPEAKING = /^(germany|deutschland|de|deu|austria|österreich|oesterreich|at|aut|switzerland|schweiz|ch|che|liechtenstein|li)$/i;
+/**
+ * Countries whose company names are German, as the form's free text may name them: a code alone (DE, AT,
+ * CH, LI and their three-letter forms), or a name in a longer text ("Bundesrepublik Deutschland").
+ */
+const GERMAN_SPEAKING = /^(?:de|deu|at|aut|ch|che|li|lie|brd)$|(?<!\p{L})(?:germany|deutschland|austria|österreich|oesterreich|switzerland|schweiz|schweizerische|swiss|suisse|liechtenstein)(?!\p{L})/iu;
 
 /**
  * Keep, edit or remove what the AI added, in a live run before the challenge (AC-18): the item's own
@@ -156,26 +159,26 @@ function editControls(f, edit) {
   const select = (k, options, value, disabled = false) => h("select", { class: "vc-select", id: id(k), disabled, dataset: { key: k } },
     options.map(([v, label]) => h("option", { value: String(v), selected: String(v) === String(value) }, label)));
   const text = h("input", { class: "vc-input", type: "text", id: id("text"), value: f.text, maxlength: "90", autocomplete: "off", dataset: { key: "text" } });
-  // Where a person types, the page says what may go in (standing requirement 7), and warns, as the live-run
-  // dialog does, when the words hold what is usually private; it does not block.
-  const notice = h("p", { class: "item-editor-public", id: id("public") }, icon("shield"), h("span", {}, t("live.public")));
+  // Where a person types, the page says what may go in (standing requirement 7) and where it goes (brief
+  // §5.10), and warns, as the live-run dialog does, when the words hold what is usually private; it does not block.
+  const notice = h("p", { class: "item-editor-public", id: id("public") }, icon("shield"), h("span", {}, t("live.public"), " ", t("edit.where")));
   const warning = h("div", { class: "vc-alert vc-alert--warning item-editor-warning", id: id("warning"), role: "status", hidden: true });
   const error = h("p", { class: "vc-help vc-help--error item-editor-error", id: id("error"), hidden: true });
   const describe = () => text.setAttribute("aria-describedby", [id("public"), warning.hidden ? null : id("warning"), error.hidden ? null : id("error")].filter(Boolean).join(" "));
-  // Only what the person brings in counts: the AI's own words were never the person's to keep private.
-  const theirs = new Set(findPrivate(f.text).map((x) => `${x.kind}|${x.word ?? ""}`));
+  // Only what the person brings in counts, occurrence by occurrence: the AI's own words were never the
+  // person's to keep private, but a second "internal" or another phone number is theirs.
+  const said = edit.said ?? f.text;
   const drawWarning = () => {
-    const found = findPrivate(text.value).filter((x) => !theirs.has(`${x.kind}|${x.word ?? ""}`));
+    const found = findAdded(text.value, said);
     while (warning.firstChild) warning.removeChild(warning.firstChild);
     if (found.length) {
-      warning.append(icon("warning"), h("p", {}, t("dlg.warning"), " ",
-        found.map((x) => t(`privacy.${x.kind}`, { where: t("privacy.where.edit"), word: x.word ?? "" })).join("; "), ". ", t("edit.warning.next")));
+      warning.append(icon("warning"), h("p", {}, t("edit.warning"), " ",
+        found.map((x) => t(`edit.privacy.${x.kind}`, { word: x.word ?? "" })).join("; "), ". ", t("edit.warning.next")));
     }
-    const shown = !warning.hidden;
     warning.hidden = !found.length;
     describe();
-    // A warning that appears comes into view with the field it is about.
-    if (found.length && !shown) warning.closest(".vc-field")?.scrollIntoView({ block: "nearest" });
+    // The warning comes into view as it appears and as it grows, with the field it is about.
+    if (found.length) showBelow(warning, text);
   };
   text.addEventListener("input", drawWarning);
   const direction = select("direction", [["threat", t("dir.threat")], ["opportunity", t("dir.opportunity")]], f.direction);
@@ -202,6 +205,22 @@ function editControls(f, edit) {
       h("button", { type: "button", class: "vc-button vc-button--ghost vc-button--sm item-cancel", on: { click: edit.onCancel } }, t("edit.cancel"))));
   drawWarning();
   return box;
+}
+
+/**
+ * Scrolls the list an editor sits in until `el` shows above its lower edge and the Your turn bar, but never
+ * so far that `field`, where the person types, leaves the view at the top.
+ */
+function showBelow(el, field) {
+  let box = el.parentElement;
+  while (box && box !== document.body && !(/(auto|scroll)/.test(getComputedStyle(box).overflowY) && box.scrollHeight > box.clientHeight)) box = box.parentElement;
+  if (!box || box === document.body) { el.scrollIntoView({ block: "nearest" }); return; }
+  const area = box.getBoundingClientRect();
+  const bar = document.querySelector(".turn-bar")?.getBoundingClientRect();
+  const bottom = Math.min(area.bottom, bar && bar.top > area.top ? bar.top : Infinity, window.innerHeight);
+  const below = el.getBoundingClientRect().bottom - bottom;
+  const room = field.getBoundingClientRect().top - area.top;
+  if (below > 0 && room > 0) box.scrollTop += Math.min(below, room);
 }
 
 /** The AI factors the person removed at Scan, each with Put back, under its dimension's list. */
@@ -235,6 +254,8 @@ export function dimensionPanel(run, step, dimension, live = null) {
       factors.length
         ? h("ul", { class: "vc-framework__items" }, factors.map((f) => factorItem(f, run, step, { edit: live && f.origin === "scan" ? {
           editing: live.editing === f.id,
+          // The AI's own words, which the editor's warning leaves out, however the person has edited them since.
+          said: run.scan?.factors?.find((x) => x.id === f.id)?.text ?? f.text,
           onEdit: () => live.handlers.editFactor(f.id),
           onRemove: () => live.handlers.removeFactor(f.id),
           onSave: (values) => live.handlers.saveFactor(f.id, values),

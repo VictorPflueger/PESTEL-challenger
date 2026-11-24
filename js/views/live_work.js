@@ -79,15 +79,20 @@ export function stopWords(run) {
   const stepName = (n) => t(`step.${STEP_KEYS[n]}`);
   const at = stepName(s.agent ? AGENT_STEP[s.agent] : 1);
   const after = s.after && s.after !== "start" ? t(`step.${s.after}`) : null;
+  // A request cut off mid-way, or aborted under way, counts against the cap at its worst case: every stop it
+  // shapes says so.
+  const held = run.unmetered > 0 ? t("stop.unmetered") : null;
   if (s.reason === "cap") {
-    const cut = run.unmetered > 0;
-    return { tone: "warning", title: t("stop.cap.title"), message: after ? t("stop.cap", { step: after }) : t(cut ? "stop.cap.cutFirst" : "stop.cap.first"), next: cut ? t("stop.cap.unmetered") : null };
+    const message = s.retry ? t("stop.cap.retry") : after ? t("stop.cap", { step: after }) : t(held ? "stop.cap.noStep" : "stop.cap.first");
+    return { tone: "warning", title: t("stop.cap.title"), message, next: held };
   }
-  if (s.reason === "aborted") return { tone: "warning", title: t("stop.aborted.title"), message: t("stop.aborted", { step: at }) };
+  if (s.reason === "aborted") return { tone: "warning", title: t("stop.aborted.title"), message: t("stop.aborted", { step: at }), next: s.held ? held : null };
   if (s.reason === "checks") return { tone: "danger", title: t(s.repaired === false ? "stop.checks.noRepair.title" : "stop.checks.title"), message: t(s.repaired === false ? "stop.checks.noRepair" : "stop.checks", { agent: t(`agent.${s.agent}`), step: at }), next: t("stop.checks.next") };
   if (s.reason === "requests") return { tone: "danger", title: t("stop.requests.title"), message: t("stop.requests", { step: at }) };
-  const m = apiMessage(s.error || {});
-  return { tone: "danger", title: t("stop.error.title"), message: t(m.key, m.vars) };
+  // A stream that broke off mid-answer reached the API: the shared client calls it a network error, which reads as
+  // if nothing had been sent.
+  const m = s.error?.midStream && s.error.type !== "overloaded_error" ? { key: "stop.error.cut", vars: null } : apiMessage(s.error || {});
+  return { tone: "danger", title: t("stop.error.title"), message: t(m.key, m.vars), next: s.error?.midStream ? held : null };
 }
 
 export function stopView(ctx) {
