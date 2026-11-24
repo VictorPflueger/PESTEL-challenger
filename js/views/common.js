@@ -43,3 +43,17 @@ export function yourTurn(text, action, extra = null) {
 export function storyFoot(play, action) {
   return h("div", { class: "story-foot" }, footNote(play), action);
 }
+
+/**
+ * The AI notice in Vici's lilac tag, in the fixed words (standing requirement 11): beside every control
+ * that starts a live run or sends the next request of one.
+ */
+export function aiTag() {
+  return h("span", { class: "vc-tag vc-tag--feature ai-notice" }, icon("sparkle"), t("ai.notice"));
+}
+
+/** A live control with the AI notice beside it, the notice first so the eye meets it before the button. */
+export function withNotice(button) {
+  return h("div", { class: "with-notice" }, aiTag(), button);
+}
+

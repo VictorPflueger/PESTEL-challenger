@@ -14,6 +14,8 @@
 //   assess    the risk matrix, its key and the horizon strip are in view without scrolling;
 //   respond   at 1280 × 720 every option of every factor shows in full above the "Your turn" bar;
 //   guide     every chapter of the How it works guide fits its dialog without scrolling, in both languages;
+//   live      a live run's form, its dialog (in the window, the start button and notice in view), the wait,
+//             editing at Scan and a stop meet the same checks, against the stand-in;
 // and saves a screenshot of each step as it opens, for a person to look at. A planted overflow proves the
 // checks can fail.
 // Usage: node tests/layout.mjs
@@ -26,16 +28,18 @@ const server = await serveStatic(APP_ROOT);
 const browser = await launchBrowser();
 const shots = await outDir("layout");
 
-/** Everything this suite measures on the page as it stands. */
-const measure = (page) => page.evaluate(() => {
+/** Everything this suite measures on the page as it stands; in an open dialog only, when asked. */
+const measure = (page, { dialog = false } = {}) => page.evaluate((inDialog) => {
   const visible = (el) => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && !el.closest("dialog:not([open]), [hidden]"); };
+  // The page's parts, or the open dialog's: what a check looks at is one or the other.
+  const outside = (el) => (inDialog ? !el.closest("dialog[open]") : !!el.closest("dialog"));
   const doc = document.documentElement;
   const out = { sideways: doc.scrollWidth > doc.clientWidth, tall: doc.scrollHeight > doc.clientHeight + 1, cut: [], overlap: [], small: [], faint: [] };
   // a panel that scrolls sideways, or a figure laid out wider than itself (a table it holds must scroll in its wrap)
   out.wide = [...document.querySelectorAll("#stage .panel, #stage .vc-risk, #stage .vc-horizon")].filter((e) => visible(e) && e.scrollWidth > e.clientWidth + 1).map((e) => `${[...e.classList].join(".")} ${e.scrollWidth}px in ${e.clientWidth}px`);
   // whole: an ellipsis, a line clamp, or text wider or taller than a box that hides its overflow
   for (const el of document.querySelectorAll("body *")) {
-    if (!visible(el) || !el.textContent.trim() || el.closest("dialog")) continue;
+    if (!visible(el) || !el.textContent.trim() || outside(el)) continue;
     const s = getComputedStyle(el);
     const hides = ["hidden", "clip"].includes(s.overflowX) || ["hidden", "clip"].includes(s.overflowY);
     if (s.textOverflow === "ellipsis" && el.scrollWidth > el.clientWidth) out.cut.push(`ellipsis: ${el.textContent.trim().slice(0, 40)}`);
@@ -50,7 +54,7 @@ const measure = (page) => page.evaluate(() => {
   }
   // targets: buttons and links, 40 px each way
   for (const el of document.querySelectorAll("button, a[href]")) {
-    if (!visible(el) || el.closest("dialog") || el.classList.contains("vc-skip-link")) continue;
+    if (!visible(el) || outside(el) || el.classList.contains("vc-skip-link")) continue;
     const r = el.getBoundingClientRect();
     if (r.width < 39.5 || r.height < 39.5) out.small.push(`${el.textContent.trim() || el.getAttribute("aria-label") || el.className} ${Math.round(r.width)}×${Math.round(r.height)}`);
   }
@@ -80,7 +84,7 @@ const measure = (page) => page.evaluate(() => {
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   for (let n = walker.nextNode(); n; n = walker.nextNode()) {
     const el = n.parentElement;
-    if (!n.textContent.trim() || !visible(el) || el.closest("dialog, .vc-visually-hidden, .vc-tooltip, [aria-hidden='true']")) continue;
+    if (!n.textContent.trim() || !visible(el) || outside(el) || el.closest(".vc-visually-hidden, .vc-tooltip, [aria-hidden='true']")) continue;
     const s = getComputedStyle(el);
     const fg = rgb(s.color);
     if (!fg) continue;
@@ -105,8 +109,17 @@ const measure = (page) => page.evaluate(() => {
   const kpis = document.querySelector(".kpis").getBoundingClientRect();
   const left = Math.max(document.querySelector(".brand").getBoundingClientRect().right, document.querySelector(".header-actions").getBoundingClientRect().right);
   out.topRight = kpis.left >= left - 0.5 && kpis.top < document.querySelector(".brand").getBoundingClientRect().bottom && Math.abs(doc.clientWidth - kpis.right) < 40;
+  // An open dialog: inside the window, its body not scrolling sideways, its footer (the start button and the
+  // AI notice) in view.
+  const open = document.querySelector("dialog[open]");
+  if (open) {
+    const r = open.getBoundingClientRect();
+    const body = open.querySelector(".vc-dialog__body");
+    const foot = open.querySelector(".vc-dialog__footer")?.getBoundingClientRect();
+    out.dialog = { inside: r.top >= -0.5 && r.bottom <= innerHeight + 0.5 && r.left >= -0.5 && r.right <= innerWidth + 0.5, sideways: body ? body.scrollWidth > body.clientWidth + 1 : false, footer: !!foot && foot.bottom <= innerHeight + 0.5 && foot.top >= 0 };
+  }
   return out;
-});
+}, dialog);
 
 // ---- the checks can fail ----------------------------------------------------------------------------
 {
@@ -216,6 +229,124 @@ for (const { width, height, theme, lang, sc } of RUNS) {
   check(!errors.length, `${run}: no page or console error${errors.length ? `: ${errors.join(" | ")}` : ""}`);
   await context.close();
 }
+// ---- a live run's screens: the form, the dialog, the wait, editing at Scan, a stop --------------------------
+const live = await import("./lib/live.mjs");
+const liveSuite = { base: server.base, browser };
+for (const [width, height] of [[1920, 1080], [1280, 720]]) {
+  for (const theme of ["light", "dark"]) {
+    for (const lang of ["en", "de"]) {
+      const run = `live ${width} × ${height} ${theme} ${lang}`;
+      const t = await live.livePage(liveSuite, { lang, width, height, theme, standIn: { faults: [{ agent: "red_team", attempt: 1, error: { status: 401, type: "authentication_error", message: "invalid x-api-key" } }] } });
+      const p = t.page;
+      const bad = { fit: [], cut: [], small: [], faint: [], header: [], dialog: [] };
+      const look = async (at, opts = {}) => {
+        await p.evaluate(() => document.fonts.ready);
+        // A dialog grows in as it opens: measure it once it has settled.
+        await p.waitForFunction(() => document.getAnimations().every((a) => a.playState !== "running"), null, { timeout: 5000 }).catch(() => {});
+        await p.waitForTimeout(60);
+        const m = await measure(p, opts);
+        if (!opts.dialog) {
+          if (m.sideways || m.tall) bad.fit.push(at);
+          for (const w of m.wide) bad.fit.push(`${at}: ${w}`);
+          if (m.actionRows !== 1) bad.header.push(`${at}: the actions take ${m.actionRows} rows`);
+          if (m.wrapped.length) bad.header.push(`${at}: ${m.wrapped.join(", ")} breaks its value`);
+        } else if (!m.dialog || !m.dialog.inside || m.dialog.sideways || !m.dialog.footer) bad.dialog.push(`${at}: ${JSON.stringify(m.dialog)}`);
+        for (const c of m.cut) bad.cut.push(`${at}: ${c}`);
+        for (const x of m.small) bad.small.push(`${at}: ${x}`);
+        for (const x of m.faint) bad.faint.push(`${at}: ${x}`);
+        if (theme === "light") await p.screenshot({ path: path.join(shots, `live-${width}x${height}-${lang}-${at.replace(/\W+/g, "-")}.png`) });
+      };
+      try {
+        await p.click("#btn-run-live");
+        await p.waitForSelector("#live-name");
+        await look("form");
+        await p.click("#btn-cta");
+        await look("form with errors");
+        await live.fillForm(p, { lang });
+        await p.click("#btn-cta");
+        await p.waitForSelector("#live-dialog[open]");
+        await look("dialog", { dialog: true });
+        // Vici's live-run dialog: every part shows without scrolling, the estimate too, while no warning shows.
+        await p.check("#live-research");
+        const fit = await p.evaluate(() => {
+          const body = document.querySelector("#live-dialog .vc-live__body").getBoundingClientRect();
+          const parts = [...document.querySelectorAll("#live-dialog .vc-live__body > *")].filter((e) => e.offsetParent && !e.hidden);
+          return parts.filter((e) => e.getBoundingClientRect().bottom > body.bottom + 0.5).map((e) => e.id || e.className.split(" ").pop());
+        });
+        if (fit.length) bad.dialog.push(`dialog with research on: out of view without scrolling: ${fit.join(", ")}`);
+        await p.uncheck("#live-research");
+        await p.click("#live-advanced > summary");
+        await look("dialog with Advanced open", { dialog: true });
+        await p.keyboard.press("Escape");
+        const release = t.net.holdAt(0);
+        await live.startRun(p, { waitFor: null });
+        await t.net.held(0);
+        await p.waitForSelector(".work-card");
+        await look("the wait");
+        release();
+        await live.waitIdle(p);
+        await look("scan");
+        const first = await p.$eval(".dim-panel .vc-item[data-source='ai']", (e) => e.closest("[data-id]").dataset.id).catch(() => null);
+        if (first) {
+          await p.click(`[data-id="${first}"] > details > summary`);
+          await look("scan with an AI factor open");
+          await p.click(`[data-id="${first}"] .item-edit`);
+          await look("scan editing a factor");
+          await p.click(`[data-id="${first}"] .item-cancel`);
+        }
+        await live.challenge(p);
+        await look("a stop on an error");
+      } catch (e) {
+        bad.fit.push(`the run failed: ${e.message.split("\n")[0]}`);
+      }
+      check(!bad.fit.length, `${run}: every live screen fits${bad.fit.length ? `; not: ${bad.fit.slice(0, 4).join("; ")}` : ""}`);
+      check(!bad.dialog.length, `${run}: the dialog stays in the window with its start button and notice in view, and with research on every part shows without scrolling${bad.dialog.length ? `; not: ${bad.dialog.slice(0, 2).join("; ")}` : ""}`);
+      check(!bad.cut.length, `${run}: no text cut on a live screen${bad.cut.length ? `: ${bad.cut.slice(0, 4).join("; ")}` : ""}`);
+      check(!bad.header.length, `${run}: the actions keep one row and every figure one line${bad.header.length ? `; not: ${bad.header.slice(0, 3).join("; ")}` : ""}`);
+      check(!bad.small.length, `${run}: every target at least 40 px on the live screens and in the dialog${bad.small.length ? `: ${bad.small.slice(0, 4).join("; ")}` : ""}`);
+      check(!bad.faint.length, `${run}: every text reaches its contrast on the live screens and in the dialog${bad.faint.length ? `: ${bad.faint.slice(0, 4).join("; ")}` : ""}`);
+      const problems = (await live.pageProblems(t)).filter((x) => !/^console: Failed to load resource/.test(x));
+      check(!problems.length, `${run}: no page error${problems.length ? `: ${problems.slice(0, 2).join(" | ")}` : ""}`);
+      await t.context.close();
+
+      // A whole live run, with research, to its summary: Challenge as the run opens it, then the summary with
+      // the run's own table and Save run as simulation, which no recorded run shows.
+      const t2 = await live.livePage(liveSuite, { lang, width, height, theme });
+      const q = t2.page;
+      const bad2 = { fit: [], cut: [], small: [], faint: [], header: [] };
+      const look2 = async (at) => {
+        await q.evaluate(() => document.fonts.ready);
+        await q.waitForTimeout(60);
+        const m = await measure(q);
+        if (m.sideways || m.tall) bad2.fit.push(at);
+        for (const w of m.wide) bad2.fit.push(`${at}: ${w}`);
+        if (m.actionRows !== 1) bad2.header.push(`${at}: the actions take ${m.actionRows} rows`);
+        if (m.wrapped.length) bad2.header.push(`${at}: ${m.wrapped.join(", ")} breaks its value`);
+        for (const c of m.cut) bad2.cut.push(`${at}: ${c}`);
+        for (const x of m.small) bad2.small.push(`${at}: ${x}`);
+        for (const x of m.faint) bad2.faint.push(`${at}: ${x}`);
+        if (theme === "light") await q.screenshot({ path: path.join(shots, `live-${width}x${height}-${lang}-${at.replace(/\W+/g, "-")}.png`) });
+      };
+      try {
+        await live.fillForm(q, { lang });
+        await live.startRun(q, { research: true });
+        await live.challenge(q);
+        await look2("challenge after the agents");
+        await live.adopt(q);
+        await q.evaluate(() => { const d = document.querySelector("details.used"); if (d) d.open = true; });
+        await look2("summary with what the run used");
+        await q.evaluate(() => document.getElementById("btn-save-run")?.scrollIntoView({ block: "nearest" }));
+        await look2("summary at Save run as simulation");
+      } catch (e) {
+        bad2.fit.push(`the run failed: ${e.message.split("\n")[0]}`);
+      }
+      const all = [...bad2.fit, ...bad2.cut, ...bad2.small, ...bad2.faint, ...bad2.header];
+      check(!all.length, `${run}: a whole run's Challenge and summary fit, with no text cut, targets of 40 px and every text at its contrast${all.length ? `; not: ${all.slice(0, 4).join("; ")}` : ""}`);
+      await t2.context.close();
+    }
+  }
+}
+
 // ---- the guide: every chapter fits its dialog without scrolling, at both sizes and in both languages ----
 for (const [width, height] of [[1920, 1080], [1280, 720]]) {
   for (const lang of ["en", "de"]) {

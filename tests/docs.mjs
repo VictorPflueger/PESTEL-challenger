@@ -42,7 +42,8 @@ const SOURCES = {
   "Sovereignty Assessment": "sovereigntyassessment",
   "Data Quality Agent": "PROC-data-quality",
   "Duty Radar": "dutyradar",
-  "SWOT Challenger": "SWOT-challenger"
+  "SWOT Challenger": "SWOT-challenger",
+  "Prototype Ideator": "PrototypeIdeator"
 };
 
 const results = [];

@@ -45,9 +45,9 @@ zurück.
 Gewicht seiner Risiken das Unternehmen vorbereitet ist. Der Dialog **Methode** zeigt die Regel und ein
 Rechenbeispiel.
 
-**Was kostet ein Lauf?** Etwa 0,05 € mit der Einstellung Ausgewogen und 0,24 € mit Gründlich, beide
-geschätzt. Ein Live-Lauf mit Ihrem eigenen Unternehmen und Claude-Schlüssel folgt in Version 0.3.0, mit
-einer Obergrenze für die Kosten, die Sie setzen.
+**Was kostet ein Lauf?** Etwa 0,06 € mit der Einstellung Ausgewogen und 0,27 € mit Gründlich, beide
+geschätzt. Mit **Live laufen lassen** analysieren die Agenten Ihr eigenes Unternehmen mit Ihrem eigenen
+Claude-Schlüssel, bis zu einer Kostenobergrenze, die Sie setzen.
 
 ## Nach der Vorführung
 

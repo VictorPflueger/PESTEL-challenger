@@ -106,7 +106,7 @@ export const SCHEMAS = {
             "properties": {
               "id": {
                 "type": "string",
-                "description": "A new id such as A1, unique in the analysis"
+                "description": "A new id such as a1, unique in the analysis"
               },
               "dimension": {
                 "type": "string",
@@ -371,7 +371,7 @@ export const SCHEMAS = {
     "properties": {
       "id": {
         "type": "string",
-        "description": "A new id such as A1, unique in the analysis"
+        "description": "A new id such as a1, unique in the analysis"
       },
       "dimension": {
         "type": "string",
@@ -921,7 +921,7 @@ export const SCHEMAS = {
                 "properties": {
                   "id": {
                     "type": "string",
-                    "description": "A new id such as A1, unique in the analysis"
+                    "description": "A new id such as a1, unique in the analysis"
                   },
                   "dimension": {
                     "type": "string",
@@ -2792,7 +2792,7 @@ export const REQUESTS = {
                       "properties": {
                         "id": {
                           "type": "string",
-                          "description": "A new id such as A1, unique in the analysis"
+                          "description": "A new id such as a1, unique in the analysis"
                         },
                         "dimension": {
                           "type": "string",
@@ -3242,7 +3242,7 @@ export const REQUESTS = {
           "properties": {
             "id": {
               "type": "string",
-              "description": "A new id such as A1, unique in the analysis"
+              "description": "A new id such as a1, unique in the analysis"
             },
             "dimension": {
               "type": "string",

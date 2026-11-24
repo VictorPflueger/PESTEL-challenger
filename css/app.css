@@ -286,6 +286,117 @@ html:not([data-ready="true"]) .app-header :is(.vc-button, .vc-icon-button, .vc-t
 .summary-note { display: flex; gap: 8px; }
 .watch-table th[scope="row"] { font-weight: var(--vc-weight-semibold); }
 
+/* ---------------------------------------------------------------- the live run */
+
+/* The AI notice beside every control that starts a live run or sends its next request: the tag first, the
+   button after it. In a turn bar the two stack, so the bar's sentence keeps its width at 1280 × 720. */
+.with-notice { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px 10px; flex: none; }
+.turn .with-notice { flex-direction: column; align-items: flex-end; gap: 4px; }
+.turn .with-notice > .ai-notice { --_h: auto; font-size: var(--vc-font-size-xs); }
+.stop-actions .with-notice { flex-direction: row; }
+
+/* "Run it live" on the simulation's Start. */
+.live-entry { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }
+.live-entry .with-notice { flex-direction: row-reverse; justify-content: flex-start; }
+.live-entry-note { margin: 0; color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); }
+
+/* The live form: the notice on what may be entered, the company, then the six headings. */
+.live-form { gap: 12px; }
+.public-note { display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 10px 12px; border: 1px solid var(--vc-info-border); border-radius: var(--vc-radius-md); background: var(--vc-info-bg); color: var(--vc-info-text); font-size: var(--vc-font-size-sm); line-height: 1.45; }
+.public-note > .vc-icon { flex: none; margin-top: 2px; }
+.public-note > p { margin: 0; }
+.public-note strong { color: inherit; }
+.live-locked { display: flex; align-items: flex-start; gap: 8px; margin: 0; color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); }
+.live-company, .live-factors { display: grid; gap: 10px 16px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.live-company { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+.live-company .live-field--what { grid-column: 1 / -1; }
+.live-field { display: grid; gap: 4px; min-width: 0; margin: 0; }
+.live-field > .vc-help { margin: 0; }
+.live-field > .vc-help--error[hidden] { display: none; }
+.live-legend { padding: 0; margin-bottom: 2px; font-family: var(--vc-font-display); font-weight: var(--vc-weight-display); font-size: var(--vc-font-size-lg); }
+.live-factors-help { margin: 0; }
+.live-dims { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; }
+.live-dims .vc-textarea { min-height: 3.6rem; resize: vertical; }
+.live-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.live-actions .vc-button { --_h: 40px; }
+.live-clear[data-confirm="yes"] { font-weight: var(--vc-weight-semibold); }
+
+/* While an agent works: who works, the figures that change, the agents of the step. */
+.work { gap: 12px; }
+.work-card { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid var(--vc-feature-border); border-radius: var(--vc-radius-lg); background: var(--vc-surface); }
+.work-agent { display: flex; align-items: center; gap: 10px; margin: 0; font-size: var(--vc-font-size-lg); font-weight: var(--vc-weight-semibold); }
+.work-figures { display: grid; grid-template-columns: repeat(3, minmax(0, max-content)); gap: 4px 32px; margin: 0; }
+.work-figures > div { display: grid; gap: 2px; }
+.work-figures dt { color: var(--vc-text-muted); font-size: var(--vc-font-size-xs); font-weight: var(--vc-weight-semibold); }
+.work-figures dd { margin: 0; font-size: var(--vc-font-size-lg); font-variant-numeric: tabular-nums; }
+.work-note { margin: 0; color: var(--vc-warning-text); font-size: var(--vc-font-size-sm); }
+.work-note:empty { display: none; }
+.work-steps { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0; padding: 0; list-style: none; font-size: var(--vc-font-size-sm); }
+.work-steps > li { display: inline-flex; align-items: center; gap: 6px; color: var(--vc-text-muted); }
+.work-steps > li[data-state="working"] { color: var(--vc-feature-text); font-weight: var(--vc-weight-semibold); }
+.work-steps > li[data-state="done"] { color: var(--vc-text); }
+.work-hint { display: flex; align-items: flex-start; gap: 8px; margin: 0; color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); }
+.work-hint .vc-icon { flex: none; margin-top: 2px; }
+@media (prefers-reduced-motion: no-preference) {
+  .work-steps > li[data-state="working"] .work-mark { animation: work-pulse 1.6s var(--vc-ease-standard) infinite; }
+}
+@keyframes work-pulse { 50% { opacity: 0.35; } }
+
+/* Where a run stopped. */
+.stop { gap: 12px; }
+.stop-alert { align-items: flex-start; }
+.stop-body { display: grid; gap: 6px; }
+.stop-body > * { margin: 0; }
+.stop-message { font-weight: var(--vc-weight-semibold); }
+.stop-problems > summary { cursor: pointer; }
+.stop-problems ul { margin: 6px 0 0; padding-left: 1.2em; }
+.stop-kept { margin: 0; color: var(--vc-text-muted); }
+.stop-actions { justify-content: space-between; }
+
+/* Keep, edit or remove at a live Scan. */
+.item-edit-actions { display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 2px 0 0; }
+.item-edit-actions .vc-button { --_h: 40px; }
+.item-editor { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid var(--vc-border); border-radius: var(--vc-radius-md); background: var(--vc-bg-subtle); }
+.item-editor .vc-field { display: grid; gap: 4px; margin: 0; }
+.item-editor-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: 8px 10px; }
+.item-editor-error[hidden] { display: none; }
+.removed { display: grid; gap: 4px; margin-top: 8px; }
+.removed > .item-label { margin: 0; font-size: var(--vc-font-size-sm); }
+.removed-list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.removed-list > li { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--vc-text-muted); }
+.removed-text { text-decoration: line-through; min-width: 0; }
+.vc-item__state.edited { --_bg: var(--vc-accent-soft); --_fg: var(--vc-on-accent-soft); }
+.unchecked { white-space: nowrap; }
+.live-notice { display: flex; align-items: flex-start; gap: 8px; margin: 0; }
+.summary-unchecked { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--vc-warning-text); font-size: var(--vc-font-size-sm); }
+
+/* What a live run used, and saving it as a simulation. */
+.used > summary { cursor: pointer; font-weight: var(--vc-weight-semibold); }
+.used[open] > summary { margin-bottom: 8px; }
+.used-table td, .used-table th { white-space: nowrap; }
+.live-save { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.live-save > .vc-help { margin: 0; max-width: 60ch; }
+.run-lang { letter-spacing: 0.04em; }
+
+/* A dialog's Close keeps the page's 40 px target (Vici draws it at 2rem), here as everywhere. */
+.vc-dialog__header > .vc-icon-button { --_h: 2.5rem; }
+
+/* The live dialog: where keys come from, as a 40 px target of its own; the plans note under it, quieter. */
+/* The key's label, with the link to where keys come from at the end of its row. */
+.live-key-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 var(--vc-space-2); }
+.live-keys-link.vc-button { --_h: 40px; }
+/* An empty status takes no row, and the setting's legend stands beside its choice, so the parts keep to
+   1280 × 720 as Vici's live-run dialog asks. */
+.live-key-status:empty { display: none; }
+.vc-live__setting { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: var(--vc-space-3); }
+/* Floated, the legend leaves the fieldset's border and takes its place in the grid, beside the choice. */
+.vc-live__setting > legend { float: left; margin: 0; }
+.vc-live__setting > .vc-help { grid-column: 1 / -1; }
+.live-key-status:empty { display: none; }
+.live-frame { display: flex; gap: 8px; align-items: flex-start; }
+.live-frame[hidden] { display: none; }
+.mode-tag[data-mode="live"] { --_bg: var(--vc-feature-bg); --_fg: var(--vc-feature-text); border-color: var(--vc-feature-border); }
+
 /* ---------------------------------------------------------------- the method */
 
 .method-body { display: grid; gap: 14px; }
@@ -372,6 +483,9 @@ html:not([data-ready="true"]) .app-header :is(.vc-button, .vc-icon-button, .vc-t
   .assess-panel { grid-template-columns: minmax(0, 1fr); }
   .assess-panel > .matrix { grid-row: auto; }
   .assess-panel > .top-three { grid-column: auto; margin-bottom: 0; }
+  /* The live form takes one column. */
+  .live-company, .live-dims { grid-template-columns: minmax(0, 1fr); }
+  .work-figures { grid-template-columns: minmax(0, 1fr); }
   /* A dimension's state tag may break onto a second line. */
   .dim-panel .vc-framework__state { white-space: normal; }
   /* The company and its tag go under the title, which keeps the width of the column. */

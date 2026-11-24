@@ -31,7 +31,7 @@
     <div class="header-actions">
       <span class="vc-tooltip-anchor">
         <span class="vc-tag vc-tag--lg mode-tag" id="mode-tag" data-mode="simulation" tabindex="0" aria-describedby="tip-mode"><span data-i18n="p.mode.sim">SIMULATION</span></span>
-        <span class="vc-tooltip vc-tooltip--bottom" role="tooltip" id="tip-mode" data-i18n="p.mode.tip">Simulation: recorded runs of the agents, played without a key through the real checks and engine. A live run on your own key follows in version 0.3.0.</span>
+        <span class="vc-tooltip vc-tooltip--bottom" role="tooltip" id="tip-mode" data-i18n="p.mode.tip">Simulation: recorded runs of the agents, played without a key through the real checks and engine. Run it live on your own company from the Start step.</span>
       </span>
       <button type="button" class="vc-button vc-button--secondary method-open" data-vc-open="method"><span class="vc-icon vc-icon--book" aria-hidden="true"></span><span data-i18n="p.method">Method</span></button>
       <button type="button" class="vc-button vc-button--secondary guide-open" data-vc-guide-open="guide-en" lang="en"><span class="vc-icon vc-icon--info" aria-hidden="true"></span>How it works</button>
@@ -115,6 +115,72 @@
     <div class="vc-dialog__body method-body" id="method-body"></div>
   </dialog>
 
+  <!-- The live-run dialog: Vici's .vc-live (ViciDesign#36), its parts in Vici's order. The key field sits in no
+       form; js/live_dialog.js holds the key in memory (js/keystore.js), checks it with the free model list,
+       refuses to work inside another page's frame and keeps "Start the live run" disabled until the key
+       looks right and the box, unticked at every opening, is ticked. -->
+  <dialog class="vc-dialog vc-live" id="live-dialog" aria-labelledby="live-title">
+    <header class="vc-dialog__header">
+      <h2 class="vc-dialog__title" id="live-title" data-i18n="dlg.title">Run it live</h2>
+      <button type="button" class="vc-icon-button" data-vc-close aria-label="Close" data-i18n-attr="aria-label:p.close"><span class="vc-icon vc-icon--close" aria-hidden="true"></span></button>
+    </header>
+    <div class="vc-dialog__body vc-live__body">
+      <p class="vc-alert vc-alert--danger live-frame" id="live-frame" role="alert" hidden><span class="vc-icon vc-icon--error" aria-hidden="true"></span><span data-i18n="dlg.frame">This dialog does not work inside another page's frame. Open the tool in its own tab.</span></p>
+      <section class="vc-live__part vc-live__key">
+        <div class="live-key-head">
+          <label class="vc-label" for="live-key" data-i18n="dlg.key">Your API key</label>
+          <a class="vc-button vc-button--ghost vc-button--sm live-keys-link" href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener"><span class="vc-icon vc-icon--external" aria-hidden="true"></span><span data-i18n="dlg.key.link">Get a key in the Claude Console</span></a>
+        </div>
+        <div class="vc-live__key-row">
+          <input class="vc-input" id="live-key" type="password" autocomplete="off" spellcheck="false" data-1p-ignore data-lpignore="true" aria-describedby="live-key-note live-key-status">
+          <button type="button" class="vc-icon-button" id="live-key-show" aria-controls="live-key" aria-pressed="false" aria-label="Show key" data-i18n-attr="aria-label:dlg.key.show"><span class="vc-icon vc-icon--eye" aria-hidden="true"></span></button>
+        </div>
+        <p class="vc-help" id="live-key-note" data-i18n="dlg.key.note">It stays in this tab's memory until you close or reload it. Use a workspace with a monthly spend limit.</p>
+        <p class="vc-help live-key-status" id="live-key-status" aria-live="polite"></p>
+        <p class="vc-live__current" id="live-current" hidden><span data-i18n="dlg.key.current">Key in memory:</span> <span class="vc-live__masked" id="live-masked"></span> <button type="button" class="vc-button vc-button--ghost vc-button--sm vc-live__forget" id="live-forget" data-i18n="dlg.key.forget">Forget key</button></p>
+      </section>
+      <fieldset class="vc-live__part vc-live__setting">
+        <legend class="vc-label" data-i18n="dlg.setting">Setting</legend>
+        <div class="vc-segmented" role="radiogroup" aria-label="Setting" data-i18n-attr="aria-label:dlg.setting">
+          <label><input type="radio" name="live-setting" value="fast"><span data-i18n="dlg.fast">Fast</span></label>
+          <label><input type="radio" name="live-setting" value="balanced" checked><span data-i18n="dlg.balanced">Balanced</span></label>
+          <label><input type="radio" name="live-setting" value="thorough"><span data-i18n="dlg.thorough">Thorough</span></label>
+        </div>
+        <p class="vc-help"><span id="live-setting-help"></span> <span id="live-lang"></span></p>
+      </fieldset>
+      <div class="vc-live__part vc-live__research">
+        <label class="vc-switch"><input type="checkbox" role="switch" id="live-research" aria-describedby="live-research-help"> <span data-i18n="dlg.research">Look up recent news first</span></label>
+        <p class="vc-help" id="live-research-help"></p>
+      </div>
+      <details class="vc-live__part vc-live__advanced" id="live-advanced">
+        <summary data-i18n="dlg.advanced">Advanced</summary>
+        <div>
+          <div class="vc-field"><label class="vc-label" for="live-model" data-i18n="dlg.model">Model</label><select class="vc-select" id="live-model"><option value="claude-haiku-5-5">Haiku 5.5</option><option value="claude-sonnet-5-5">Sonnet 5.5</option></select></div>
+          <div class="vc-field"><label class="vc-label" for="live-effort" data-i18n="dlg.effort">Effort</label><select class="vc-select" id="live-effort"><option value="low" data-i18n="dlg.effort.low">Low</option><option value="medium" selected data-i18n="dlg.effort.medium">Medium</option><option value="high" data-i18n="dlg.effort.high">High</option></select></div>
+          <p class="vc-help" data-i18n="dlg.advanced.help">The setting chooses both; change them here only to try another combination.</p>
+        </div>
+      </details>
+      <div class="vc-live__part vc-live__cap">
+        <label class="vc-label" for="live-cap" data-i18n="dlg.cap">Budget cap for this run</label>
+        <div class="vc-slider-field">
+          <input class="vc-slider" id="live-cap" type="range" min="0.05" max="3" step="0.05" value="0.5" aria-describedby="live-cap-help">
+          <output for="live-cap" data-vc-currency="EUR">€0.50</output>
+        </div>
+        <p class="vc-help" id="live-cap-help" data-i18n="dlg.cap.help">No request starts that could take the run past it.</p>
+      </div>
+      <label class="vc-checkbox vc-live__ack"><input type="checkbox" id="live-ack"> <span data-i18n="dlg.ack">I will enter public information only: nothing confidential, personal or otherwise protected.</span></label>
+      <div class="vc-alert vc-alert--warning vc-live__warning" id="live-warning" role="alert" hidden>
+        <span class="vc-icon vc-icon--warning" aria-hidden="true"></span>
+        <div><span data-i18n="dlg.warning">Usually private, found in what you entered:</span><ul id="live-warning-list"></ul><span data-i18n="dlg.warning.next">Remove it, or start the run if it is public.</span></div>
+      </div>
+      <p class="vc-live__estimate" id="live-estimate" aria-live="polite"></p>
+    </div>
+    <footer class="vc-dialog__footer vc-live__footer">
+      <span class="vc-tag vc-tag--feature"><span class="vc-icon vc-icon--sparkle" aria-hidden="true"></span><span data-i18n="ai.notice">You are interacting with an AI system</span></span>
+      <button type="button" class="vc-button vc-live__start" id="live-start" disabled data-i18n="dlg.start">Start the live run</button>
+    </footer>
+  </dialog>
+
   <!-- How it works: one guide per language. js/lang.js leaves data-vc-guide-auto only on the guide in the
        page's language, so vici.js opens that one by itself once per tab. -->
   <dialog class="vc-dialog vc-guide" id="guide-en" lang="en-GB" aria-labelledby="guide-en-title" data-vc-guide data-vc-guide-auto data-vc-guide-count="{n} of {total}" data-vc-guide-rail="Chapters">
@@ -126,7 +192,7 @@
       <section class="vc-guide__chapter" data-vc-chapter="what" data-vc-nav="What it does">
         <h3>Which outside forces a company isn't ready for</h3>
         <p class="vc-guide__lead">Name a company and list the outside forces you see under six headings. AI agents complete them, challenge the analysis, put a figure on each threat and propose what to do or watch.</p>
-        <p>The six headings are political, economic, social, technological, environmental and legal: PESTEL. This version plays three recorded runs on fictional companies, without a key. A live run on your own company and Claude key follows in 0.3.0, and the report as a PDF, an HTML file and a file for the Prototype Ideator in 0.4.0.</p>
+        <p>The six headings are political, economic, social, technological, environmental and legal: PESTEL. Without a key, this version plays three recorded runs on fictional companies. Run it live, and the agents analyse your own company with your own Claude key. The report as a PDF, an HTML file and a file for the Prototype Ideator follows in 0.4.0.</p>
       </section>
       <section class="vc-guide__chapter" data-vc-chapter="how" data-vc-nav="How it works">
         <h3>Five agents, and code that does the sums</h3>
@@ -138,7 +204,7 @@
             <tr><th scope="row">At stake a year</th><td>Each priced threat's euro range at its midpoint, times its likelihood, added up</td><td><span data-fig="stake.before">€3.8m</span>, then <span data-fig="stake.after">€2.2m</span></td></tr>
             <tr><th scope="row">Dimensions under pressure</th><td>Dimensions with a threat of medium band or higher that the company is not ready for</td><td><span data-fig="pressure.before">3 of 6</span>, then <span data-fig="pressure.after">1 of 6</span></td></tr>
             <tr><th scope="row">Readiness</th><td>0 to 100: how much of its threats' weight the company is ready for</td><td><span data-fig="readiness.before">51</span>, then <span data-fig="readiness.after">72</span></td></tr>
-            <tr><th scope="row">Session cost</th><td>What the agents cost: measured live against your cap, estimated here</td><td><span data-fig="cost.balanced">≈ €0.05</span> on Balanced, <span data-fig="cost.thorough">≈ €0.24</span> on Thorough</td></tr>
+            <tr><th scope="row">Session cost</th><td>What the agents cost: measured live against your cap, estimated here</td><td><span data-fig="cost.balanced">≈ €0.06</span> on Balanced, <span data-fig="cost.thorough">≈ €0.27</span> on Thorough</td></tr>
           </tbody>
         </table></div>
       </section>
@@ -160,13 +226,13 @@
       </section>
       <section class="vc-guide__chapter" data-vc-chapter="cost" data-vc-nav="The cost estimate">
         <h3>What the cost estimate assumes</h3>
-        <p class="vc-guide__lead">The simulation calls no model, so its session cost is an estimate of what the recorded run would cost on your own key.</p>
+        <p class="vc-guide__lead">The simulation calls no model, so its session cost estimates what the recorded run would cost on your own key. The live-run dialog estimates a run on your company the same way, as a range.</p>
         <ul>
-          <li>Each agent's request is rebuilt from what it reads and what it answered, at about four characters a token.</li>
-          <li>A prompt of about 1,500 tokens; each answer counted twice, to allow for thinking.</li>
+          <li>Each request is rebuilt from the agent's real prompt and what it reads; the answers are the recorded runs' sizes. About three characters make a token.</li>
+          <li>With thinking on, each answer counts twice; Fast turns thinking off.</li>
           <li>With research, five web searches at $10 per 1,000, each adding about 4,000 tokens.</li>
-          <li>Prices read on 24 November 2026, converted at €0.894 to the dollar.</li>
-          <li>Victor's first live runs replace these assumptions with measured values.</li>
+          <li>Time: Haiku 5.5 writes 80 to 180 tokens a second and Sonnet 5.5 40 to 100, after one to five seconds of waiting.</li>
+          <li>Prices read on 24 November 2026, converted at €0.894 to the dollar. Victor's first live runs replace these assumptions with measured values.</li>
         </ul>
       </section>
       <section class="vc-guide__chapter" data-vc-chapter="real" data-vc-nav="What is real">
@@ -207,7 +273,7 @@
       <section class="vc-guide__chapter" data-vc-chapter="what" data-vc-nav="Was er tut">
         <h3>Worauf ein Unternehmen nicht vorbereitet ist</h3>
         <p class="vc-guide__lead">Nennen Sie ein Unternehmen und die äußeren Kräfte, die Sie sehen, unter sechs Überschriften. KI‑Agenten vervollständigen sie, hinterfragen die Analyse, beziffern jedes Risiko und schlagen vor, was zu tun oder zu beobachten ist.</p>
-        <p>Die sechs Überschriften sind politisch, ökonomisch, gesellschaftlich, technologisch, ökologisch und rechtlich: PESTEL. Diese Version spielt drei aufgezeichnete Läufe mit fiktiven Unternehmen ab, ohne Schlüssel. Ein Live‑Lauf mit Ihrem Unternehmen und Ihrem Claude-Schlüssel folgt in 0.3.0, der Bericht als PDF, als HTML-Datei und als Datei für den Prototype Ideator in 0.4.0.</p>
+        <p>Die sechs Überschriften sind politisch, ökonomisch, gesellschaftlich, technologisch, ökologisch und rechtlich: PESTEL. Ohne Schlüssel spielt diese Version drei aufgezeichnete Läufe mit fiktiven Unternehmen ab. Mit „Live laufen lassen“ analysieren die Agenten Ihr eigenes Unternehmen mit Ihrem eigenen Claude-Schlüssel. Der Bericht als PDF, als HTML-Datei und als Datei für den Prototype Ideator folgt in 0.4.0.</p>
       </section>
       <section class="vc-guide__chapter" data-vc-chapter="how" data-vc-nav="So funktioniert er">
         <h3>Fünf Agenten und Code, der rechnet</h3>
@@ -219,7 +285,7 @@
             <tr><th scope="row">Auf dem Spiel pro Jahr</th><td>Euro-Spanne jedes bezifferten Risikos in der Mitte, mal Wahrscheinlichkeit, summiert</td><td><span data-fig="stake.before">3,8 Mio. €</span>, dann <span data-fig="stake.after">2,2 Mio. €</span></td></tr>
             <tr><th scope="row">Dimensionen unter Druck</th><td>Dimensionen mit einem mindestens mittleren Risiko, auf das das Unternehmen nicht vorbereitet ist</td><td><span data-fig="pressure.before">3 von 6</span>, dann <span data-fig="pressure.after">1 von 6</span></td></tr>
             <tr><th scope="row">Vorbereitungsgrad</th><td>0 bis 100: auf wie viel vom Gewicht seiner Risiken das Unternehmen vorbereitet ist</td><td><span data-fig="readiness.before">51</span>, dann <span data-fig="readiness.after">72</span></td></tr>
-            <tr><th scope="row">Sitzungskosten</th><td>Was die Agenten kosten: live gemessen gegen Ihre Obergrenze, hier geschätzt</td><td><span data-fig="cost.balanced">≈ 0,05 €</span> mit Ausgewogen, <span data-fig="cost.thorough">≈ 0,24 €</span> mit Gründlich</td></tr>
+            <tr><th scope="row">Sitzungskosten</th><td>Was die Agenten kosten: live gemessen gegen Ihre Obergrenze, hier geschätzt</td><td><span data-fig="cost.balanced">≈ 0,06 €</span> mit Ausgewogen, <span data-fig="cost.thorough">≈ 0,27 €</span> mit Gründlich</td></tr>
           </tbody>
         </table></div>
       </section>
@@ -241,13 +307,13 @@
       </section>
       <section class="vc-guide__chapter" data-vc-chapter="cost" data-vc-nav="Die Kostenschätzung">
         <h3>Was die Kostenschätzung annimmt</h3>
-        <p class="vc-guide__lead">Die Simulation ruft kein Modell auf, ihre Sitzungskosten schätzen also, was der aufgezeichnete Lauf mit Ihrem eigenen Schlüssel kosten würde.</p>
+        <p class="vc-guide__lead">Die Simulation ruft kein Modell auf, ihre Sitzungskosten schätzen also, was der aufgezeichnete Lauf mit Ihrem eigenen Schlüssel kosten würde. Der Dialog für den Live‑Lauf schätzt einen Lauf mit Ihrem Unternehmen ebenso, als Spanne.</p>
         <ul>
-          <li>Jede Anfrage eines Agenten wird aus dem nachgebaut, was er liest und antwortet, mit etwa vier Zeichen je Token.</li>
-          <li>Ein Prompt von etwa 1.500 Tokens; jede Antwort zählt doppelt, als Reserve für das Nachdenken.</li>
+          <li>Jede Anfrage wird aus dem echten Prompt des Agenten und dem nachgebaut, was er liest; die Antworten haben die Größe der aufgezeichneten Läufe. Etwa drei Zeichen ergeben ein Token.</li>
+          <li>Mit Nachdenken zählt jede Antwort doppelt; Schnell schaltet das Nachdenken aus.</li>
           <li>Mit Recherche fünf Websuchen zu 10 $ je 1.000, jede mit etwa 4.000 Tokens mehr.</li>
-          <li>Preise vom 24. November 2026, umgerechnet zu 0,894 € je Dollar.</li>
-          <li>Victors erste Live‑Läufe ersetzen diese Annahmen durch gemessene Werte.</li>
+          <li>Zeit: Haiku 5.5 schreibt 80 bis 180 Tokens je Sekunde, Sonnet 5.5 40 bis 100, nach einer bis fünf Sekunden Wartezeit.</li>
+          <li>Preise vom 24. November 2026, umgerechnet zu 0,894 € je Dollar. Victors erste Live‑Läufe ersetzen diese Annahmen durch gemessene Werte.</li>
         </ul>
       </section>
       <section class="vc-guide__chapter" data-vc-chapter="real" data-vc-nav="Was echt ist">

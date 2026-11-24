@@ -5,33 +5,42 @@ the plan Victor approved on 23 November 2026; this file records what the build f
 
 ## 1. Version
 
-Version 0.2.0 (M2 Simulation): three recorded runs on fictional companies play step by step in English
-and German without a key: the six dimensions around the company as Vici's ring, the factor lists with
-their states, the risk matrix and the horizon strip with their tables, the steps with Play and the "Your
-turn" bar, key figures that answer first, the method dialog, the guide with its talk track, and the
-scenario checker. It builds on 0.1.0 (M1 Foundations): the frame, the strings, the engine with its golden
-cases, the schemas, the KPI library, the security policy and CI. Nothing calls a model yet: the live run
-follows in 0.3.0, the report in 0.4.0.
+Version 0.3.0 (M3 Live): "Run it live" runs the agents on a person's own company with their own Claude
+API key, in the tab. It brings the empty Start form; the live-run dialog with the key held in memory,
+three settings, research, a budget cap, the acknowledgement, the private-data warning and the estimate;
+the Scout's web research and the Scanner, Red team, Analyst, Strategist and Writer, each answer checked by
+code and sent back once when it fails; the cost meter against the cap; plain messages for every error with
+the retries of brief §5.8; the person's edits at Scan; and "Save run as simulation". It builds on 0.2.0
+(M2 Simulation), three recorded runs on fictional companies that play step by step in English and German
+without a key, and on 0.1.0 (M1 Foundations): the frame, the strings, the engine with its golden cases,
+the schemas, the KPI library, the security policy and CI. The report follows in 0.4.0.
 
 ## 2. API facts, verified at source
 
-Read on 23 November 2026 in the documentation, or probed from this workspace the same day (PLAN.md
-section 2 has every probe). What needs a key waits for Victor's console snippet (PLAN.md section 16).
+Read in the documentation on 23 November 2026, or probed from this workspace the same day (PLAN.md
+section 2 has every probe), and read again on 24 November 2026 where the row says so. What needs a key
+waits for Victor's first live runs (section 8).
 
 | Topic | Fact | Read or probed |
 |---|---|---|
-| Models | `claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5`; knowledge reliable to June 2026 | 2026-11-23, models overview |
-| Prices | Per million tokens, input and output: Haiku 5.5 $0.10 and $0.50 (above 100,000 prompt tokens $0.50 and $2.50), Sonnet 5.5 $2 and $10, Opus 5.5 $4 and $20. Cache writes (5 minutes) $0.125, $2.50 and $5; cache reads $0.01, $0.10 and $0.20. Web search $10 per 1,000 searches; a failed search is not billed | 2026-11-23, pricing page |
+| Models | `claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5`; knowledge reliable to June 2026; their tokenizer counts the same text as about 30 percent more tokens than Claude Haiku 4.5's | 2026-11-24, the three model pages |
+| Prices | Per million tokens, input and output: Haiku 5.5 $0.10 and $0.50 (above 100,000 prompt tokens $0.50 and $2.50), Sonnet 5.5 $2 and $10, Opus 5.5 $4 and $20. Cache writes (5 minutes) $0.125, $2.50 and $5; cache reads $0.01, $0.10 and $0.20. Web search $10 per 1,000 searches; a failed search is not billed | 2026-11-24, pricing page |
 | Browser access | A keyless call with `anthropic-dangerous-direct-browser-access: true` answers 401 with `access-control-allow-origin: *`; without the header the browser blocks it | 2026-11-23, probed |
 | Token counting | `POST /v1/messages/count_tokens` is free and reachable from a page | 2026-11-23, probed keyless |
 | Structured outputs | `output_config.format` with a JSON schema; per request at most 24 optional and 16 union-typed parameters; `minimum`, `maximum`, `minLength` and `maxLength` unsupported | 2026-11-23, structured outputs page |
 | Effort and thinking | `output_config.effort` low to max, sent on every request; Haiku 5.5 takes `thinking: disabled` at high effort or below, Sonnet 5.5 takes `between_tools` instead | 2026-11-23, effort and thinking pages |
-| Web search | `web_search_20250305` with `max_uses`; `pause_turn` is sent again unchanged | 2026-11-23, web search tool page |
+| Web search | `web_search_20250305` with `max_uses`; `pause_turn` is sent again unchanged; a client tool called beside a search ends the turn with `tool_use`; an organisation with search switched off gets 400 `invalid_request_error` | 2026-11-23, web search tool page |
+| Errors | A spend limit you set returns 400 `invalid_request_error`, "You have reached your specified API usage limits"; no credit returns "Your credit balance is too low to access the Anthropic API"; 529 is overload | 2026-11-23, rate limits and API credits pages |
+| API version | `anthropic-version: 2023-06-01`, as the sister prototypes send it; `2026-10-21` is the newest | 2026-11-23, migration page |
+| Claude plans | A Claude plan does not pay for API use by itself: Max, Ultra and Team plans include monthly API credits once a Console organisation is linked; Free, Pro and Enterprise plans do not | 2026-11-24, support.claude.com article 17154008 |
 | JSON modules | `import … with { type: "json" }` is blocked by `connect-src` under the page's policy, so the schemas ship as a module | 2026-11-23, probed in Chrome 153 |
 | Print footer | Chromium prints `@page` margin boxes with page numbers; Firefox and Safari have none (MDN data, not probed), so a fixed footer takes over there | 2026-11-23, probed in Chromium |
 
-The prices were read again on 24 November 2026, unchanged, before the simulation's cost estimate came to
-rest on them; they are read again before M3's cost meter does.
+The prices were read again on 24 November 2026, unchanged, before the simulation's estimate came to rest
+on them, and again that day for the live cost meter. The Japanese edition of the pricing page gives Sonnet
+5.5's cache reads as $0.20, not $0.10. This tool sets no cache control, so a run should read nothing from
+the cache; should it, the meter prices the tokens at the English page's $0.10, a difference of $0.10 per
+million tokens.
 
 ## 3. Decisions in use
 
@@ -43,8 +52,8 @@ recommendations with PLAN.md on 23 November 2026.
 | D1 | Name and subtitle | "PESTEL Challenger"; the page title says "outside forces, put to the test" |
 | D2 | Icon | Vici's radar icon in a lilac hexagon, in the header and the page icon |
 | D3 | Languages | English and German from version 0.1.0 |
-| D4 | Default setting and cap | Balanced and €0.50 (from 0.3.0) |
-| D5 | Web research | Off by default, with a visible switch that recommends it (from 0.3.0) |
+| D4 | Default setting and cap | Balanced and €0.50 |
+| D5 | Web research | Off by default, with a visible switch that recommends it |
 | D6 | PDF | The browser's Save as PDF, no library (from 0.4.0) |
 | D7 | Handing over to the Ideator | Download and link (from 0.4.0) |
 | D8 | Scenario names | Tidewell Lines, Arvento Drives and Auental Energie |
@@ -52,7 +61,7 @@ recommendations with PLAN.md on 23 November 2026.
 | D10 | Research in the scenarios | S1 and S3 with a recorded research step, S2 without |
 | D11 | Depth | Up to eight issues, no Quick or Deep |
 | N1 | S3's story | Retold around the heat plan due on 31 December 2026 (from 0.2.0) |
-| N2 | Requests per run | At most ten (from 0.3.0) |
+| N2 | Requests per run | At most ten: five agents, three for the Scout and two repairs |
 | N3 | Upload | None |
 
 Decided while building 0.2.0, each within the brief and the plan:
@@ -72,6 +81,29 @@ Decided while building 0.2.0, each within the brief and the plan:
 | Check for updates | A scenario whose facts were read more than 90 days ago says so on Start (`needsUpdate()` in `js/format.js`) |
 | Vici | The ring (ViciDesign#30), the horizon strip (#31), square radios in the segmented control (#33) and a fix that keeps the risk matrix and the horizon strip to their width once their numbers open (#34) went into Vici first; `vici/` copies its main at the commit `vici/README.md` names |
 
+Decided while building 0.3.0, each within the brief and the plan:
+
+| What | Decision |
+|---|---|
+| The shared client | `js/anthropic.js`, `js/sse.js`, `js/cost.js` and `js/keystore.js` are the Prototype Ideator's at `532e0f5`, unchanged (brief §4.1). This tool puts its errors into plain words in `js/api_messages.js` and decides there whether a request may run again, so credit and spend limits never retry, whatever the status |
+| The settings | Fast: Haiku 5.5 at low effort, thinking disabled. Balanced: Haiku 5.5 at medium effort, thinking left to the model. Thorough: Sonnet 5.5 at medium effort. Advanced offers Haiku 5.5 and Sonnet 5.5 at low to high effort; Opus 5.5 is left out, since it always thinks and costs forty times Haiku's price (PLAN.md section 15) |
+| One request per agent | Each request carries the analysis so far as JSON and the step's format, never the conversation, so a step replays exactly and no prompt cache is needed. The prompts are in English; the agents write in the page's language |
+| The Scout | `web_search_20250305` with at most five searches and one strict client tool, `submit_signals`, in at most three requests: the first, one continuation after `pause_turn` and one repair. Only addresses from its own search results count; a signal citing another is refused once with `is_error`, then dropped |
+| Checks and the repair | Each answer passes its schema, the refusals of brief §6.7 and the fact audit (`js/guards.js`). A failing answer goes back once with its problems; a second failure stops the run at that step. An answer that fails only the audit twice stays, its texts tagged "Unchecked". A run sends two repairs at most |
+| Names with digits | The fact audit lets names such as CO2, 5G, Scope 3, NIS2 or ISO 14001 stand in the agents' prose (`NAMES_WITH_DIGITS` in `js/guards.js`), so a standard's name is not taken for an invented figure |
+| Out-of-date factors | The Analyst prices and the Strategist answers every factor, those the Red team marks out of date too, so undoing a correction needs no new request |
+| max_tokens | 8,000 for every step until Victor's runs measure what each needs (brief §5.4); near the cap a request drops to its step's minimum, 1,500 to 3,000, and the step says so |
+| The budget's worst case | A request's input at two characters a token plus 6,000 tokens for each search, and max_tokens in full as output, at list price. No request starts whose worst case would take the run past the cap |
+| The estimate | Each request rebuilt from its real prompt and the recorded runs' answer sizes at about three characters a token, since the 5.5 tokenizer counts about 30 percent more tokens than the old rule of four; each answer counted twice with thinking on; five searches of 4,000 tokens. The dialog gives a range, from the smallest recorded run to the largest plus one repair, and a time range at 80 to 180 output tokens a second on Haiku 5.5 and 40 to 100 on Sonnet 5.5, after one to three and two to five seconds. All of it is assumed until Victor's runs measure it |
+| The live screens | A live run has no address, so a reload ends it and Play stays off. While an agent works, its step shows the agent's role, what it does, the time, the spend against the cap, the requests and Abort. When the Red team, the Analyst and the Strategist are done, the run opens at Challenge, so the corrections and their Undo come before Assess and the decision (brief §6.2). A stop says why, keeps what is done, and offers to go on, with Thorough after a failed check, or back to the simulation; a key the API rejected is forgotten then, and the dialog asks for another. The dialog warns when the cap lies below the estimate's top, and more plainly below its bottom |
+| The dialog at 1280 × 720 | Every part shows without scrolling, the estimate too, until a warning appears, as Vici's live-run dialog asks since ViciDesign#39: the link to the Console sits beside the key's label, the setting's legend beside its choice, and research's note takes one line. The note on Claude plans moved to the message for an account without credit, and to the README; the layout suite checks the fit at both sizes |
+| The person's edits | At Scan the person keeps, edits or removes each factor the Scanner added; removed ones stay listed under their dimension with Put back. The Scanner never changes a factor the person entered (brief §6.7) |
+| Clear everything | Empties the key, the form, the run and the decisions. Only the last run's measured cost and time stay in memory, so the dialog can say what a run in this tab cost |
+| Save run as simulation | Downloads the run in the scenario format without the key, a prompt, a thinking block or the request log. The company keeps its name, marked as not fictional, and the other language stays empty, so the scenario checker lists what curation still owes |
+| The private-data warning | E-mail addresses, phone numbers, IBANs whose check digits add up, and the words confidential, internal, vertraulich and intern. It warns and does not block (brief §5.10) |
+| The stand-in | `tests/lib/fake-claude.mjs` answers the browser suites with scenario S3's recorded answers, streamed as the API streams them, plants faults and holds, and checks every request against what a live run must send |
+| Vici | The live-run dialog is Vici's `.vc-live`, which the SWOT Challenger added (ViciDesign#36). `vici/` copies Vici's main at `ca9c552`, which also holds the Prototype Ideator's fixes for callouts, table figures and the dialog's fit at 1280 × 720 (ViciDesign#35, #37, #38 and #39) |
+
 ## 4. Security policy and what is kept
 
 `index.html` carries the brief's policy in one meta tag: everything from this site, connections only to
@@ -85,6 +117,14 @@ Vici's `vc-theme` and Vici's `vc-guide:` note that the guide has opened in this 
 storage appear only in `js/lang.js`, `js/i18n/index.js` and Vici's two scripts. Vici now states this rule
 on Build a prototype, with `storageProblems()` and `storedKeyProblems()` to check it (ViciDesign#24);
 `tests/policy.mjs` runs both and `tests/i18n.mjs` reads the browser's storage after switching language.
+
+From 0.3.0 the key lives in `js/keystore.js`, the set's shared store, as one module variable, and the
+rest of a live run in `js/session.js`: in memory, and gone with a reload. The key goes to api.anthropic.com
+alone, through `js/anthropic.js`, the one module that calls `fetch`; it shows masked, and an error that
+quotes the API has anything shaped like a key taken out. While a result has not been downloaded, the
+browser asks before the page is left. `tests/storage.mjs` runs a whole live run against the stand-in and
+then finds only the three allowed keys, no database, cache or cookie, and the key in no download, address
+or console message.
 
 ## 5. The engine
 
@@ -111,10 +151,14 @@ validated with those as the registry.
 
 The tests need Node 22 and, for the browser suites, Playwright with Chromium: `npm install -g playwright`
 and `npx playwright install chromium`, then `NODE_PATH="$(npm root -g)" node tests/run-all.mjs`, which
-runs all twenty suites and ends with "ALL SUITES OK"; `node tests/run-all.mjs engine layout` runs only
+runs all thirty-one suites and ends with "ALL SUITES OK"; `node tests/run-all.mjs engine layout` runs only
 the suites named. From 0.2.0 the suites `scenarios` and `audit` prove the scenario checker and the fact
 audit, `presenter` plays every scenario in both languages, `views` checks the ring, the lists, the matrix
-and the strip on every screen, and `layout`, `hexagon`, `vici` and `i18n` look at every step.
+and the strip on every screen, and `layout`, `hexagon`, `vici` and `i18n` look at every step. From 0.3.0 `guards` and `estimate` check
+the agents' checks and the estimate, and nine browser suites (`live-dialog`, `live-requests`,
+`live-repair`, `live-budget`, `live-errors`, `live-research`, `live-scan`, `live-flow` and `storage`) run
+live runs against the stand-in, which answers every request to api.anthropic.com inside the browser. No
+automated test calls the real API, and none needs a key.
 `node tools/check-scenarios.mjs` runs the checker alone; `--frozen` prints the figures to freeze after a
 deliberate change. Vici's checks need a ViciDesign checkout beside this repository at the commit
 `vici/README.md` names; `--require-vici` makes its absence a failure, as it always is on GitHub Actions.
@@ -133,9 +177,10 @@ languages, and the default scenario plays to its end in each.
 - **Hygiene without the private list in CI.** Victor has not set the `HYGIENE_TERMS` secret yet. CI runs
   `tests/hygiene.mjs` in its generic mode ("HYGIENE GENERIC OK"); the build session runs it with its own
   list before every push, which must print "HYGIENE OK".
-- **Not yet run against the real API.** Nothing in 0.2.0 calls a model. The recorded runs were written
-  in the agents' answer formats and pass the checks a live answer will pass; the probes that need a key
-  wait for Victor's console snippet before M3.
+- **Not yet run with a real key.** Every live suite runs against the stand-in. Victor's first runs on
+  Fast, Balanced and Thorough measure each step's tokens, cost and time ("What this run used" on the
+  summary); then each step's max_tokens is set from what it used, and the estimate quotes the measured
+  figures (`MEASURED` in `js/estimate.js`). The probes of PLAN.md section 16 wait for the same session.
 - **Firefox and Safari print** without page numbers in the footer; checked by hand in M4.
 - **Shared parts taken from the SWOT Challenger.** This tool first built its own KPI library, money
   format and handoff schema; the SWOT Challenger merged its versions first (`617b122`), so this tool took
@@ -144,11 +189,12 @@ languages, and the default scenario plays to its end in each.
   standard source for the seven KPIs a standard body defines (net promoter score, CO2 per unit, CO2 per
   container-kilometre, grid outage minutes, CET1 ratio, liquidity coverage ratio, solvency ratio), and a
   range format for the factor view of 0.2.0.
-- **What the guide promises ahead.** The guide names the live run (0.3.0) and the report (0.4.0) as
-  coming, and Start says what this version holds. The talk track's last step shows the summary until the
-  PDF arrives.
+- **What the guide promises ahead.** The guide names the report (0.4.0) as coming. The talk track's last
+  step shows the summary until the PDF arrives.
 - **The cost estimate is an assumption** until Victor's first live runs measure what each step costs; the
-  tile and the method dialog say it is an estimate and what it rests on.
+  tile, the dialog and the guide say it is an estimate and what it rests on. Its three characters a token
+  follows the model pages' 30 percent and has not been counted on this tool's own prompts, since the free
+  token count needs a key.
 - **Respond on mid-size windows.** Between 961 and 1,100 px wide and under 770 px high, some or all
   options sit under the "Your turn" bar until the panel is scrolled. They scroll into view; at 1280 × 720,
   the size the layout suite checks, every option shows in full.
