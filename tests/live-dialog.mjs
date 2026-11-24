@@ -28,13 +28,13 @@ const disabled = (page) => page.$eval("#live-start", (b) => b.disabled);
 const MAIL = ["anna.berg", "example.org"].join("@");
 const KEY_LIKE = ["sk", "ant", "api03", "Zq7xPlanted0000000000000"].join("-");
 const PLANTED = [
-  [`our key is ${KEY_LIKE}`, "key"],
+  [`our key is ${KEY_LIKE}`, "key"], ["Tél. 01.23.45.67.89", "phone"], ["Appelez le 06.12.34.56.78", "phone"], ["Ruf 030.12.34.56 an", "phone"],
   [`write to ${MAIL}`, "email"], ["call +49 30 1234567", "phone"], ["call 030 12345678", "phone"],
   ["IBAN DE89 3704 0044 0532 0130 00", "iban"], ["This plan is confidential", "word"], ["Interne Unterlagen", "word"],
   ["vertrauliche Zahlen", "word"], ["the internal audit", "word"],
 ];
 const CLEAN = ["About 180 staff and €120m revenue a year", "Freight rates fell 12 % in 2025; 1,500 TEU", "Industry 4.0, CO2 at 0.45, heat plan due 31.12.2026", "international shipping and the internet", "Postcode 01067 Dresden", "IBAN DE89370400440532013001",
-  "Die Pflicht gilt ab 01.01.2027", "Heat plan due 01.07.2026, report by 2026-09-30", "Diesel and internal combustion engines"];
+  "Die Pflicht gilt ab 01.01.2027", "Heat plan due 01.07.2026, report by 2026-09-30", "Diesel and internal combustion engines", "From 1/7/26 to 31.12.2026"];
 check(PLANTED.every(([s, kind]) => findPrivate(s).some((f) => f.kind === kind)), "the warning finds every planted e-mail address, phone number, IBAN, keyword and key-shaped text");
 check(CLEAN.every((s) => !findPrivate(s).length), `and nothing in clean business text (${CLEAN.filter((s) => findPrivate(s).length).join(" | ") || "none found"})`);
 

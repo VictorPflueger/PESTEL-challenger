@@ -242,9 +242,19 @@ export function initPresenter() {
       }
       dialog.open();
     },
-    editFactor: (id) => { state.ui.editing = id; render(); if (id) document.getElementById(`edit-${id}-text`)?.focus(); },
+    editFactor: (id) => {
+      state.ui.editing = id;
+      render();
+      if (!id) return;
+      // The field takes the focus, and its notice ("Public information only") comes into view with it: in a
+      // short list the browser would scroll the field alone to the list's edge and leave the notice below.
+      const field = document.getElementById(`edit-${id}-text`);
+      field?.focus({ preventScroll: true });
+      field?.closest(".vc-field")?.scrollIntoView({ block: "nearest" });
+    },
     saveFactor: (id, values) => {
-      session().person.edits.set(id, values);
+      // Anything shaped like an API key is redacted here too, as the editor's warning says (brief §5.3).
+      session().person.edits.set(id, { ...values, text: redactSecrets(values.text) });
       state.ui.editing = null;
       markResult();
       announce.textContent = t("p.announce.edited");

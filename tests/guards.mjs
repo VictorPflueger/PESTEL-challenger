@@ -93,7 +93,9 @@ const rangeRefused = (result) => result.problems.some((p) => p.code === "range")
 im = clone(x.a.analyst); im.impacts.find((y) => y.upside).upside.eur_year_low = -100000;
 check(rangeRefused(G.checkImpacts(im, { factors: x.challenged, sector: x.run.company.sector, evidence: x.evidence })), "an opportunity's upside below zero is refused");
 r = clone(x.a.strategist); r.responses.find((y) => y.kind === "mitigate").mitigate.residual_eur_year_low = -200000;
-check(rangeRefused(G.checkResponses(r, { factors: x.challenged, impacts: x.a.analyst.impacts, evidence: x.evidence })), "a mitigation's residual below zero is refused");
+const belowZero = G.checkResponses(r, { factors: x.challenged, impacts: x.a.analyst.impacts, evidence: x.evidence }).problems.find((p) => p.code === "range");
+check(rangeRefused(G.checkResponses(r, { factors: x.challenged, impacts: x.a.analyst.impacts, evidence: x.evidence })) && /below zero/.test(belowZero?.message) && !/above/.test(belowZero?.message),
+  `a mitigation's residual below zero is refused, and the message names that case alone ("${belowZero?.message}")`);
 r = clone(x.a.strategist); r.responses.find((y) => y.kind === "advantage").advantage.eur_year_low = -100000;
 check(rangeRefused(G.checkResponses(r, { factors: x.challenged, impacts: x.a.analyst.impacts, evidence: x.evidence })), "an advantage's upside below zero is refused");
 r = clone(x.a.strategist); r.responses.filter((y) => y.factor === "u2").forEach((y) => { y.factor = "zz8"; });

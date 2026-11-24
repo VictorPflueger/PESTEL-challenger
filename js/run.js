@@ -14,7 +14,8 @@
 // Adapted from the Data Quality Agent 2.2.0 (831f050) js/run_model.js: the steps of this method, and plain
 // functions in place of its event reducer.
 
-import { DIMENSIONS, run as engineRun, facts as engineFacts } from "./engine.js";
+import { DIMENSIONS, run as engineRun, facts as engineFacts, priced } from "./engine.js";
+import { expected } from "./risk.js";
 
 export const STEPS = Object.freeze(["start", "scan", "challenge", "assess", "respond", "summary"]);
 
@@ -192,6 +193,23 @@ export function choiceFor(run, factorId) {
 }
 
 /** The engine's decisions from the choices: each response with the fields the engine reads, or accept. */
+/**
+ * What a mitigation leaves of a threat as it stands now: never worse than the threat itself. After an Undo
+ * the threat may stand lower than the Strategist saw it, so the response's readiness is at least the
+ * threat's, its likelihood at most the threat's, and, as js/risk.js reads what is left, its euros at most
+ * what the threat puts at stake; a threat without a euro figure keeps none. Returns { readiness,
+ * likelihood, eur_year_low, eur_year_high, kept }, kept when the threat's own money stands.
+ */
+export function residualOf(f, m) {
+  const readiness = Number.isInteger(f.readiness) ? Math.max(m.readiness, f.readiness) : m.readiness;
+  const likelihood = Number.isInteger(f.likelihood) ? Math.min(m.residual_likelihood, f.likelihood) : m.residual_likelihood;
+  if (!priced(f)) return { readiness, likelihood, eur_year_low: null, eur_year_high: null, kept: false };
+  const kept = expected(m.residual_eur_year_low, m.residual_eur_year_high, likelihood) > expected(f.eur_year_low, f.eur_year_high, f.likelihood);
+  return kept
+    ? { readiness, likelihood: f.likelihood, eur_year_low: f.eur_year_low, eur_year_high: f.eur_year_high, kept }
+    : { readiness, likelihood, eur_year_low: m.residual_eur_year_low, eur_year_high: m.residual_eur_year_high, kept };
+}
+
 export function engineDecisions(run) {
   const responses = new Map((run.responses || []).map((r) => [r.id, r]));
   return decisionFactors(run).map((f) => {
@@ -199,9 +217,10 @@ export function engineDecisions(run) {
     const r = responses.get(id);
     if (!r || r.factor !== f.id) return { factor: f.id, kind: "accept", response: null };
     if (r.kind === "mitigate" && r.mitigate) {
+      const left = residualOf(f, r.mitigate);
       return {
-        factor: f.id, kind: "mitigate", response: r.id, readiness: r.mitigate.readiness,
-        residual: { likelihood: r.mitigate.residual_likelihood, eur_year_low: r.mitigate.residual_eur_year_low, eur_year_high: r.mitigate.residual_eur_year_high },
+        factor: f.id, kind: "mitigate", response: r.id, readiness: left.readiness,
+        residual: { likelihood: left.likelihood, eur_year_low: left.eur_year_low, eur_year_high: left.eur_year_high },
       };
     }
     if (r.kind === "advantage" && r.advantage) return { factor: f.id, kind: "advantage", response: r.id, upside: { ...r.advantage } };

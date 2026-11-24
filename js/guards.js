@@ -90,6 +90,8 @@ const COVERED = /\.(direction|readiness)$/;
 const list = (v) => (Array.isArray(v) ? v : []);
 const done = (c) => ({ problems: c.problems, audit: c.audit });
 const ok1to5 = (v) => Number.isInteger(v) && v >= 1 && v <= 5;
+/** What is wrong with a euro range, in the one case that applies, or null: a low below zero, or above its high. */
+const badRange = (low, high) => (low < 0 ? `low ${low} is below zero` : low > high ? `low ${low} is above its high ${high}` : null);
 
 /** A factor's ratings, as the Scanner and the Red team give them. */
 function checkRatings(c, who, r, { needsDirection = true } = {}) {
@@ -272,12 +274,12 @@ export function checkImpacts(answer, { factors, sector, evidence }) {
     if (f.direction === "threat") {
       const ranged = imp.eur_year_low !== null && imp.eur_year_high !== null;
       if (!ranged && !String(imp.not_monetisable || "").trim()) c.fail("range", `${who} gives neither a euro range nor the reason for none`);
-      if (ranged && (imp.eur_year_low < 0 || imp.eur_year_low > imp.eur_year_high)) c.fail("range", `${who}: low ${imp.eur_year_low} is above high ${imp.eur_year_high} or below zero`);
+      if (ranged && badRange(imp.eur_year_low, imp.eur_year_high)) c.fail("range", `${who}: the ${badRange(imp.eur_year_low, imp.eur_year_high)}`);
       if (list(imp.kpis).length < 1 || list(imp.kpis).length > 3) c.fail("count", `${who} has ${list(imp.kpis).length} KPI effects; a threat has one to three`);
     } else if (!imp.upside) {
       c.fail("range", `${who} has no upside; an opportunity gives one`);
     }
-    if (imp.upside && (imp.upside.eur_year_low < 0 || imp.upside.eur_year_low > imp.upside.eur_year_high)) c.fail("range", `${who}: the upside's low ${imp.upside.eur_year_low} is above its high ${imp.upside.eur_year_high} or below zero`);
+    if (imp.upside && badRange(imp.upside.eur_year_low, imp.upside.eur_year_high)) c.fail("range", `${who}: the upside's ${badRange(imp.upside.eur_year_low, imp.upside.eur_year_high)}`);
     list(imp.kpis).forEach((k, j) => {
       if (!k || typeof k !== "object") return;
       if (k.change_low > k.change_high) c.fail("range", `${who}: the change of ${k.id} goes from ${k.change_low} down to ${k.change_high}`);
@@ -320,7 +322,7 @@ export function checkResponses(answer, { factors, impacts, evidence }) {
         const imp = impactOf.get(r.factor);
         if (!ok1to5(m.readiness)) c.refuse("readiness_range", `${who} reaches ${m.readiness}`);
         if (m.residual_likelihood > f.likelihood) c.refuse("residual", `${who} leaves likelihood ${m.residual_likelihood}, above the threat's ${f.likelihood}`);
-        if (m.residual_eur_year_low < 0 || m.residual_eur_year_low > m.residual_eur_year_high) c.fail("range", `${who}: the residual low ${m.residual_eur_year_low} is above its high ${m.residual_eur_year_high} or below zero`);
+        if (badRange(m.residual_eur_year_low, m.residual_eur_year_high)) c.fail("range", `${who}: the residual ${badRange(m.residual_eur_year_low, m.residual_eur_year_high)}`);
         else if (imp && Number.isFinite(imp.eur_year_low) && Number.isFinite(imp.eur_year_high)) {
           if (m.residual_eur_year_high > imp.eur_year_high) c.refuse("residual", `${who} leaves up to ${m.residual_eur_year_high} a year, above the original ${imp.eur_year_high}`);
           else if (ok1to5(m.residual_likelihood) && ok1to5(f.likelihood) && expected(m.residual_eur_year_low, m.residual_eur_year_high, m.residual_likelihood) > expected(imp.eur_year_low, imp.eur_year_high, f.likelihood)) {
@@ -331,7 +333,7 @@ export function checkResponses(answer, { factors, impacts, evidence }) {
     }
     if (r.kind === "advantage") {
       if (!r.advantage) c.fail("fields", `${who} is an advantage without its upside`);
-      else if (r.advantage.eur_year_low < 0 || r.advantage.eur_year_low > r.advantage.eur_year_high) c.fail("range", `${who}: the upside's low ${r.advantage.eur_year_low} is above its high ${r.advantage.eur_year_high} or below zero`);
+      else if (badRange(r.advantage.eur_year_low, r.advantage.eur_year_high)) c.fail("range", `${who}: the upside's ${badRange(r.advantage.eur_year_low, r.advantage.eur_year_high)}`);
     }
     if (r.kind === "monitor" && !(String(r.monitor?.signal || "").trim() && String(r.monitor?.trigger || "").trim())) c.refuse("monitor", who);
     for (const [k, v] of [["title", r.title], ["first_step", r.first_step], ["owner", r.owner]]) c.text(`responses[${n}].${k}`, v, { evidence });

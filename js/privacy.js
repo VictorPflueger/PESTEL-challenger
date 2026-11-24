@@ -16,7 +16,8 @@ const PHONE = /(?:\+|\b00)[1-9][\d ()./-]{6,}\d|\b0[1-9][\d ()./-]{5,}\d/g;
 const KEY = /sk-ant-[A-Za-z0-9_-]{8,}/;
 const IBAN = /\b[A-Z]{2}\d{2}(?: ?[A-Z0-9]{4}){2,7}(?: ?[A-Z0-9]{1,4})?\b/g;
 // Dates, day first with dots, slashes or hyphens (01.01.2027, 1/7/26) or as ISO (2026-07-01): never a phone.
-const DATE = /\b\d{1,2}([./-])\d{1,2}\1(?:\d{4}|\d{2})\b|\b\d{4}-\d{2}-\d{2}\b/g;
+// A date stands alone: no digit group runs on before or after it, as one does in 01.23.45.67.89.
+const DATE = /(?<![\d./-])(?:0?[1-9]|[12]\d|3[01])([./-])(?:0?[1-9]|1[0-2])\1(?:\d{4}|\d{2})(?![./-]?\d)|(?<![\d-])\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])(?![-\d])/g;
 
 /** True when an IBAN's check digits are right (ISO 13616, mod 97). */
 export function ibanValid(raw) {

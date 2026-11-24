@@ -79,7 +79,10 @@ export function stopWords(run) {
   const stepName = (n) => t(`step.${STEP_KEYS[n]}`);
   const at = stepName(s.agent ? AGENT_STEP[s.agent] : 1);
   const after = s.after && s.after !== "start" ? t(`step.${s.after}`) : null;
-  if (s.reason === "cap") return { tone: "warning", title: t("stop.cap.title"), message: after ? t("stop.cap", { step: after }) : t("stop.cap.first") };
+  if (s.reason === "cap") {
+    const cut = run.unmetered > 0;
+    return { tone: "warning", title: t("stop.cap.title"), message: after ? t("stop.cap", { step: after }) : t(cut ? "stop.cap.cutFirst" : "stop.cap.first"), next: cut ? t("stop.cap.unmetered") : null };
+  }
   if (s.reason === "aborted") return { tone: "warning", title: t("stop.aborted.title"), message: t("stop.aborted", { step: at }) };
   if (s.reason === "checks") return { tone: "danger", title: t(s.repaired === false ? "stop.checks.noRepair.title" : "stop.checks.title"), message: t(s.repaired === false ? "stop.checks.noRepair" : "stop.checks", { agent: t(`agent.${s.agent}`), step: at }), next: t("stop.checks.next") };
   if (s.reason === "requests") return { tone: "danger", title: t("stop.requests.title"), message: t("stop.requests", { step: at }) };

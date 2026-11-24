@@ -84,6 +84,7 @@ export function createLiveRun({ inputs, lang, today, setting, research, cap }) {
     unchecked: new Set(),// ids whose texts failed the fact audit twice
     log: [],             // per request: agent, repair, max_tokens, tokens, searches, ms, stop reason
     spend: { usd: 0, eur: 0 },
+    unmetered: 0,        // euros held against the cap for attempts cut off mid-stream, which report no usage
     requests: 0,
     repairs: 0,
     ms: 0,               // time spent waiting for the agents
@@ -152,7 +153,7 @@ export function createPipeline({ run, view = () => run, key, hooks = {}, stream 
 
   /** Lowers max_tokens to the step's minimum when the worst case would pass the cap; stops when even that does. */
   function fit(agent, body, searches) {
-    const spent = run.spend.eur;
+    const spent = run.spend.eur + (run.unmetered || 0);
     if (spent + worstCaseEur(body, { searches }) <= run.cap) return;
     body.max_tokens = Math.min(body.max_tokens, MIN_TOKENS[agent]);
     if (spent + worstCaseEur(body, { searches }) <= run.cap) { emit({ type: "tokens", agent, max_tokens: body.max_tokens }); return; }
@@ -176,7 +177,14 @@ export function createPipeline({ run, view = () => run, key, hooks = {}, stream 
           if (e instanceof ApiError && e.retryable && !mayRetry(e)) throw new NoRetry(e);
           throw e;
         }
-      }, { signal: controller.signal, onRetry: ({ attempt, waitMs, error }) => emit({ type: "retry", agent, attempt, waitMs, status: error.status }) });
+      }, { signal: controller.signal, onRetry: ({ attempt, waitMs, error }) => {
+        // An attempt cut off mid-stream was billed for its input and what it wrote, which the shared client
+        // cannot report: its worst case is held against the cap from here on, and the retry goes only if it
+        // still fits (fit() stops the run otherwise). An error before the stream bills nothing.
+        if (error?.midStream) run.unmetered = (run.unmetered || 0) + worstCaseEur(body, { searches });
+        fit(agent, body, searches);
+        emit({ type: "retry", agent, attempt, waitMs, status: error.status });
+      } });
     } catch (e) {
       const err = e instanceof NoRetry ? e.cause : e;
       run.ms += clock() - started;

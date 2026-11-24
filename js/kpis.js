@@ -72,7 +72,7 @@ export function kpiValues(run, { estimate = null, live = false, lang = getLang()
     : { value: pressure(r.before), was: null, note: t(asOf, null, lang) });
   out.readiness = ready(decided
     ? { value: readinessText(r.after.readiness, lang), was: readinessText(r.before.readiness, lang), note: t("kpi.note.readiness", null, lang) }
-    : { value: readinessText(r.before.readiness, lang), was: null, note: t("kpi.note.readiness", null, lang) });
+    : { value: readinessText(r.before.readiness, lang), was: null, note: t(asOf === "kpi.note.before" ? "kpi.note.readiness" : asOf, null, lang) });
   return out;
 }
 

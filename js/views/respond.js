@@ -16,11 +16,12 @@ function option(f, r, chosen, onChoose, expected, unchecked = null) {
   const id = r ? r.id : "accept";
   const lines = [];
   if (r?.kind === "mitigate") {
-    const m = r.mitigate;
-    // A threat without a euro figure counts in readiness, not in money: no residual range to show.
-    const words = { a: f.readiness, b: m.readiness, la: f.likelihood, lb: m.residual_likelihood };
+    // What the response leaves of the threat as it stands now (R.residualOf). A threat without a euro figure
+    // counts in readiness, not in money: no residual range to show.
+    const left = R.residualOf(f, r.mitigate);
+    const words = { a: f.readiness, b: left.readiness, la: f.likelihood, lb: left.likelihood };
     lines.push(expected !== null
-      ? h("span", { class: "opt-effect" }, t("opt.mitigate", words), " ", h("span", { class: "ai-figure" }, t("opt.left", { range: moneyRange(m.residual_eur_year_low, m.residual_eur_year_high) })))
+      ? h("span", { class: "opt-effect" }, t("opt.mitigate", words), " ", h("span", { class: "ai-figure" }, t("opt.left", { range: moneyRange(left.eur_year_low, left.eur_year_high) })))
       : h("span", { class: "opt-effect" }, t("opt.mitigate.unpriced", words)));
   } else if (r?.kind === "advantage") {
     const a = r.advantage;

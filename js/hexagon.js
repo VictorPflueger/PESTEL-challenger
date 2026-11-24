@@ -43,7 +43,9 @@ export function ring(run, step, { selected = null, onSelect = null, lang = getLa
     h("ol", { class: "vc-ring__cells" },
       // A long name steps down a size or two and takes the sector's place, so it stays inside the cell.
       h("li", {}, h("p", { class: "vc-ring__centre", dataset: { name: ["", "long", "longer", "longest"][[16, 40, 64].filter((n) => run.company.name.length > n).length] } },
-        h("span", { class: "vc-ring__name" }, run.company.name),
+        // A long name has words longer than the cell is wide: marked German where the company is, the browser
+        // breaks them at a syllable with a hyphen rather than anywhere.
+        h("span", { class: "vc-ring__name", lang: run.company.name.length > 40 && GERMAN_SPEAKING.test(String(run.company.country || "").trim()) ? "de" : null }, run.company.name),
         h("span", { class: "vc-ring__note" }, sectorName(run.company.sector, lang)))),
       DIMENSIONS.map(cell)),
     h("figcaption", {},
@@ -136,6 +138,8 @@ export function factorItem(f, run, step, { number = null, dimLabel = false, edit
 }
 
 const RATINGS = [1, 2, 3, 4, 5];
+/** Countries whose company names are German, as the form's free text may name them. */
+const GERMAN_SPEAKING = /^(germany|deutschland|de|deu|austria|österreich|oesterreich|at|aut|switzerland|schweiz|ch|che|liechtenstein|li)$/i;
 
 /**
  * Keep, edit or remove what the AI added, in a live run before the challenge (AC-18): the item's own
@@ -158,15 +162,20 @@ function editControls(f, edit) {
   const warning = h("div", { class: "vc-alert vc-alert--warning item-editor-warning", id: id("warning"), role: "status", hidden: true });
   const error = h("p", { class: "vc-help vc-help--error item-editor-error", id: id("error"), hidden: true });
   const describe = () => text.setAttribute("aria-describedby", [id("public"), warning.hidden ? null : id("warning"), error.hidden ? null : id("error")].filter(Boolean).join(" "));
+  // Only what the person brings in counts: the AI's own words were never the person's to keep private.
+  const theirs = new Set(findPrivate(f.text).map((x) => `${x.kind}|${x.word ?? ""}`));
   const drawWarning = () => {
-    const found = findPrivate(text.value);
+    const found = findPrivate(text.value).filter((x) => !theirs.has(`${x.kind}|${x.word ?? ""}`));
     while (warning.firstChild) warning.removeChild(warning.firstChild);
     if (found.length) {
       warning.append(icon("warning"), h("p", {}, t("dlg.warning"), " ",
         found.map((x) => t(`privacy.${x.kind}`, { where: t("privacy.where.edit"), word: x.word ?? "" })).join("; "), ". ", t("edit.warning.next")));
     }
+    const shown = !warning.hidden;
     warning.hidden = !found.length;
     describe();
+    // A warning that appears comes into view with the field it is about.
+    if (found.length && !shown) warning.closest(".vc-field")?.scrollIntoView({ block: "nearest" });
   };
   text.addEventListener("input", drawWarning);
   const direction = select("direction", [["threat", t("dir.threat")], ["opportunity", t("dir.opportunity")]], f.direction);

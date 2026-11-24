@@ -103,7 +103,7 @@ await scenario("writer stop", { faults: [{ agent: "writer", attempt: 1, mutate: 
   await fillForm(t.page);
   await startRun(t.page);
   const noteAt = () => text(t.page, "#kpi-pressure");
-  check(/after the scan/.test(await noteAt()), `after the scan, the live tiles say their figures stand after the scan: "${await noteAt()}"`);
+  check(/after the scan/.test(await noteAt()) && /after the scan/.test(await text(t.page, "#kpi-readiness")), `after the scan, the live tiles say their figures stand after the scan: "${await noteAt()}", "${await text(t.page, "#kpi-readiness")}"`);
   await challenge(t.page);
   await adopt(t.page).catch(() => {});
   await waitIdle(t.page);

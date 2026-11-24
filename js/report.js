@@ -296,7 +296,8 @@ function responsesPage(run, o, { page, H, byId }) {
   const effect = (x) => {
     const f = byId.get(x.factor);
     if (x.kind === "mitigate" && x.mitigate) {
-      const words = { a: f?.readiness ?? "?", b: x.mitigate.readiness, la: f?.likelihood ?? "?", lb: x.mitigate.residual_likelihood, range: moneyRange(x.mitigate.residual_eur_year_low, x.mitigate.residual_eur_year_high) };
+      const left = f ? R.residualOf(f, x.mitigate) : { readiness: x.mitigate.readiness, likelihood: x.mitigate.residual_likelihood, eur_year_low: x.mitigate.residual_eur_year_low, eur_year_high: x.mitigate.residual_eur_year_high };
+      const words = { a: f?.readiness ?? "?", b: left.readiness, la: f?.likelihood ?? "?", lb: left.likelihood, range: moneyRange(left.eur_year_low, left.eur_year_high) };
       // A threat without a euro figure counts in readiness, not in money: no residual range.
       return t(f && !priced(f) ? "report.r.mitigate.unpriced" : "report.r.mitigate", words);
     }

@@ -3,7 +3,9 @@
 //     0.894, to within 1e-9, and the Session cost tile shows the spend with the cap in its note;
 //   - no request starts whose worst case would take the run past the cap: max_tokens drops to the step's
 //     minimum first, and a run that still does not fit stops before the request with "Stopped at your
-//     budget cap after" the last step done, or before the first request when even that does not fit.
+//     budget cap after" the last step done, or before the first request when even that does not fit;
+//   - an attempt cut off mid-stream, which the API bills but reports nothing for, is held against the cap at
+//     its worst case, and the retry goes only if it still fits.
 // The worst case is the pipeline's own function (js/pipeline.js worstCaseEur), recomputed here for every
 // request the stand-in received, with what the run had spent before it.
 // Usage: node tests/live-budget.mjs
@@ -82,6 +84,37 @@ function ledger(standIn, model) {
   const run = await runOf(t.page);
   check(t.standIn.requests.length === 0 && run.stopped?.reason === "cap", `a cap below the Scout's worst case sends no request (${t.standIn.requests.length} sent)`);
   check(/before the first request/.test(await text(t.page, ".stop-alert")), "and the step says so");
+  await t.context.close();
+}
+
+// ---- a stream cut mid-way: its worst case is held against the cap ------------------------------------------------
+// The API bills an attempt cut off after its stream began, but reports nothing for it, so the run holds that
+// attempt's worst case against the cap; the retry goes only if it still fits.
+let cutWorst = 0;
+{
+  const t = await livePage(suite, { standIn: { faults: [{ agent: "scanner", attempt: 1, cut: true }], usage: USAGE } });
+  await fillForm(t.page);
+  await startRun(t.page, { preset: "thorough", cap: 3 });
+  const run = await runOf(t.page);
+  const scans = t.standIn.requests.filter((r) => r.agent === "scanner");
+  cutWorst = scans.length ? worstCaseEur(scans[0].req) : 0;
+  check(scans.length === 2 && run.scan && !run.stopped && Math.abs(run.unmetered - cutWorst) < 1e-12 && run.requests === 1,
+    `a Scanner stream cut mid-way is tried again, and its worst case, €${cutWorst.toFixed(4)}, stays held against the cap (held ${run.unmetered}, ${scans.length} attempts, ${run.requests} request counted)`);
+  check(!(await pageProblems(t)).length, "no page error, policy violation or protocol fault after the cut");
+  await t.context.close();
+}
+{
+  // A cap with room for one attempt but not for a second: the run stops before the retry, and says why.
+  const cap = Math.ceil((cutWorst * 1.2) / 0.05) * 0.05;
+  const t = await livePage(suite, { standIn: { faults: [{ agent: "scanner", attempt: 1, cut: true }], usage: USAGE } });
+  await fillForm(t.page);
+  await startRun(t.page, { preset: "thorough", cap, waitFor: "none" });
+  await t.page.waitForFunction(() => window.__pestel?.run()?.stopped, null, { timeout: 15000 });
+  const run = await runOf(t.page);
+  const scans = t.standIn.requests.filter((r) => r.agent === "scanner").length;
+  check(cap > cutWorst && cap < 2 * cutWorst && scans === 1 && run.stopped?.reason === "cap",
+    `with a €${cap.toFixed(2)} cap the cut attempt's worst case leaves no room for a retry: the run stops at the cap (${scans} attempt, ${JSON.stringify(run.stopped?.reason)})`);
+  check(/first request was cut off mid-way/.test(await text(t.page, ".stop-alert")) && /counts here at its worst case/.test(await text(t.page, ".stop-alert")), `and the stop says why the cap was reached: "${await text(t.page, ".stop-alert")}"`);
   await t.context.close();
 }
 

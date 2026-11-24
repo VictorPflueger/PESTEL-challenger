@@ -131,13 +131,14 @@ function build(run, lang, now) {
   for (const r of run.responses || []) {
     if (!issueId.has(r.factor)) continue;
     const f = byId.get(r.factor);
-    const residual = r.kind === "mitigate" && r.mitigate && priced(f) ? {
+    const left = r.kind === "mitigate" && r.mitigate && priced(f) ? R.residualOf(f, r.mitigate) : null;
+    const residual = left ? {
       impact: f.impact,
-      likelihood: r.mitigate.residual_likelihood,
-      band: bandOf(f.impact, r.mitigate.residual_likelihood),
-      eur_year_low: r.mitigate.residual_eur_year_low,
-      eur_year_high: r.mitigate.residual_eur_year_high,
-      eur_year_expected: round(expected(r.mitigate.residual_eur_year_low, r.mitigate.residual_eur_year_high, r.mitigate.residual_likelihood)),
+      likelihood: left.likelihood,
+      band: bandOf(f.impact, left.likelihood),
+      eur_year_low: left.eur_year_low,
+      eur_year_high: left.eur_year_high,
+      eur_year_expected: round(expected(left.eur_year_low, left.eur_year_high, left.likelihood)),
     } : null;
     const upside = r.kind === "advantage" && r.advantage ? {
       likelihood: r.advantage.likelihood,

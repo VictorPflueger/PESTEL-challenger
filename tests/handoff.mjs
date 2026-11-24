@@ -57,6 +57,32 @@ function walk(v, visit, key = "") {
     `a mitigated threat without a euro figure adds nothing to what is left (${figs.before.monetised} of ${figs.before.threats} priced before and after) and has no residual range in the file`);
 }
 
+// After an Undo a threat may stand lower than the Strategist saw it: no response leaves it worse, in the
+// engine's figures, in what the screens say and in the file.
+{
+  const worse = [];
+  let tried = 0;
+  for (const sc of SCENARIOS) {
+    for (const issue of sc.answers.red_team.issues) {
+      const person = freshState();
+      person.undone.add(issue.id);
+      person.decided = true;
+      const run = runFromScenario(sc, "en", person);
+      const byId = new Map(R.decisionFactors(run).map((f) => [f.id, f]));
+      for (const d of R.engineDecisions(run).filter((x) => x.kind === "mitigate")) {
+        tried += 1;
+        const f = byId.get(d.factor);
+        const own = f.eur_year_low === null || f.eur_year_low === undefined ? null : expected(f.eur_year_low, f.eur_year_high, f.likelihood);
+        const left = own === null ? null : expected(d.residual.eur_year_low, d.residual.eur_year_high, d.residual.likelihood);
+        if (d.residual.likelihood > f.likelihood || d.readiness < f.readiness || (own !== null && left > own + 1e-9)) worse.push(`${sc.id} undo ${issue.id}: ${f.id} likelihood ${f.likelihood} → ${d.residual.likelihood}, readiness ${f.readiness} → ${d.readiness}`);
+      }
+      const figs = R.figures(run);
+      if (figs.after.atStake > figs.before.atStake + 1e-9) worse.push(`${sc.id} undo ${issue.id}: left ${figs.after.atStake} above at stake ${figs.before.atStake}`);
+    }
+  }
+  check(tried > 0 && !worse.length, `after any single Undo, no mitigation leaves a threat worse than it stands (${tried} mitigations tried)${worse.length ? `; not: ${worse.slice(0, 3).join("; ")}` : ""}`);
+}
+
 // The Prototype Ideator's reader, when its checkout sits beside this repository.
 const ideatorDir = [path.resolve(APP_ROOT, "..", "PrototypeIdeator")].find((d) => existsSync(path.join(d, "js", "handoff.js")));
 const ideator = ideatorDir ? await import(pathToFileURL(path.join(ideatorDir, "js", "handoff.js")).href) : null;

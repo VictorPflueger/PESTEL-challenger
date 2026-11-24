@@ -45,6 +45,32 @@ try {
   check(ai.length === run.scan.factors.length && ai.every((x) => x.tag === "AI"), `every AI factor says "AI" (${ai.length})`);
   check(ai.every((x) => /Why:/.test(x.body) && /Confidence: (low|medium|high)\./.test(x.body)), "and shows its basis and its confidence");
 
+  // Every AI factor's editor opens with its field focused and the notice in view, above the "Your turn" bar,
+  // at 1280 × 720: in a short list the field alone would scroll to the list's edge and leave the notice below.
+  const noticeInView = (id, part = "public") => p.evaluate(([id, part]) => {
+    const note = document.getElementById(`edit-${id}-${part}`);
+    const field = document.getElementById(`edit-${id}-text`);
+    if (!note || !field) return { ok: false, why: "no editor" };
+    let box = note.parentElement;
+    while (box && box !== document.body && !(/(auto|scroll)/.test(getComputedStyle(box).overflowY) && box.scrollHeight > box.clientHeight)) box = box.parentElement;
+    const area = (box && box !== document.body ? box : document.documentElement).getBoundingClientRect();
+    const bar = document.querySelector(".turn-bar")?.getBoundingClientRect();
+    const bottom = Math.min(area.bottom, bar ? bar.top : innerHeight, innerHeight);
+    const n = note.getBoundingClientRect();
+    const f = field.getBoundingClientRect();
+    return { ok: document.activeElement === field && n.top >= area.top - 1 && n.bottom <= bottom + 1 && f.top >= area.top - 1, why: `${part} ${Math.round(n.top)} to ${Math.round(n.bottom)}, view ${Math.round(area.top)} to ${Math.round(bottom)}` };
+  }, [id, part]);
+  const hidden = [];
+  for (const f of run.scan.factors) {
+    await p.click(`.vc-ring__cell[data-dim="${f.dimension}"]`);
+    await p.click(`[data-id="${f.id}"] > details > summary`);
+    await p.click(`[data-id="${f.id}"] .item-edit`);
+    const seen = await noticeInView(f.id);
+    if (!seen.ok) hidden.push(`${f.id} (${seen.why})`);
+    await p.click(`[data-id="${f.id}"] .item-cancel`);
+  }
+  check(!hidden.length, `each of the ${run.scan.factors.length} AI factors' editors opens with the field focused and "Public information only" in view${hidden.length ? `; not: ${hidden.slice(0, 3).join("; ")}` : ""}`);
+
   // Edit one, remove one, put one back.
   const [first, second, third] = run.scan.factors;
   await p.click(`.vc-ring__cell[data-dim="${first.dimension}"]`);
@@ -65,8 +91,20 @@ try {
   const warned = await editor();
   check(/internal/.test(warned.warning || "") && /phone number/.test(warned.warning || "") && warned.described.includes(`edit-${first.id}-warning`),
     `typing private-looking words warns in the editor, without blocking (${warned.warning})`);
+  const warnSeen = await noticeInView(first.id, "warning");
+  check(warnSeen.ok, `and the warning comes into view with the field (${warnSeen.why})`);
   await p.fill(`#edit-${first.id}-text`, "Edited by the person: a steeper CO2 price path");
   check(!(await editor()).warning, "and the warning goes once the words are public again");
+  // A key pasted into the editor by mistake: the warning names it, and the saved words hold it redacted.
+  const keyLike = ["sk", "ant", "api03", "Zq7xEditorPaste000000000"].join("-");
+  await p.fill(`#edit-${first.id}-text`, `CO2 path ${keyLike}`);
+  check(/API key/.test((await editor()).warning || ""), "a key-shaped text in the editor is named in its warning");
+  await p.fill(`#edit-${first.id}-text`, `Steeper CO2 path ${keyLike}`);
+  await p.click(`[data-id="${first.id}"] .item-save`);
+  const savedText = await text(p, `[data-id="${first.id}"] summary`);
+  check(!savedText.includes(keyLike) && /sk-ant-\[REDACTED\]/.test(savedText), `and the saved words hold it redacted ("${savedText.slice(0, 80)}")`);
+  await p.click(`[data-id="${first.id}"] .item-edit`);
+  await p.fill(`#edit-${first.id}-text`, "Edited by the person: a steeper CO2 price path");
   await p.selectOption(`#edit-${first.id}-impact`, "5");
   await p.click(`[data-id="${first.id}"] .item-save`);
   check(/Edited by you/.test(await text(p, `[data-id="${first.id}"] summary`)) && /steeper CO2 price path/.test(await text(p, `[data-id="${first.id}"] summary`)), "an edited AI factor shows the new words and says it was edited");
@@ -109,5 +147,34 @@ try {
 const problems = await pageProblems(t);
 check(!problems.length, `no page error, policy violation or protocol fault${problems.length ? `: ${problems.slice(0, 3).join("; ")}` : ""}`);
 await t.context.close();
+
+// The editor warns only of what the person brings in: an AI factor's own "internal" raises nothing, a
+// "confidential" the person types does.
+{
+  const own = "EU internal market rules for heat change";
+  const t2 = await livePage(suite, { standIn: { faults: [{ agent: "scanner", attempt: 1, mutate: (a) => { a.factors[0].text = own; return a; } }] } });
+  const q = t2.page;
+  try {
+    await fillForm(q);
+    // A long German company name: the ring's centre takes a smaller size and marks the name German, so the
+    // browser breaks its long words at a syllable.
+    await q.fill("#live-name", "Stadtwerke Musterstadt Versorgungs- und Verkehrsgesellschaft mbH");
+    await startRun(q);
+    const centre = await q.$eval(".ring .vc-ring__centre", (el) => ({ size: el.dataset.name, lang: el.querySelector(".vc-ring__name").getAttribute("lang") }));
+    check(centre.size === "longer" && centre.lang === "de", `a 64-character German company name steps down and is marked German in the ring (${JSON.stringify(centre)})`);
+    const f = (await runOf(q)).scan.factors[0];
+    await q.click(`.vc-ring__cell[data-dim="${f.dimension}"]`);
+    await q.click(`[data-id="${f.id}"] > details > summary`);
+    await q.click(`[data-id="${f.id}"] .item-edit`);
+    const shown = () => q.$eval(`#edit-${f.id}-warning`, (el) => (el.hidden ? "" : el.textContent.trim()));
+    check(!(await shown()), `an AI factor's own words ("${own}") open the editor without a warning`);
+    await q.fill(`#edit-${f.id}-text`, `${own}, confidential draft`);
+    const said = await shown();
+    check(/confidential/.test(said) && !/internal/.test(said), `a word the person adds is named, the AI's own is not ("${said}")`);
+  } catch (e) {
+    check(false, `editor warning: ${e.message.split("\n")[0]}`);
+  }
+  await t2.context.close();
+}
 await suite.done();
 report(results, "LIVE SCAN OK");
