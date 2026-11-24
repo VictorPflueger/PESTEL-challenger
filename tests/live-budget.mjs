@@ -6,9 +6,9 @@
 //     budget cap after" the last step done, or before the first request when even that does not fit;
 //   - an attempt cut off mid-stream, which the API bills but reports nothing for, is held against the cap at
 //     its worst case, and the retry goes only if it still fits; so is every such attempt, the last one too,
-//     and a request the person aborts while it is under way, or one left unanswered past the client's time
-//     limit; Go on after them starts no request whose worst case, with what was spent and held before it,
-//     passes the cap;
+//     and a request the person aborts while it is under way, or one that timed out (left unanswered past the
+//     client's time limit, or answered with any 504, the API's or a proxy's); Go on after them starts no request
+//     whose worst case, with what was spent and held before it, passes the cap;
 //   - every stop says what happened: an overload inside the stream is the busy service, a cap reached after a
 //     request says no step was done rather than no request was sent, and while anything is held, the stop says so.
 // The worst case is the pipeline's own function (js/pipeline.js worstCaseEur), recomputed here for every

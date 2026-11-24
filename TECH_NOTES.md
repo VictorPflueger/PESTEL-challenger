@@ -143,7 +143,7 @@ Decided while building 1.0.0, each within the brief and the plan:
 | The private-data warning | A date that stands alone (01.01.2027, 1/7/26, 2026-09-30) never counts as a phone number, nor does a range of dates in the usual forms: 01.01.26-31.12.26, 01.01.-31.12.2027, 01.10.-30.04., 01.01.26/31.12.26, 01/01/26-31/12/26, 01-01-26-31-12-26, 2026-01-01-2026-12-31, 01/2026-12/2026, 06.2026-12.2026 and KW 01-05/2026; other forms may still raise the warning, which does not block. Digits in dotted pairs (01.23.45.67.89) still count, and "internal combustion" is no keyword. Text shaped like an API key counts: the dialog names it, the run redacts it before a prompt reads it, and "Save run as simulation" redacts it as the other files do (R8, R9, N2, N10, N14) |
 | The key in memory | The live-run dialog keeps no copy of a checked key: a key typed now is checked, and the key in js/keystore.js passed that check when it was set, so "Clear everything" leaves none behind (R10) |
 | A live run's tiles | A live run cannot answer first: until the Analyst is done, the pressure and readiness tiles say after which step their figures stand ("after the scan", "after the challenge"). After Adopt, a stop or a wait shows the ring after the decision, as the tiles do (R3, N4) |
-| A request that broke off, went unanswered or was aborted | The API may bill a request cut off after its stream began, aborted while under way, or that timed out: left unanswered past the shared client's 90 s (a proxy that buffers the event stream holds back an answer the API is writing), answered with the API's `timeout_error` (a 504, or a 500 at the server's time limit, section 2), or answered with any other 504, a proxy's own included, after which the API may still be writing. The shared client reports no usage for any of them. The run holds each such attempt's worst case against the cap (`run.unmetered`), the last of the shared client's three attempts too, and a retry, or any request after them with Go on, goes only if it still fits. Every stop says so while the run holds an amount, and Go on's dialog says how much; a stream that broke off says so, an overload inside it reads as the busy service, and a retry the cap stops says the request broke off or went unanswered. The meter shows what the API reported (R11, N8, N12, N16, N17, N18, O5, O6, O12) |
+| A request that broke off, went unanswered or was aborted | The API may bill a request cut off after its stream began, aborted while under way, or that timed out: left unanswered past the shared client's 90 s (a proxy that buffers the event stream holds back an answer the API is writing), answered with the API's `timeout_error` (a 504, or a 500 at the server's time limit, section 2), or answered with any other 504 the page can read, a proxy's own included, after which the API may still be writing. The shared client reports no usage for any of them. A proxy's 504 sent without CORS headers reaches the page only as a failed connection, which it cannot tell from a network failure, so it is not held (section 8). The run holds each such attempt's worst case against the cap (`run.unmetered`), the last of the shared client's three attempts too, and a retry, or any request after them with Go on, goes only if it still fits. Every stop says so while the run holds an amount, and Go on's dialog says how much; a stream that broke off says so, an overload inside it reads as the busy service, and a retry the cap stops says the request broke off or went unanswered. The meter shows what the API reported (R11, N8, N12, N16, N17, N18, O5, O6, O12, O14) |
 | The Scout's searches and the cap | Each Scout request's worst case counts the searches still open in its turn (section 2): five for a new turn, fewer after a pause, five again for the repair's new instruction |
 | A run out of requests | Once a run has used its ten requests, its stop offers no "Go on", which could not work, and says to take what is done or start again with Clear everything (R6) |
 | Stopped at the cap | The stop says "before the first request" only while none was sent; after one it says no step was done yet, and after a step, which one (N13) |
@@ -257,6 +257,16 @@ languages, and the default scenario plays to its end in each.
   usage needs a change to the shared client, for all four tools. The Scout's worst case assumes 6,000 input
   tokens a search; were a search's results larger, a Scout request could pass the cap by the difference.
   Victor's first research run on Thorough measures it (independent review R11, N8, N18).
+- **A proxy's 504 without CORS headers.** The browser hands the page no status for it, only a failed
+  connection, which the shared client calls a network error. A network failure bills nothing as far as the
+  page can tell, so the cap does not hold it; were such a 504 to follow a request the API went on writing
+  behind a proxy, the cap would miss that request. Holding every failed connection would stop runs at the cap
+  on any dropped connection instead (independent review O14).
+- **Go on's dialog at 1280 × 720.** When the person goes on after a stop, the dialog's estimate adds what the
+  run has spent and what it holds, and runs past the dialog body's edge, so its last sentence shows only after
+  scrolling the body; the first dialog fits, as Vici's rule asks. The stop screen already says that an amount
+  is held. Fitting it means a shorter estimate for a continuing run, Vici's live-run dialog or the tool's,
+  with the layout suite measuring the continuing dialog too: proposed for 1.0.1 (independent review N20).
 - **Run it live on smaller screens.** Brief §7 puts "Run it live" after the steps. On the Start panel it
   shows without scrolling from 1920 × 1080; at smaller sizes the panel scrolls to it, and the guide's first
   chapter names it. Moving it into the first view changes the brief's layout, which is Victor's call (R7).
@@ -290,9 +300,9 @@ What was checked for 1.0.0, on 24 November 2026.
   2 and 3. The independent review found two high, three medium and twelve low findings. Confirming looks by
   fresh agents followed, each at a later commit after a round of fixes. The first did not confirm: two fixes
   were incomplete, and it found five new findings, one of them medium. The later ones confirmed every high and
-  medium fix and found only low findings and observations, which the following rounds fixed or declined. Every
-  high and medium finding is fixed; two low findings stay, R7 and R14, and three observations, O4 kept and O7
-  and O9 declined, each with its reason in sections 3 and 8 and in REVIEW.md. REVIEW.md part 2 names the
-  commit each look read and what it found.
+  medium fix and found only low findings and observations, which the following rounds fixed, kept or declined.
+  Every high and medium finding is fixed. Three low findings stay, R7, R14 and N20, and four observations, O4
+  and O14 kept and O7 and O9 declined, each with its reason in sections 3 and 8 and in REVIEW.md. REVIEW.md
+  part 2 names the commit each look read and what it found.
 - **Not checked.** Printing in Firefox and Safari, by Victor's decision, and a run with a real key, which
   is Victor's (section 8).
