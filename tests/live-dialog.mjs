@@ -92,7 +92,7 @@ check(CLEAN.every((s) => !findPrivate(s).length), `and nothing in clean business
   const thorough = await est();
   await p.check("#live-research");
   const research = await est();
-  check(/Estimate with these settings: about €/.test(balanced) && balanced !== thorough && thorough !== research, `the estimate follows the setting and research ("${balanced}" / "${thorough}" / "${research}")`);
+  check(/Estimate: about €/.test(balanced) && balanced !== thorough && thorough !== research, `the estimate follows the setting and research ("${balanced}" / "${thorough}" / "${research}")`);
   const problems = await pageProblems(t);
   check(!problems.length, `the form and the dialog leave no page error${problems.length ? `: ${problems.join("; ")}` : ""}`);
   await t.context.close();

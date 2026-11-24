@@ -266,6 +266,15 @@ for (const [width, height] of [[1920, 1080], [1280, 720]]) {
         await p.click("#btn-cta");
         await p.waitForSelector("#live-dialog[open]");
         await look("dialog", { dialog: true });
+        // Vici's live-run dialog: every part shows without scrolling, the estimate too, while no warning shows.
+        await p.check("#live-research");
+        const fit = await p.evaluate(() => {
+          const body = document.querySelector("#live-dialog .vc-live__body").getBoundingClientRect();
+          const parts = [...document.querySelectorAll("#live-dialog .vc-live__body > *")].filter((e) => e.offsetParent && !e.hidden);
+          return parts.filter((e) => e.getBoundingClientRect().bottom > body.bottom + 0.5).map((e) => e.id || e.className.split(" ").pop());
+        });
+        if (fit.length) bad.dialog.push(`dialog with research on: out of view without scrolling: ${fit.join(", ")}`);
+        await p.uncheck("#live-research");
         await p.click("#live-advanced > summary");
         await look("dialog with Advanced open", { dialog: true });
         await p.keyboard.press("Escape");
@@ -291,7 +300,7 @@ for (const [width, height] of [[1920, 1080], [1280, 720]]) {
         bad.fit.push(`the run failed: ${e.message.split("\n")[0]}`);
       }
       check(!bad.fit.length, `${run}: every live screen fits${bad.fit.length ? `; not: ${bad.fit.slice(0, 4).join("; ")}` : ""}`);
-      check(!bad.dialog.length, `${run}: the dialog stays in the window with its start button and notice in view${bad.dialog.length ? `; not: ${bad.dialog.slice(0, 2).join("; ")}` : ""}`);
+      check(!bad.dialog.length, `${run}: the dialog stays in the window with its start button and notice in view, and with research on every part shows without scrolling${bad.dialog.length ? `; not: ${bad.dialog.slice(0, 2).join("; ")}` : ""}`);
       check(!bad.cut.length, `${run}: no text cut on a live screen${bad.cut.length ? `: ${bad.cut.slice(0, 4).join("; ")}` : ""}`);
       check(!bad.header.length, `${run}: the actions keep one row and every figure one line${bad.header.length ? `; not: ${bad.header.slice(0, 3).join("; ")}` : ""}`);
       check(!bad.small.length, `${run}: every target at least 40 px on the live screens and in the dialog${bad.small.length ? `: ${bad.small.slice(0, 4).join("; ")}` : ""}`);

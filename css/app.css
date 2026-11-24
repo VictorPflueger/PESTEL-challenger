@@ -382,8 +382,16 @@ html:not([data-ready="true"]) .app-header :is(.vc-button, .vc-icon-button, .vc-t
 .vc-dialog__header > .vc-icon-button { --_h: 2.5rem; }
 
 /* The live dialog: where keys come from, as a 40 px target of its own; the plans note under it, quieter. */
-.live-keys-link.vc-button { --_h: 40px; justify-self: start; }
-.live-plans { color: var(--vc-text-muted); }
+/* The key's label, with the link to where keys come from at the end of its row. */
+.live-key-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 var(--vc-space-2); }
+.live-keys-link.vc-button { --_h: 40px; }
+/* An empty status takes no row, and the setting's legend stands beside its choice, so the parts keep to
+   1280 × 720 as Vici's live-run dialog asks. */
+.live-key-status:empty { display: none; }
+.vc-live__setting { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: var(--vc-space-3); }
+/* Floated, the legend leaves the fieldset's border and takes its place in the grid, beside the choice. */
+.vc-live__setting > legend { float: left; margin: 0; }
+.vc-live__setting > .vc-help { grid-column: 1 / -1; }
 .live-key-status:empty { display: none; }
 .live-frame { display: flex; gap: 8px; align-items: flex-start; }
 .live-frame[hidden] { display: none; }

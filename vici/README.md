@@ -1,8 +1,8 @@
 # Vici, copied into this tool
 
 These files come unchanged from Vici, Victor Pflüger's design system
-(<https://victorpflueger.github.io/ViciDesign/index.html>), from its main branch at commit **`a855df3`**
-(`a855df352700ba167d75b8068d42776e8c70b63e`, 24 November 2026), version v1.0.0 on the way to Vici 2.0.
+(<https://victorpflueger.github.io/ViciDesign/index.html>), from its main branch at commit **`ca9c552`**
+(`ca9c552ea031dbb723bbc619b21ef318fa7ff7e9`, 24 November 2026), version v1.0.0 on the way to Vici 2.0.
 That commit holds the two patterns this tool added to Vici first, the rule that nothing a person enters
 is kept (ViciDesign#24) and the blank starter under a strict security policy with `vici-theme.js`
 (ViciDesign#25), the framework view and the risk matrix the SWOT Challenger added (ViciDesign#26 and #27), the
@@ -11,8 +11,9 @@ Business Model Canvas Challenger's block states and risk-matrix markers sized by
 control's square radios this tool added for version 0.2.0 (ViciDesign#30, #31 and #33), the fix that keeps the
 risk matrix and the horizon strip to their own width once their numbers open (ViciDesign#34), the live-run dialog
 the SWOT Challenger added (ViciDesign#36), which this tool's live run opens, the Prototype Ideator's callouts that
-keep every text token in their own ink and tables that set tabular figures in number cells only (ViciDesign#35 and
-#37), and its drop zone (ViciDesign#32), which this tool does not use. The tool loads these files from here
+keep their text and their actions in their own ink, tables that set tabular figures in number cells only and the
+live-run dialog fitting 1280 × 720 (ViciDesign#35, #37, #38 and #39), and its drop zone (ViciDesign#32), which this
+tool does not use. The tool loads these files from here
 rather than from a CDN, so every page is served from this site alone.
 
 | File here | What it is |

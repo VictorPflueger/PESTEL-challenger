@@ -127,14 +127,15 @@
     <div class="vc-dialog__body vc-live__body">
       <p class="vc-alert vc-alert--danger live-frame" id="live-frame" role="alert" hidden><span class="vc-icon vc-icon--error" aria-hidden="true"></span><span data-i18n="dlg.frame">This dialog does not work inside another page's frame. Open the tool in its own tab.</span></p>
       <section class="vc-live__part vc-live__key">
-        <label class="vc-label" for="live-key" data-i18n="dlg.key">Your API key</label>
+        <div class="live-key-head">
+          <label class="vc-label" for="live-key" data-i18n="dlg.key">Your API key</label>
+          <a class="vc-button vc-button--ghost vc-button--sm live-keys-link" href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener"><span class="vc-icon vc-icon--external" aria-hidden="true"></span><span data-i18n="dlg.key.link">Get a key in the Claude Console</span></a>
+        </div>
         <div class="vc-live__key-row">
           <input class="vc-input" id="live-key" type="password" autocomplete="off" spellcheck="false" data-1p-ignore data-lpignore="true" aria-describedby="live-key-note live-key-status">
           <button type="button" class="vc-icon-button" id="live-key-show" aria-controls="live-key" aria-pressed="false" aria-label="Show key" data-i18n-attr="aria-label:dlg.key.show"><span class="vc-icon vc-icon--eye" aria-hidden="true"></span></button>
         </div>
-        <p class="vc-help" id="live-key-note" data-i18n="dlg.key.note">You need a key from the Claude Console. It stays in this tab's memory and is gone when you close or reload it. Use a separate workspace with a monthly spend limit.</p>
-        <a class="vc-button vc-button--ghost vc-button--sm live-keys-link" href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener"><span class="vc-icon vc-icon--external" aria-hidden="true"></span><span data-i18n="dlg.key.link">Get a key in the Claude Console</span></a>
-        <p class="vc-help live-plans" data-i18n="dlg.key.plans">A Claude plan does not pay for this by itself: Max, Ultra and Team plans include monthly API credits once you link a Console organisation; Free, Pro and Enterprise plans do not.</p>
+        <p class="vc-help" id="live-key-note" data-i18n="dlg.key.note">It stays in this tab's memory until you close or reload it. Use a workspace with a monthly spend limit.</p>
         <p class="vc-help live-key-status" id="live-key-status" aria-live="polite"></p>
         <p class="vc-live__current" id="live-current" hidden><span data-i18n="dlg.key.current">Key in memory:</span> <span class="vc-live__masked" id="live-masked"></span> <button type="button" class="vc-button vc-button--ghost vc-button--sm vc-live__forget" id="live-forget" data-i18n="dlg.key.forget">Forget key</button></p>
       </section>
@@ -145,8 +146,7 @@
           <label><input type="radio" name="live-setting" value="balanced" checked><span data-i18n="dlg.balanced">Balanced</span></label>
           <label><input type="radio" name="live-setting" value="thorough"><span data-i18n="dlg.thorough">Thorough</span></label>
         </div>
-        <p class="vc-help" id="live-setting-help"></p>
-        <p class="vc-help" id="live-lang"></p>
+        <p class="vc-help"><span id="live-setting-help"></span> <span id="live-lang"></span></p>
       </fieldset>
       <div class="vc-live__part vc-live__research">
         <label class="vc-switch"><input type="checkbox" role="switch" id="live-research" aria-describedby="live-research-help"> <span data-i18n="dlg.research">Look up recent news first</span></label>
