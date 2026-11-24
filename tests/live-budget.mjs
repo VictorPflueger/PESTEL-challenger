@@ -251,20 +251,24 @@ async function stopped(faults, { usage = USAGE, cap = 3, during = null } = {}) {
   await t.context.close();
 }
 
-// ---- a request left unanswered past the client's time limit counts, in Node -----------------------------------
+// ---- a request that timed out counts, in Node -----------------------------------------------------------------
 // A proxy that buffers the event stream holds back an answer the API is writing; the shared client gives up after
-// 90 s with a timeout_error and tries twice more. Each attempt's worst case is held.
-{
+// 90 s with a timeout_error and tries twice more. A 504 says the same, whether the API or a proxy on the way sends
+// it. Each attempt's worst case is held.
+for (const [what, error] of [
+  ["left unanswered past the time limit", { status: 0, type: "timeout_error", message: "No response from the API within 90 s." }],
+  ["answered with a proxy's own 504", { status: 504, type: "http_504", message: "Gateway Timeout" }],
+]) {
   const { createPipeline, createLiveRun } = await import(pathToFileURL(path.join(APP_ROOT, "js/pipeline.js")).href);
   const { ApiError } = await import(pathToFileURL(path.join(APP_ROOT, "js/anthropic.js")).href);
   const { formOf } = await import("./lib/turns.mjs");
   const run = createLiveRun({ inputs: formOf("s3", "en"), lang: "en", today: "2026-11-24", setting: CONFIG.settingOf({ preset: "thorough" }), research: false, cap: 3 });
   const bodies = [];
-  const stream = async ({ body }) => { bodies.push(structuredClone(body)); throw new ApiError({ status: 0, type: "timeout_error", message: "No response from the API within 90 s." }); };
+  const stream = async ({ body }) => { bodies.push(structuredClone(body)); throw new ApiError(error); };
   await createPipeline({ run, key: "sk-ant-api03-node-test-key-0000", stream }).scan();
   const held = bodies.reduce((a, b) => a + worstCaseEur(b), 0);
   check(bodies.length === 3 && run.stopped?.reason === "error" && Math.abs(run.unmetered - held) < 1e-12,
-    `three attempts left unanswered past the time limit each count at their worst case (held €${run.unmetered.toFixed(4)} against €${held.toFixed(4)}, ${bodies.length} attempts)`);
+    `three attempts ${what} each count at their worst case (held €${run.unmetered.toFixed(4)} against €${held.toFixed(4)}, ${bodies.length} attempts)`);
 }
 
 await suite.done();

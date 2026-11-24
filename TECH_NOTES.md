@@ -32,6 +32,7 @@ waits for Victor's first live runs (section 8).
 | Web search | `web_search_20250305` with `max_uses`; `pause_turn` is sent again unchanged; a client tool called beside a search ends the turn with `tool_use`; an organisation with search switched off gets 400 `invalid_request_error` | 2026-11-23, web search tool page |
 | Web search per turn | `max_uses` counts the searches of one turn. A turn spans several requests: one that resumes after `pause_turn`, or whose last message holds only `tool_result` blocks, continues it, and the searches before count; a new instruction starts another turn. Failed searches count against the limit but are not billed | 2026-11-24, web search tool page |
 | Errors | A spend limit you set returns 400 `invalid_request_error`, "You have reached your specified API usage limits"; no credit returns "Your credit balance is too low to access the Anthropic API"; 529 is overload | 2026-11-23, rate limits and API credits pages |
+| Timeouts | 504 `timeout_error`: "The request timed out while processing". The API also returns `timeout_error` with other status codes, such as a 500 when a request reaches the server's time limit before the response starts | 2026-11-24, errors page |
 | API version | `anthropic-version: 2023-06-01`, as the sister prototypes send it; `2026-10-21` is the newest | 2026-11-23, migration page |
 | Claude plans | A Claude plan does not pay for API use by itself: Max, Ultra and Team plans include monthly API credits once a Console organisation is linked; Free, Pro and Enterprise plans do not | 2026-11-24, support.claude.com article 17154008 |
 | JSON modules | `import … with { type: "json" }` is blocked by `connect-src` under the page's policy, so the schemas ship as a module | 2026-11-23, probed in Chrome 153 |
@@ -142,7 +143,7 @@ Decided while building 1.0.0, each within the brief and the plan:
 | The private-data warning | A date that stands alone (01.01.2027, 1/7/26, 2026-09-30) never counts as a phone number, nor does a range of dates in the usual forms: 01.01.26-31.12.26, 01.01.-31.12.2027, 01.10.-30.04., 01.01.26/31.12.26, 01/01/26-31/12/26, 01-01-26-31-12-26, 2026-01-01-2026-12-31, 01/2026-12/2026, 06.2026-12.2026 and KW 01-05/2026; other forms may still raise the warning, which does not block. Digits in dotted pairs (01.23.45.67.89) still count, and "internal combustion" is no keyword. Text shaped like an API key counts: the dialog names it, the run redacts it before a prompt reads it, and "Save run as simulation" redacts it as the other files do (R8, R9, N2, N10, N14) |
 | The key in memory | The live-run dialog keeps no copy of a checked key: a key typed now is checked, and the key in js/keystore.js passed that check when it was set, so "Clear everything" leaves none behind (R10) |
 | A live run's tiles | A live run cannot answer first: until the Analyst is done, the pressure and readiness tiles say after which step their figures stand ("after the scan", "after the challenge"). After Adopt, a stop or a wait shows the ring after the decision, as the tiles do (R3, N4) |
-| A request that broke off, went unanswered or was aborted | The API may bill a request cut off after its stream began, aborted while under way, or that timed out: left unanswered past the shared client's 90 s (a proxy that buffers the event stream holds back an answer the API is writing) or answered with a 504 `timeout_error`, after which the API may still be writing. The shared client reports no usage for any of them. The run holds each such attempt's worst case against the cap (`run.unmetered`), the last of the shared client's three attempts too, and a retry, or any request after them with Go on, goes only if it still fits. Every stop says so while the run holds an amount, and Go on's dialog says how much; a stream that broke off says so, an overload inside it reads as the busy service, and a retry the cap stops says the request broke off or went unanswered. The meter shows what the API reported (R11, N8, N12, N16, N17, O5, O6) |
+| A request that broke off, went unanswered or was aborted | The API may bill a request cut off after its stream began, aborted while under way, or that timed out: left unanswered past the shared client's 90 s (a proxy that buffers the event stream holds back an answer the API is writing), answered with the API's `timeout_error` (a 504, or a 500 at the server's time limit, section 2), or answered with any other 504, a proxy's own included, after which the API may still be writing. The shared client reports no usage for any of them. The run holds each such attempt's worst case against the cap (`run.unmetered`), the last of the shared client's three attempts too, and a retry, or any request after them with Go on, goes only if it still fits. Every stop says so while the run holds an amount, and Go on's dialog says how much; a stream that broke off says so, an overload inside it reads as the busy service, and a retry the cap stops says the request broke off or went unanswered. The meter shows what the API reported (R11, N8, N12, N16, N17, N18, O5, O6, O12) |
 | The Scout's searches and the cap | Each Scout request's worst case counts the searches still open in its turn (section 2): five for a new turn, fewer after a pause, five again for the repair's new instruction |
 | A run out of requests | Once a run has used its ten requests, its stop offers no "Go on", which could not work, and says to take what is done or start again with Clear everything (R6) |
 | Stopped at the cap | The stop says "before the first request" only while none was sent; after one it says no step was done yet, and after a step, which one (N13) |
@@ -248,14 +249,14 @@ languages, and the default scenario plays to its end in each.
   tile, the dialog and the guide say it is an estimate and what it rests on. Its three characters a token
   follows the model pages' 30 percent and has not been counted on this tool's own prompts, since the free
   token count needs a key.
-- **Streams cut off and the meter.** A stream cut off after it started, aborted while under way, or left
-  unanswered past the client's 90 s may be billed for its input and what it wrote, but the shared client
-  (`js/anthropic.js`, unchanged from the Prototype Ideator) returns no usage then. The cap holds against them,
-  since the run counts every such attempt at its worst case, the last one, an Abort and an unanswered one too
-  (section 3), but the meter shows only what the API reported. Reporting a cut stream's usage needs a change
-  to the shared client, for all four tools. The Scout's worst case assumes 6,000 input tokens a search; were a
-  search's results larger, a Scout request could pass the cap by the difference. Victor's first research run
-  on Thorough measures it (independent review R11, N8).
+- **Streams cut off and the meter.** A stream cut off after it started, a request aborted while under way, and
+  one that timed out (no answer within the client's 90 s, the API's `timeout_error`, or any 504) may be billed
+  for its input and what it wrote, but the shared client (`js/anthropic.js`, unchanged from the Prototype
+  Ideator) returns no usage then. The cap holds against them, since the run counts every such attempt at its
+  worst case, the last one too (section 3), but the meter shows only what the API reported. Reporting their
+  usage needs a change to the shared client, for all four tools. The Scout's worst case assumes 6,000 input
+  tokens a search; were a search's results larger, a Scout request could pass the cap by the difference.
+  Victor's first research run on Thorough measures it (independent review R11, N8, N18).
 - **Run it live on smaller screens.** Brief §7 puts "Run it live" after the steps. On the Start panel it
   shows without scrolling from 1920 × 1080; at smaller sizes the panel scrolls to it, and the guide's first
   chapter names it. Moving it into the first view changes the brief's layout, which is Victor's call (R7).
@@ -285,13 +286,13 @@ What was checked for 1.0.0, on 24 November 2026.
   the live-run dialog opens, with no finding of severity 3 or 4; humanizer on every new string and the
   documents. They changed three things: the file note said all browsers refuse a file, now this browser;
   its region label stayed English on a German page, now gone; Scan's count reads as a first look.
-- **Reviews.** The independent review, the Steve Jobs review and Vici's partner review are in REVIEW.md,
-  parts 2 and 3. The independent review found two high, three medium and twelve low findings. A first
-  confirming look found two of the fixes incomplete and five new findings, one of them medium; a second
-  confirmed every high and medium fix and found six more low findings, which a third round fixed; a third
-  confirmed again and found three low findings and four observations, which a fourth round fixed. Every high
-  and medium finding is fixed; two low findings and one observation stay, with their reasons in sections 3
-  and 8.
-  REVIEW.md part 2 names the commit each confirming look read and what it found.
+- **Reviews.** The independent review, the Steve Jobs review and Vici's partner review are in REVIEW.md, parts
+  2 and 3. The independent review found two high, three medium and twelve low findings. Confirming looks by
+  fresh agents followed, each at a later commit after a round of fixes. The first did not confirm: two fixes
+  were incomplete, and it found five new findings, one of them medium. The later ones confirmed every high and
+  medium fix and found only low findings and observations, which the following rounds fixed or declined. Every
+  high and medium finding is fixed; two low findings stay, R7 and R14, and three observations, O4 kept and O7
+  and O9 declined, each with its reason in sections 3 and 8 and in REVIEW.md. REVIEW.md part 2 names the
+  commit each look read and what it found.
 - **Not checked.** Printing in Firefox and Safari, by Victor's decision, and a run with a real key, which
   is Victor's (section 8).

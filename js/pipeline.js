@@ -46,7 +46,7 @@ export class RunStop extends Error {
     this.error = error;
     this.problems = problems;
     this.repaired = repaired;
-    this.retry = retry;   // the cap stopped a retry of a request cut off mid-stream
+    this.retry = retry;   // the cap stopped a retry of a request that broke off or went unanswered
     this.held = held;     // an Abort stopped a request under way, whose worst case is now held
   }
 }
@@ -181,14 +181,16 @@ export function createPipeline({ run, view = () => run, key, hooks = {}, stream 
         try {
           return await stream({ key, body, signal: controller.signal });
         } catch (e) {
-          // An attempt cut off mid-stream, stopped by Abort while under way, or that timed out (no answer within the
-          // client's time limit, where a proxy that buffers the stream holds back an answer the API is writing, or
-          // a 504 timeout_error, after which the API may still be writing) may be billed for its input and what it
-          // wrote, which the shared client cannot report: its worst case is held against the cap from here on,
-          // every such attempt, the last one too. A retry goes only if it still fits (fit() stops the run
-          // otherwise), and so does any request after it. Any other error before the stream bills nothing.
+          // An attempt cut off mid-stream, stopped by Abort while under way, or that timed out may be billed for
+          // its input and what it wrote, which the shared client cannot report. Timed out: no answer within the
+          // client's time limit (a proxy that buffers the stream holds back an answer the API is writing); the
+          // API's timeout_error, which it sends as a 504 or a 500 when a request "timed out while processing"; or
+          // any 504, a proxy's own included, after which the API may still be writing. Its worst case is held
+          // against the cap from here on, every such attempt, the last one too. A retry goes only if it still
+          // fits (fit() stops the run otherwise), and so does any request after it. Any other error before the
+          // stream bills nothing.
           const aborted = !e?.midStream && (e?.name === "AbortError" || controller.signal.aborted);
-          const unanswered = !e?.midStream && e?.type === "timeout_error";
+          const unanswered = !e?.midStream && (e?.type === "timeout_error" || e?.status === 504);
           if (e?.midStream || aborted || unanswered) run.unmetered = (run.unmetered || 0) + worstCaseEur(body, { searches });
           if (aborted) held = true;
           if (e instanceof ApiError && e.retryable && !mayRetry(e)) throw new NoRetry(e);
