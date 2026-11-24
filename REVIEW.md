@@ -87,13 +87,18 @@ On 24 November 2026 a fresh agent without the builder's context reviewed release
 only, against the brief, the standing requirements and the plan. It ran all thirty-seven suites (ALL SUITES
 OK), probed the modules in Node and the page in Chromium (live runs against the tests' stand-in only, no
 call to the real API), read the PDF, HTML and JSON files and looked at the screens at 1280 × 720 and
-1920 × 1080. Its verdict was "not ready": two high, three medium and twelve low findings. Each, and what
-became of it:
+1920 × 1080. Its verdict was "not ready": two high, three medium and twelve low findings.
+
+A second fresh agent, again without the builder's context and read only, then looked at `50871bc` to
+confirm the fixes. Its verdict was "not confirmed": the notice of R2 fell out of view for some factors at
+1280 × 720, the reason given for keeping R11 was partly wrong, a long German name still broke inside a word
+(R13), and R17 left one remainder. It found one new medium and four new low findings, N1 to N5, and made
+two observations, O1 and O2. The table holds every finding of both looks, and what became of it:
 
 | ID | Severity | What | Where | State |
 |---|---|---|---|---|
 | R1 | high | A negative euro figure from an agent passed every check, then stopped the engine: a live run stuck between Assess and Respond without a message | `js/guards.js`, `js/risk.js`, `js/presenter.js` | fixed in `48c0630`: the Analyst's and the Strategist's checks refuse a euro figure below zero and a residual that leaves more at stake than the threat's own range, so the answer goes back once and the run stops if the repair keeps it; `tests/guards.mjs` plants each |
-| R2 | high | At a live run's Scan the person could retype an AI factor's words with no "Public information only" there, and the private-data warning did not run on them | `js/hexagon.js`, `js/views/scan.js` | fixed in `48c0630`: the editor says it under the wording, tied to the field, and warns as the live-run dialog does; `tests/live-scan.mjs` checks both |
+| R2 | high | At a live run's Scan the person could retype an AI factor's words with no "Public information only" there, and the private-data warning did not run on them | `js/hexagon.js`, `js/views/scan.js` | fixed in `1cba922`, completing `48c0630`: the editor says it under the wording, tied to the field, and warns as the live-run dialog does; since `1cba922` it opens with the field and the notice in view, and a warning comes into view as it appears; `tests/live-scan.mjs` opens all nine editors at 1280 × 720 |
 | R3 | medium | The tiles disagreed with Scan's title in a recorded run, meant another thing in a live run, and on a stop at the Writer the ring disagreed with the tiles | `js/kpis.js`, `js/views/scan.js`, `js/views/live_work.js` | fixed in `48c0630`, with Scan's "at first sight" from `7a07025`: a live run's pressure tile says after which step it stands, and after Adopt the ring shows what the tiles show; `tests/live-repair.mjs` stops at the Writer |
 | R4 | medium | Targets under 40 px: the scenario chooser, the disclosures, the dialog's setting, switch and slider; the layout suite measured buttons and links only | `tests/layout.mjs`, Start, Scan, Assess, the live-run dialog | fixed in `48c0630`: Vici's controls reach 40 px (ViciDesign#47), and so do the tool's disclosures and the Accept option; the layout suite measures every kind of target, with a planted segmented option |
 | R5 | medium | Mitigating a threat without a euro figure made it count in money, so what was left could exceed what was at stake | `js/engine.js`, `js/guards.js` | fixed in `48c0630`: such a threat stays out of the money, its option and the report say it counts in readiness, and the handoff file gives it no residual; `tests/engine.mjs` and `tests/handoff.mjs` plant it |
@@ -102,13 +107,20 @@ became of it:
 | R8 | low | The private-data warning read European dates as phone numbers and "internal combustion" as a private word | `js/privacy.js` | fixed in `48c0630`: neither counts; `tests/live-dialog.mjs` adds both to its clean texts |
 | R9 | low | Text shaped like an API key, pasted into the form, raised no warning, went into the prompts and into "Save run as simulation" | `js/presenter.js`, `js/privacy.js`, `js/pipeline.js` | fixed in `48c0630`: the dialog names it, the run redacts it before a prompt reads it, and the saved run redacts it; `tests/live-flow.mjs` checks the requests and the file |
 | R10 | low | "Clear everything" left a copy of the checked key in the live-run dialog | `js/live_dialog.js` | fixed in `48c0630`: the dialog keeps no copy; the key lives in `js/keystore.js` alone |
-| R11 | low | Spending could pass the cap in edge cases: a cut-off stream adds nothing to the meter, a retry does not check the cap again, and the Scout's search size is assumed | `js/pipeline.js`, `js/anthropic.js` | kept: a cut-off stream's usage needs a change to the shared client of all four tools, a retry follows an error that bills nothing, and Victor's first research run measures the Scout (TECH_NOTES section 8) |
+| R11 | low | Spending could pass the cap in edge cases: a cut-off stream adds nothing to the meter, a retry does not check the cap again, and the Scout's search size is assumed | `js/pipeline.js`, `js/anthropic.js` | fixed in `1cba922` for the stream and the retry: an attempt cut off after its stream began counts at its worst case against the cap, and the shared client's retry goes only if it still fits; `tests/live-budget.mjs` cuts a stream and stops the retry at a €0.10 cap. The meter still shows only what the API reported, and the Scout's search size stays assumed until Victor's first research run measures it (TECH_NOTES section 8) |
 | R12 | low | In the handoff file some opportunities' likelihood did not go with their expected value, and with no threat the score was 0 | `js/handoff.js` | fixed in `48c0630`: an opportunity carries the likelihood of the Analyst's upside, and the score is 100 then; `tests/handoff.mjs` checks every issue's expected value |
-| R13 | low | A long company name ran out of the ring's centre and broke inside a word | `js/hexagon.js` | fixed in `48c0630`: the centre steps a long name down in three sizes and leaves out the sector, so the form's 80 characters stay inside the cell at 1280 × 720 |
+| R13 | low | A long company name ran out of the ring's centre and broke inside a word | `js/hexagon.js` | fixed in `1cba922`, completing `48c0630`: the centre steps a long name down in three sizes and leaves out the sector, so the form's 80 characters stay inside the cell at 1280 × 720, and a name over 40 characters from a German-speaking country is marked German, so it breaks at a syllable; `tests/live-scan.mjs` checks the mark |
 | R14 | low | German PDFs print the footer in German, where standing requirement 8 quotes the English words | `js/i18n/de.js` | kept: decided in 0.4.0, as Vici's byline speaks the page's language, and every English report carries the English words; Victor confirms (TECH_NOTES section 8) |
 | R15 | low | The storage suite's change of a choice timed out unseen, so that run never changed a choice | `tests/storage.mjs` | fixed in `48c0630`: it clicks the option's label and checks the choice changed |
 | R16 | low | The README stated as fact how Firefox and Safari print, which nobody tested | `README.md` | fixed in `48c0630`: it says their print is untested |
-| R17 | low | Polish: the report's old money lost its qualifier, "≈" wrapped away from its figure, the method's impact scale differed from the agents', a German "wo" for "als", and AI text without a lilac mark | `js/report.js`, `index.html`, `js/i18n/en.js`, `js/i18n/de.js`, `js/views/challenge.js`, `js/views/respond.js` | fixed in `48c0630`: each of the five, with a lilac AI tag on the Red team's cards, the Strategist's options and the Writer's headline |
+| R17 | low | Polish: the report's old money lost its qualifier, "≈" wrapped away from its figure, the method's impact scale differed from the agents', a German "wo" for "als", and AI text without a lilac mark | `js/report.js`, `index.html`, `js/i18n/en.js`, `js/i18n/de.js`, `js/views/challenge.js`, `js/views/respond.js` | fixed in `1cba922`, completing `48c0630`: each of the five, with a lilac AI tag on the Red team's cards, the Strategist's options and the Writer's headline; since `1cba922` what a mitigation leaves says on screen what its estimate rests on, "AI estimate from the range above" |
+| N1 | medium | The Scan editor's warning said the run removes text shaped like an API key, but a Scan edit was stored and sent as typed | `js/presenter.js` | fixed in `1cba922`: a Scan edit is redacted as it is saved, so the prompts and "Save run as simulation" read it redacted; `tests/live-scan.mjs` saves one |
+| N2 | low | The date rule of R8 also hid phone numbers written in dotted, hyphenated or slashed pairs | `js/privacy.js` | fixed in `1cba922`: only a date that stands alone counts as a date; `tests/live-dialog.mjs` plants such phone numbers |
+| N3 | low | Opening the editor checked the AI's own words and said they were "found in what you entered" | `js/hexagon.js` | fixed in `1cba922`: only the words the person brings in count; `tests/live-scan.mjs` opens a factor whose own words hold a keyword |
+| N4 | low | In a live run the readiness tile did not say which step its figure stands for | `js/kpis.js` | fixed in `1cba922`: it says after which step, as the pressure tile does; `tests/live-repair.mjs` reads both |
+| N5 | low | The new refusals named both cases at once ("above its high or below zero") | `js/guards.js` | fixed in `1cba922`: each names the case that applies; `tests/guards.mjs` reads the message |
+| O1 | observation | After an Undo of a rerate a mitigation could leave a threat more likely, or larger, than it now stands: the engine did not cap a residual as `js/risk.js` left() does | `js/run.js`, `js/engine.js` | fixed in `1cba922`: `residualOf()` keeps what a mitigation leaves at most the threat as it stands, and the engine, the options, the report and the handoff file read it; `tests/handoff.mjs` undoes each correction in turn |
+| O2 | observation | The design and partner reviews ran before `48c0630` changed the screens | `REVIEW.md` part 3 | done: both ran again on the running tool at `1cba922`, after both rounds of fixes; part 3 says what they found |
 
 ## Part 3. Steve Jobs review and partner review
 
@@ -193,7 +205,11 @@ and nine factors; five cards; gas prices first; €2.9m and 66 on Watch; €2.2m
 Undo, the risk matrix and horizon strip with their tables, the recommended responses with the bar that
 moves, and the report with its footer on every page.
 
-Both reviews were checked again at `50871bc`, after the independent review's fixes (part 2): the walk, every
-figure the script quotes and the screens nobody demos hold as above. The fixes add a lilac AI tag to the Red
-team's cards, the Strategist's options and the Summary's title, and targets of 40 px, without moving a
-figure, so both verdicts stand.
+Both reviews were checked again at `50871bc`, after the first round of the independent review's fixes, and
+ran again at `1cba922`, after the second (part 2), along the same walk in Chromium at 1280 × 720 in both
+languages: every figure the script quotes appears as it says, the page logs no error, and the screens nobody
+demos hold as above. The fixes add a lilac AI tag to the Red team's cards, the Strategist's options and the
+Summary's title, "AI estimate from the range above" under what a mitigation leaves, a live run's tiles that
+say after which step they stand, and targets of 40 px. A live run's Scan editor now opens with "Public
+information only" in view and shows its warning above the Your turn bar. None of them moves a figure, so
+both verdicts stand.
