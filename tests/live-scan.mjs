@@ -50,7 +50,23 @@ try {
   await p.click(`.vc-ring__cell[data-dim="${first.dimension}"]`);
   await p.click(`[data-id="${first.id}"] > details > summary`);
   await p.click(`[data-id="${first.id}"] .item-edit`);
+  // Where the person types, the page says what may go in, and warns when the words look private.
+  const editor = async () => p.evaluate((id) => {
+    const field = document.getElementById(`edit-${id}-text`);
+    const note = document.getElementById(`edit-${id}-public`);
+    const warn = document.getElementById(`edit-${id}-warning`);
+    const seen = (el) => !!el && !el.hidden && el.getClientRects().length > 0;
+    return { notice: seen(note) ? note.textContent.trim() : null, warning: seen(warn) ? warn.textContent.trim() : null, described: field.getAttribute("aria-describedby") || "" };
+  }, first.id);
+  const opened = await editor();
+  check(opened.notice === "Public information only: never enter confidential, personal or otherwise protected data." && opened.described.includes(`edit-${first.id}-public`) && !opened.warning,
+    `the editor says "Public information only" under the wording, tied to the field, and warns of nothing yet (${opened.notice})`);
+  await p.fill(`#edit-${first.id}-text`, "Internal memo: call 030 1234 5678");
+  const warned = await editor();
+  check(/internal/.test(warned.warning || "") && /phone number/.test(warned.warning || "") && warned.described.includes(`edit-${first.id}-warning`),
+    `typing private-looking words warns in the editor, without blocking (${warned.warning})`);
   await p.fill(`#edit-${first.id}-text`, "Edited by the person: a steeper CO2 price path");
+  check(!(await editor()).warning, "and the warning goes once the words are public again");
   await p.selectOption(`#edit-${first.id}-impact`, "5");
   await p.click(`[data-id="${first.id}"] .item-save`);
   check(/Edited by you/.test(await text(p, `[data-id="${first.id}"] summary`)) && /steeper CO2 price path/.test(await text(p, `[data-id="${first.id}"] summary`)), "an edited AI factor shows the new words and says it was edited");

@@ -11,6 +11,7 @@ import * as R from "./run.js";
 import { dimName, ratingLine, issueType, estimateWords, kpiEffect, confidenceName, kindName, sectorName } from "./plain.js";
 import { money, fmtDate } from "./format.js";
 import { sourceLink } from "./views/common.js";
+import { findPrivate } from "./privacy.js";
 
 const icon = (name) => h("span", { class: `vc-icon vc-icon--${name}`, "aria-hidden": "true" });
 const STATE_ICON = { pressure: "warning", watch: "eye", addressed: "check" };
@@ -40,7 +41,8 @@ export function ring(run, step, { selected = null, onSelect = null, lang = getLa
   const legend = ["pressure", "watch", "addressed"].filter((s) => s !== "addressed" || statuses.has("addressed"));
   return h("figure", { class: "vc-ring ring", "aria-labelledby": titleId },
     h("ol", { class: "vc-ring__cells" },
-      h("li", {}, h("p", { class: "vc-ring__centre" },
+      // A long name steps down a size or two and takes the sector's place, so it stays inside the cell.
+      h("li", {}, h("p", { class: "vc-ring__centre", dataset: { name: ["", "long", "longer", "longest"][[16, 40, 64].filter((n) => run.company.name.length > n).length] } },
         h("span", { class: "vc-ring__name" }, run.company.name),
         h("span", { class: "vc-ring__note" }, sectorName(run.company.sector, lang)))),
       DIMENSIONS.map(cell)),
@@ -150,28 +152,46 @@ function editControls(f, edit) {
   const select = (k, options, value, disabled = false) => h("select", { class: "vc-select", id: id(k), disabled, dataset: { key: k } },
     options.map(([v, label]) => h("option", { value: String(v), selected: String(v) === String(value) }, label)));
   const text = h("input", { class: "vc-input", type: "text", id: id("text"), value: f.text, maxlength: "90", autocomplete: "off", dataset: { key: "text" } });
+  // Where a person types, the page says what may go in (standing requirement 7), and warns, as the live-run
+  // dialog does, when the words hold what is usually private; it does not block.
+  const notice = h("p", { class: "item-editor-public", id: id("public") }, icon("shield"), h("span", {}, t("live.public")));
+  const warning = h("div", { class: "vc-alert vc-alert--warning item-editor-warning", id: id("warning"), role: "status", hidden: true });
+  const error = h("p", { class: "vc-help vc-help--error item-editor-error", id: id("error"), hidden: true });
+  const describe = () => text.setAttribute("aria-describedby", [id("public"), warning.hidden ? null : id("warning"), error.hidden ? null : id("error")].filter(Boolean).join(" "));
+  const drawWarning = () => {
+    const found = findPrivate(text.value);
+    while (warning.firstChild) warning.removeChild(warning.firstChild);
+    if (found.length) {
+      warning.append(icon("warning"), h("p", {}, t("dlg.warning"), " ",
+        found.map((x) => t(`privacy.${x.kind}`, { where: t("privacy.where.edit"), word: x.word ?? "" })).join("; "), ". ", t("edit.warning.next")));
+    }
+    warning.hidden = !found.length;
+    describe();
+  };
+  text.addEventListener("input", drawWarning);
   const direction = select("direction", [["threat", t("dir.threat")], ["opportunity", t("dir.opportunity")]], f.direction);
   const readiness = select("readiness", RATINGS.map((n) => [n, String(n)]), f.readiness ?? 2, f.direction === "opportunity");
   direction.addEventListener("change", () => { readiness.disabled = direction.value === "opportunity"; });
   const box = h("div", { class: "item-editor", role: "group", "aria-label": t("edit.group", { text: f.text }) },
-    h("div", { class: "vc-field" }, h("label", { class: "vc-label", for: id("text") }, t("edit.text")), text),
+    h("div", { class: "vc-field" }, h("label", { class: "vc-label", for: id("text") }, t("edit.text")), text, notice, warning),
     h("div", { class: "item-editor-row" },
       h("div", { class: "vc-field" }, h("label", { class: "vc-label", for: id("direction") }, t("edit.direction")), direction),
       h("div", { class: "vc-field" }, h("label", { class: "vc-label", for: id("likelihood") }, t("method.likelihood")), select("likelihood", RATINGS.map((n) => [n, String(n)]), f.likelihood)),
       h("div", { class: "vc-field" }, h("label", { class: "vc-label", for: id("impact") }, t("method.impact")), select("impact", RATINGS.map((n) => [n, String(n)]), f.impact)),
       h("div", { class: "vc-field" }, h("label", { class: "vc-label", for: id("horizon") }, t("method.horizon")), select("horizon", ["now", "1_3_years", "later"].map((x) => [x, t(`h.${x}`)]), f.horizon)),
       h("div", { class: "vc-field" }, h("label", { class: "vc-label", for: id("readiness") }, t("method.readiness")), readiness)),
-    h("p", { class: "vc-help vc-help--error item-editor-error", id: id("error"), hidden: true }),
+    error,
     h("p", { class: "item-edit-actions" },
       h("button", { type: "button", class: "vc-button vc-button--sm item-save", on: { click: () => {
         const value = (k) => box.querySelector(`[data-key="${k}"]`).value;
         const words = value("text").replace(/\s+/g, " ").trim();
         const err = box.querySelector(".item-editor-error");
-        if (!words) { err.textContent = t("edit.empty"); err.hidden = false; text.setAttribute("aria-invalid", "true"); text.setAttribute("aria-describedby", id("error")); text.focus(); return; }
+        if (!words) { err.textContent = t("edit.empty"); err.hidden = false; text.setAttribute("aria-invalid", "true"); describe(); text.focus(); return; }
         const dir = value("direction");
         edit.onSave({ text: words, direction: dir, likelihood: Number(value("likelihood")), impact: Number(value("impact")), horizon: value("horizon"), readiness: dir === "opportunity" ? null : Number(value("readiness")) });
       } } }, icon("check"), t("edit.save")),
       h("button", { type: "button", class: "vc-button vc-button--ghost vc-button--sm item-cancel", on: { click: edit.onCancel } }, t("edit.cancel"))));
+  drawWarning();
   return box;
 }
 

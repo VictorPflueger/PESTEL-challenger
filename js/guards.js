@@ -5,7 +5,8 @@
 //   a readiness level outside 1 to 5, or one given for an opportunity;
 //   a factor without a direction;
 //   a correction that names a factor that does not exist;
-//   a residual risk above the original;
+//   a residual risk above the original, in its high end or in what it leaves at stake;
+//   a euro figure below zero, or a range whose low is above its high;
 //   a monitor response without a signal and a trigger;
 //   more than six factors in a dimension;
 //   a change to a factor's text the person entered.
@@ -21,6 +22,7 @@
 import { validate } from "./schema.js";
 import { SCHEMAS, REQUESTS } from "./schemas.js";
 import { DIMENSIONS } from "./engine.js";
+import { expected } from "./risk.js";
 import { SECTORS, kpisFor } from "../data/kpis.js";
 import { auditText } from "./facts.js";
 
@@ -275,7 +277,7 @@ export function checkImpacts(answer, { factors, sector, evidence }) {
     } else if (!imp.upside) {
       c.fail("range", `${who} has no upside; an opportunity gives one`);
     }
-    if (imp.upside && imp.upside.eur_year_low > imp.upside.eur_year_high) c.fail("range", `${who}: the upside's low is above its high`);
+    if (imp.upside && (imp.upside.eur_year_low < 0 || imp.upside.eur_year_low > imp.upside.eur_year_high)) c.fail("range", `${who}: the upside's low ${imp.upside.eur_year_low} is above its high ${imp.upside.eur_year_high} or below zero`);
     list(imp.kpis).forEach((k, j) => {
       if (!k || typeof k !== "object") return;
       if (k.change_low > k.change_high) c.fail("range", `${who}: the change of ${k.id} goes from ${k.change_low} down to ${k.change_high}`);
@@ -318,13 +320,18 @@ export function checkResponses(answer, { factors, impacts, evidence }) {
         const imp = impactOf.get(r.factor);
         if (!ok1to5(m.readiness)) c.refuse("readiness_range", `${who} reaches ${m.readiness}`);
         if (m.residual_likelihood > f.likelihood) c.refuse("residual", `${who} leaves likelihood ${m.residual_likelihood}, above the threat's ${f.likelihood}`);
-        if (imp && imp.eur_year_high !== null && m.residual_eur_year_high > imp.eur_year_high) c.refuse("residual", `${who} leaves up to ${m.residual_eur_year_high} a year, above the original ${imp.eur_year_high}`);
-        if (m.residual_eur_year_low > m.residual_eur_year_high) c.fail("range", `${who}: the residual low is above its high`);
+        if (m.residual_eur_year_low < 0 || m.residual_eur_year_low > m.residual_eur_year_high) c.fail("range", `${who}: the residual low ${m.residual_eur_year_low} is above its high ${m.residual_eur_year_high} or below zero`);
+        else if (imp && Number.isFinite(imp.eur_year_low) && Number.isFinite(imp.eur_year_high)) {
+          if (m.residual_eur_year_high > imp.eur_year_high) c.refuse("residual", `${who} leaves up to ${m.residual_eur_year_high} a year, above the original ${imp.eur_year_high}`);
+          else if (ok1to5(m.residual_likelihood) && ok1to5(f.likelihood) && expected(m.residual_eur_year_low, m.residual_eur_year_high, m.residual_likelihood) > expected(imp.eur_year_low, imp.eur_year_high, f.likelihood)) {
+            c.refuse("residual", `${who} leaves more at stake a year than the threat's own range and likelihood`);
+          }
+        }
       }
     }
     if (r.kind === "advantage") {
       if (!r.advantage) c.fail("fields", `${who} is an advantage without its upside`);
-      else if (r.advantage.eur_year_low > r.advantage.eur_year_high) c.fail("range", `${who}: the upside's low is above its high`);
+      else if (r.advantage.eur_year_low < 0 || r.advantage.eur_year_low > r.advantage.eur_year_high) c.fail("range", `${who}: the upside's low ${r.advantage.eur_year_low} is above its high ${r.advantage.eur_year_high} or below zero`);
     }
     if (r.kind === "monitor" && !(String(r.monitor?.signal || "").trim() && String(r.monitor?.trigger || "").trim())) c.refuse("monitor", who);
     for (const [k, v] of [["title", r.title], ["first_step", r.first_step], ["owner", r.owner]]) c.text(`responses[${n}].${k}`, v, { evidence });

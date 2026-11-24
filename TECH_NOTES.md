@@ -131,8 +131,19 @@ Decided while building 1.0.0, each within the brief and the plan:
 | The keyboard and the focus | `tests/access.mjs` runs a scenario and a live run with the keyboard alone and compares every stop of the Tab order focused and not, pixel by pixel. It found two faults in Vici's dialog, fixed there first (ViciDesign#42): with reduced motion the backdrop still faded in, and a body that scrolls and holds only text, such as the method dialog's, showed only the top edge of its focus ring |
 | Window sizes | AC-14 runs from 1920 × 1080 to 1280 × 720: the layout suite checks both ends in both themes and languages, and 1600 × 900 and 1366 × 768 between them |
 | The report in the dark theme | The white sheets lie on the page's dark background. Vici's report painted the light canvas behind them, a light slab on a dark page; fixed in Vici first (ViciDesign#44) |
-| Vici | `vici/` copies Vici's main at `0d37f48`, which holds the SWOT Challenger's fit of the live-run dialog up to 1920 × 1080 (ViciDesign#41), #42 and #44 |
+| Vici | `vici/` copies Vici's main at `3b58694`, which holds the SWOT Challenger's fit of the live-run dialog up to 1920 × 1080 (ViciDesign#41) and its report that prints in the light scheme (#46), the Prototype Ideator's honeycomb fix (#45), and this tool's #42, #44 and #47 |
 | Firefox and Safari print | Victor decided on 24 November 2026 not to print the report in them by hand ("assume it works"). Only Chromium's print is tested; section 8 keeps the risk |
+| Euro figures from the agents | The Analyst's and the Strategist's checks refuse a euro figure below zero, and a residual that leaves more at stake than the threat's own range at its likelihood. The format cannot forbid them, and the engine refuses such a range, so the answer goes back once and the run stops at that step if the repair keeps it (independent review R1) |
+| A threat without a euro figure | It stays without one after a mitigation: it counts in readiness, not in money, whatever residual range the Strategist gives. Its option shows no money left, the report says it counts in readiness, and the handoff file gives it no residual range (R5) |
+| The handoff file's opportunities and score | An opportunity's euro range is the Analyst's upside, so the issue carries the likelihood that goes with it, and its expected value is its range at that likelihood, as js/risk.js reads an issue. With no threat at all the page says so where readiness would stand; the schema needs a number, and the file writes 100, since there is nothing to be unready for (R12) |
+| Typing at Scan | The editor of an AI factor says "Public information only" under its wording and warns, as the live-run dialog does, when the words look private; it does not block (R2) |
+| The private-data warning | Dates (01.01.2027, 2026-09-30) never count as phone numbers, and "internal combustion" is no keyword. Text shaped like an API key counts: the dialog names it, the run redacts it before a prompt reads it, and "Save run as simulation" redacts it as the other files do (R8, R9) |
+| The key in memory | The live-run dialog keeps no copy of a checked key: a key typed now is checked, and the key in js/keystore.js passed that check when it was set, so "Clear everything" leaves none behind (R10) |
+| A live run's tiles | A live run cannot answer first: until the Analyst is done, the pressure tile says after which step its figure stands ("after the scan", "after the challenge"). After Adopt, a stop or a wait shows the ring after the decision, as the tiles do (R3) |
+| A run out of requests | Once a run has used its ten requests, its stop offers no "Go on", which could not work, and says to take what is done or start again with Clear everything (R6) |
+| Long company names | The ring's centre steps a long name down in three sizes and leaves out the sector, so up to the form's 80 characters stay inside the cell at 1280 × 720 (R13) |
+| Targets of 40 px | Every target takes 40 px each way, measured by the layout suite on buttons, links, disclosures and controls: Vici's segmented options, switches, sliders and the numbers' summary first fell short, fixed in Vici first (ViciDesign#47), and the tool's own disclosures and the Accept option reach 40 px the same way (R4) |
+| AI marks | A lilac AI tag stands on each of the Red team's cards, on each option the Strategist wrote (the recommended one carries "Recommended" in lilac) and beside the Summary's title, the Writer's headline; each says in its title what the agent wrote (R17) |
 
 ## 4. Security policy and what is kept
 
@@ -231,6 +242,43 @@ languages, and the default scenario plays to its end in each.
   tile, the dialog and the guide say it is an estimate and what it rests on. Its three characters a token
   follows the model pages' 30 percent and has not been counted on this tool's own prompts, since the free
   token count needs a key.
+- **Streams cut off and the meter.** A stream aborted or cut off after it started is billed for its input
+  and what it wrote, but the shared client (`js/anthropic.js`, unchanged from the Prototype Ideator)
+  returns no usage then, so the meter misses it and the cap's check counts on from too little. A retry
+  follows an error, which bills nothing. The fix is a change to the shared client, for all four tools.
+  The Scout's worst case assumes 6,000 input tokens a search; Victor's first research run on Thorough
+  measures it (independent review R11).
+- **Run it live on smaller screens.** Brief §7 puts "Run it live" after the steps. On the Start panel it
+  shows without scrolling from 1920 × 1080; at smaller sizes the panel scrolls to it, and the guide's first
+  chapter names it. Moving it into the first view changes the brief's layout, which is Victor's call (R7).
+- **The German footer.** A German report prints "Erstellt mit …" and "Erstellt von Victor Pflüger · Seite x
+  von y" (section 3, 0.4.0); standing requirement 8 quotes the English words, which every English report
+  carries. Victor confirms (R14).
 - **Respond on mid-size windows.** Between 961 and 1,100 px wide and under 770 px high, some or all
   options sit under the "Your turn" bar until the panel is scrolled. They scroll into view; at 1280 × 720,
   the size the layout suite checks, every option shows in full.
+
+## 9. Verification log
+
+What was checked for 1.0.0, on 24 November 2026.
+
+- **The suites.** All thirty-seven pass in one run with Vici's checks required, here in Chromium 157 and
+  on GitHub Actions in Chromium 141 (Playwright 1.56).
+- **Screens, by eye.** Every step of Auental Energie at 1920 × 1080, 1600 × 900, 1366 × 768 and
+  1280 × 720 in both languages, and both themes at the two ends; the guide, the Method dialog, the empty
+  live form, the live-run dialog, a live run that stops on a rejected key and on a busy service (against
+  the stand-in), and the page opened from a file.
+- **The PDF.** Auental Energie's report saved as PDF in English (17 pages) and German (18 pages), every
+  page read: the footer with "page x of n" on each, "Public information only" on the cover and in About
+  this report, "Created with PESTEL Challenger 1.0.0", and no table past its sheet.
+- **Design passes.** Impeccable's critique of what 1.0.0 adds (the version line, the note for a page
+  opened from a file, the focus ring in dialogs); ux-heuristics on the keyboard paths, where the focus
+  moves to the step's title after each step, to the first field with an error and to the key field when
+  the live-run dialog opens, with no finding of severity 3 or 4; humanizer on every new string and the
+  documents. They changed three things: the file note said all browsers refuse a file, now this browser;
+  its region label stayed English on a German page, now gone; Scan's count reads as a first look.
+- **Reviews.** The independent review, the Steve Jobs review and Vici's partner review are in REVIEW.md,
+  parts 2 and 3. The independent review found two high, three medium and twelve low findings; every high
+  and medium one and nine low ones are fixed, and three low ones stay, each with its reason in section 8.
+- **Not checked.** Printing in Firefox and Safari, by Victor's decision, and a run with a real key, which
+  is Victor's (section 8).

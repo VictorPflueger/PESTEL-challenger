@@ -12,7 +12,7 @@ import { launchBrowser, serveStatic, APP_ROOT, report } from "./lib/harness.mjs"
 import { SCENARIOS, runFromScenario, freshState } from "../js/simulation.js";
 import * as R from "../js/run.js";
 import { money } from "../js/format.js";
-import { readinessText } from "../js/engine.js";
+import { readinessText, moneyText } from "../js/engine.js";
 import { kpiValues } from "../js/kpis.js";
 
 const results = [];
@@ -43,11 +43,14 @@ async function handoff(page) {
 }
 
 function compare(where, s, file, run) {
-  // The report's table: before, then after, as the tiles show them (the tile's "was" is the old value).
+  // The report's table: before, then after, as the tiles show them (the tile's "was" is the old value). The
+  // table has room for the old money's qualifier, such as "on 7 of 8 threats", which the tile leaves out.
   for (const k of ["stake", "pressure", "readiness"]) {
     const tile = s.tiles[k];
     const [before, after] = s.table[k];
-    check(squash(after) === squash(tile.value) && squash(before) === squash(tile.was ?? tile.value), `${where}: the report's ${k}, ${before} → ${after}, reads as the tile (${tile.was ?? "…"} → ${tile.value})`);
+    const was = k === "stake" && tile.was ? moneyText(R.figures(run, { decided: false }).before, "en") : tile.was ?? tile.value;
+    check(squash(after) === squash(tile.value) && squash(before) === squash(was) && (!tile.was || squash(before).startsWith(squash(tile.was))),
+      `${where}: the report's ${k}, ${before} → ${after}, reads as the tile (${tile.was ?? "…"} → ${tile.value})`);
     check(tile.was === null || tile.struck === "line-through", `${where}: the ${k} tile strikes its old value through`);
   }
   check(squash(s.table.cost[0]).startsWith(squash(s.tiles.cost.value)), `${where}: the report's session cost reads as the tile (${s.tiles.cost.value})`);

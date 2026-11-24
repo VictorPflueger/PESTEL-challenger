@@ -63,8 +63,10 @@ export function createLiveRun({ inputs, lang, today, setting, research, cap }) {
     as_of: today,
     source: "live",
     lang,
-    company: { name: inputs.company.name.trim(), sector, country: inputs.company.country.trim(), what: inputs.company.what.trim(), chosen: !!sector },
-    team: inputs.factors.filter((f) => f.text.trim()).map((f) => ({ id: f.id, dimension: f.dimension, text: f.text.trim() })),
+    // Anything shaped like an API key, typed into the form by mistake, is redacted before a prompt reads it
+    // (brief §5.3); the warning in the live-run dialog has already named it.
+    company: { name: redactSecrets(inputs.company.name.trim()), sector, country: redactSecrets(inputs.company.country.trim()), what: redactSecrets(inputs.company.what.trim()), chosen: !!sector },
+    team: inputs.factors.filter((f) => f.text.trim()).map((f) => ({ id: f.id, dimension: f.dimension, text: redactSecrets(f.text.trim()) })),
     research: !!research,
     signals: [],
     scan: null,

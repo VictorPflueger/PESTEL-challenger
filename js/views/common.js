@@ -9,6 +9,9 @@ import { IDEATOR_URL } from "../config.js";
 
 export const icon = (name) => h("span", { class: `vc-icon vc-icon--${name}`, "aria-hidden": "true" });
 
+/** Lilac marks what the AI wrote (standing requirement 11): a small tag, with what it marks as its title. */
+export const aiMark = (why) => h("span", { class: "vc-tag vc-tag--sm vc-tag--feature ai-mark", title: why }, icon("sparkle"), t("item.ai"));
+
 /** A link to a source, opened in a new tab: a 40 px target, since a presenter clicks it on a projector. */
 export const sourceLink = (url, text) => h("a", { class: "src-link", href: url, target: "_blank", rel: "noopener" }, text);
 

@@ -68,7 +68,8 @@ export function workView(ctx) {
       h("div", { class: "story-foot" },
         h("button", { type: "button", class: "vc-button vc-button--secondary work-abort", id: "btn-abort", on: { click: handlers.abort } }, icon("stop"), t("work.abort"))),
     ],
-    side: ring(run, Math.max(0, step - 1), { selected: null }),
+    // Once the person has adopted the responses, the ring shows where they leave the company, as the tiles do.
+    side: ring(run, run.decided ? 5 : Math.max(0, step - 1), { selected: null }),
   };
 }
 
@@ -91,6 +92,7 @@ export function stopView(ctx) {
   const w = stopWords(run);
   const s = run.stopped;
   const step = s.agent ? AGENT_STEP[s.agent] : 1;
+  const final = run.requests >= MAX_REQUESTS;
   return {
     story: [
       head(w.title, t(run.scan || run.signals?.length ? "stop.lead" : "stop.lead.none")),
@@ -103,7 +105,9 @@ export function stopView(ctx) {
             s.problems?.length ? h("details", { class: "stop-problems" },
               h("summary", {}, t("stop.problems")),
               h("ul", {}, s.problems.map((p) => h("li", {}, p)))) : null)),
-        h("p", { class: "stop-kept" }, t("stop.kept", { spent: fmtCost(run.spend.eur) })),
+        // A run that has used all its requests cannot go on: what is done leaves with the person, or a new run
+        // starts from the form.
+        h("p", { class: "stop-kept" }, t(final ? "stop.kept.final" : "stop.kept", { spent: fmtCost(run.spend.eur) })),
         // What is done leaves as a report that says on every page where the run stopped (brief §5.5).
         ctx.report?.can ? (() => {
           const { pdf, files } = downloads(handlers, { handoff: ctx.report.handoff, primary: false });
@@ -111,8 +115,9 @@ export function stopView(ctx) {
         })() : null),
       h("div", { class: "story-foot stop-actions" },
         h("button", { type: "button", class: "vc-button vc-button--ghost", id: "btn-back-sim", on: { click: handlers.backToSimulation } }, icon("chevron-left"), t("live.back")),
-        withNotice(h("button", { type: "button", class: "vc-button cta", id: "btn-cta", on: { click: handlers.goOn } }, t(s.reason === "checks" ? "stop.goOn.thorough" : "stop.goOn"), icon("chevron-right")))),
+        final ? null : withNotice(h("button", { type: "button", class: "vc-button cta", id: "btn-cta", on: { click: handlers.goOn } }, t(s.reason === "checks" ? "stop.goOn.thorough" : "stop.goOn"), icon("chevron-right")))),
     ],
-    side: ring(run, Math.max(0, step - 1), { selected: null }),
+    // Once the person has adopted the responses, the ring shows where they leave the company, as the tiles do.
+    side: ring(run, run.decided ? 5 : Math.max(0, step - 1), { selected: null }),
   };
 }

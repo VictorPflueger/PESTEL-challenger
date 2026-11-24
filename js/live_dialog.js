@@ -70,7 +70,6 @@ export function initLiveDialog({ onStart }) {
   const start = $("live-start");
   const ack = $("live-ack");
   let checking = false;
-  let checkedKey = null;
   let continuing = false;
 
   const isFramed = framed();
@@ -157,7 +156,6 @@ export function initLiveDialog({ onStart }) {
   });
   $("live-forget").addEventListener("click", () => {
     forgetKey();
-    checkedKey = null;
     setStatus(t("dlg.key.forgotten"));
     drawKey();
     drawStart();
@@ -183,7 +181,9 @@ export function initLiveDialog({ onStart }) {
     const key = typed || getKey();
     const choices = readChoices(dialog);
     const model = settingOf(choices).model;
-    if (key !== checkedKey) {
+    // A key typed now is checked first; the key held in memory passed that check when it was set, so the
+    // dialog keeps no copy of it (js/keystore.js holds the one).
+    if (typed) {
       checking = true;
       drawStart();
       setStatus(t("dlg.key.checking"));
@@ -202,7 +202,6 @@ export function initLiveDialog({ onStart }) {
         drawStart();
         return;
       }
-      checkedKey = key;
     }
     setKey(key);
     keyField.value = "";
@@ -238,7 +237,7 @@ export function initLiveDialog({ onStart }) {
       // another with the reason beside it.
       const stopped = session().run?.stopped;
       const rejected = going && stopped?.reason === "error" && stopped.error?.status === 401 && hasKey();
-      if (rejected) { forgetKey(); checkedKey = null; }
+      if (rejected) forgetKey();
       for (const el of dialog.querySelectorAll("input, select, details, .vc-live__forget")) if (isFramed) el.setAttribute("disabled", "");
       setStatus(rejected ? t("api.unauthorized") : "", rejected ? "error" : "");
       if (rejected) keyField.setAttribute("aria-invalid", "true"); else keyField.removeAttribute("aria-invalid");

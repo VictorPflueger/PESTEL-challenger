@@ -5,7 +5,7 @@
 
 import { h } from "../dom.js";
 import { t } from "../i18n/index.js";
-import { head, cta, yourTurn, icon, withNotice } from "./common.js";
+import { head, cta, yourTurn, icon, withNotice, aiMark } from "./common.js";
 import { uncheckedTag } from "../hexagon.js";
 import { kindName, effortName, timeName, ratingLine, estimateWords, dimName } from "../plain.js";
 import * as R from "../run.js";
@@ -17,8 +17,11 @@ function option(f, r, chosen, onChoose, expected, unchecked = null) {
   const lines = [];
   if (r?.kind === "mitigate") {
     const m = r.mitigate;
-    lines.push(h("span", { class: "opt-effect" }, t("opt.mitigate", { a: f.readiness, b: m.readiness, la: f.likelihood, lb: m.residual_likelihood }), " ",
-      h("span", { class: "ai-figure" }, t("opt.left", { range: moneyRange(m.residual_eur_year_low, m.residual_eur_year_high) }))));
+    // A threat without a euro figure counts in readiness, not in money: no residual range to show.
+    const words = { a: f.readiness, b: m.readiness, la: f.likelihood, lb: m.residual_likelihood };
+    lines.push(expected !== null
+      ? h("span", { class: "opt-effect" }, t("opt.mitigate", words), " ", h("span", { class: "ai-figure" }, t("opt.left", { range: moneyRange(m.residual_eur_year_low, m.residual_eur_year_high) })))
+      : h("span", { class: "opt-effect" }, t("opt.mitigate.unpriced", words)));
   } else if (r?.kind === "advantage") {
     const a = r.advantage;
     lines.push(h("span", { class: "opt-effect ai-figure" }, t("opt.upside", { range: moneyRange(a.eur_year_low, a.eur_year_high), n: a.likelihood })));
@@ -35,7 +38,7 @@ function option(f, r, chosen, onChoose, expected, unchecked = null) {
   return h("label", { class: ["option", r ? "" : "option--accept"], dataset: { kind: r ? r.kind : "accept", chosen: String(chosen) } },
     h("input", { type: "radio", name: `choice-${f.id}`, value: id, checked: chosen, "aria-labelledby": `${key}-kind ${key}-title`, "aria-describedby": `${key}-body`, on: { change: () => onChoose(f.id, id) } }),
     h("span", { class: "option-body" },
-      h("span", { class: "option-kind", id: `${key}-kind` }, kindName(r ? r.kind : "accept"), r?.recommended ? h("span", { class: "vc-tag vc-tag--sm vc-tag--feature rec" }, icon("sparkle"), t("opt.recommended")) : null, r && unchecked?.has(r.id) ? uncheckedTag() : null),
+      h("span", { class: "option-kind", id: `${key}-kind` }, kindName(r ? r.kind : "accept"), r?.recommended ? h("span", { class: "vc-tag vc-tag--sm vc-tag--feature rec", title: t("opt.ai") }, icon("sparkle"), t("opt.recommended")) : r ? aiMark(t("opt.ai")) : null, r && unchecked?.has(r.id) ? uncheckedTag() : null),
       h("span", { class: "option-title", id: `${key}-title` }, r ? r.title : t(f.direction === "threat" ? "opt.accept.title" : "opt.leave.title")),
       h("span", { class: "option-more", id: `${key}-body` },
       r ? h("span", { class: "option-step" }, h("span", { class: "item-label" }, t("opt.firstStep")), " ", r.first_step) : null,

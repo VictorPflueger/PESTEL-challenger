@@ -64,7 +64,7 @@ The Summary shows the report page by page, from the cover and the management sum
 figures before and after to the watch list, the method with what you decided, the sources and About this
 report. "Save as PDF" opens the print dialog on the report alone; choose Save as PDF as the printer.
 Every page carries "Created with PESTEL Challenger", the address, "Built by Victor Pflüger" and the page
-number; Firefox and Safari, which cannot number pages yet, print the footer without the number. The HTML file is the same report with no script,
+number in Chrome and Edge; Firefox and Safari, untested, should print the footer without the number. The HTML file is the same report with no script,
 and opens offline; the JSON file is checked against the shared schema before it downloads.
 
 ## Running it

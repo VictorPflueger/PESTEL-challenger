@@ -1,16 +1,22 @@
 // What is usually private, found before a live run (brief §5.10): e-mail addresses, phone numbers, IBANs
-// and the words "confidential", "internal", "vertraulich" and "intern". The live-run dialog lists what it
+// and the words "confidential", "internal", "vertraulich" and "intern", and anything shaped like an API key
+// (brief §5.3), which the run also redacts before a prompt reads it. The live-run dialog lists what it
 // finds and where, and asks the person to remove it or confirm it is public. It warns; it does not block.
 // The patterns err towards silence on ordinary business text: years, dates, amounts and percentages never
 // count as phone numbers, and an IBAN counts only when its check digits add up.
 
 /** The words that usually mark a document as not public, in English and German, with their endings. */
-const WORDS = /\b(confidential(?:ly)?|internal(?:ly)?|vertraulich(?:e[nrms]?)?|intern(?:e[nrms]?)?)\b/giu;
+// "internal combustion" names an engine, not a document.
+const WORDS = /\b(confidential(?:ly)?|internal(?:ly)?(?!\s+combustion)|vertraulich(?:e[nrms]?)?|intern(?:e[nrms]?)?)\b/giu;
 const EMAIL = /[\p{L}\p{N}._%+-]+@[\p{L}\p{N}.-]+\.[\p{L}]{2,}/gu;
 // A run of digits with the separators phone numbers use, starting with + or 00 (international) or 0 (a
 // trunk prefix); a match counts with 8 to 15 digits.
 const PHONE = /(?:\+|\b00)[1-9][\d ()./-]{6,}\d|\b0[1-9][\d ()./-]{5,}\d/g;
+// An Anthropic API key pasted into the form by mistake: the key belongs in the dialog's key field only.
+const KEY = /sk-ant-[A-Za-z0-9_-]{8,}/;
 const IBAN = /\b[A-Z]{2}\d{2}(?: ?[A-Z0-9]{4}){2,7}(?: ?[A-Z0-9]{1,4})?\b/g;
+// Dates, day first with dots, slashes or hyphens (01.01.2027, 1/7/26) or as ISO (2026-07-01): never a phone.
+const DATE = /\b\d{1,2}([./-])\d{1,2}\1(?:\d{4}|\d{2})\b|\b\d{4}-\d{2}-\d{2}\b/g;
 
 /** True when an IBAN's check digits are right (ISO 13616, mod 97). */
 export function ibanValid(raw) {
@@ -34,11 +40,12 @@ export function findPrivate(text) {
     const k = `${kind}|${word ?? ""}`;
     if (!seen.has(k)) { seen.add(k); out.push(word ? { kind, word } : { kind }); }
   };
+  if (KEY.test(s)) add("key");
   if ((s.match(EMAIL) || []).length) add("email");
   // An IBAN's digits, and an address's, must not count again as a phone number.
   const ibans = (s.match(IBAN) || []).filter(ibanValid);
   if (ibans.length) add("iban");
-  const rest = ibans.reduce((x, m) => x.replace(m, " "), s).replace(EMAIL, " ");
+  const rest = ibans.reduce((x, m) => x.replace(m, " "), s).replace(EMAIL, " ").replace(DATE, " ");
   for (const m of rest.match(PHONE) || []) {
     const digits = m.replace(/\D/g, "").length;
     if (digits >= 8 && digits <= 15) { add("phone"); break; }

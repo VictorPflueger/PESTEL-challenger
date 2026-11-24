@@ -3,6 +3,7 @@
 //   - an answer that fails twice stops the run at that step, keeps what is done and offers Thorough;
 //   - an answer cut off at the token limit gets the same one repair;
 //   - a third failing answer, after the run's two repairs, stops at once and says so;
+//   - a run that has used its ten requests offers no Go on;
 //   - an answer whose only fault is a figure in its text, twice, stays with an "Unchecked" tag;
 //   - Abort during a request stops the run there and keeps what is done.
 // Usage: node tests/live-repair.mjs
@@ -74,6 +75,44 @@ await scenario("repairs used", { faults: [
   await challenge(t.page);
   check(count(t, "analyst") === 1 && t.standIn.requests.length === 5, `with both repairs used, the third failure gets none (${agents(t).join(" ")})`);
   check(/used its two repairs/.test(await text(t.page, ".stop-alert")), `and the step says so: "${await text(t.page, ".stop-alert")}"`);
+});
+
+// A run that has used its ten requests cannot go on: the stop offers no Go on and says what is left to do.
+await scenario("requests used", { faults: Array.from({ length: 8 }, (_, i) => ({ agent: "analyst", attempt: i + 1, mutate: badRange })) }, async (t) => {
+  await fillForm(t.page);
+  await startRun(t.page);
+  await challenge(t.page);
+  for (let round = 0; round < 6 && t.standIn.requests.length < 10; round += 1) {
+    await t.page.click("#btn-cta");
+    await t.page.waitForSelector("#live-dialog[open]");
+    await t.page.check('input[name="live-setting"][value="balanced"]');
+    await t.page.check("#live-ack");
+    await t.page.click("#live-start");
+    await t.page.waitForFunction(() => !document.querySelector("#live-dialog[open]"), null, { timeout: 10000 });
+    await waitIdle(t.page);
+  }
+  check(t.standIn.requests.length === 10 && !!(await runOf(t.page)).stopped, `the run stops once it has used its ten requests (${t.standIn.requests.length})`);
+  check(!(await t.page.$("#btn-cta")) && /cannot go on/.test(await text(t.page, ".stop-kept")) && !!(await t.page.$("#btn-back-sim")),
+    `and offers no Go on, only the way back and what is done: "${await text(t.page, ".stop-kept")}"`);
+});
+
+// A stop at the Writer, after the person adopted: the ring shows where the responses leave the company,
+// as the tiles do, and the tiles said before which step's figures they showed.
+const noFindings = (a) => { delete a.summary.findings; return a; };
+await scenario("writer stop", { faults: [{ agent: "writer", attempt: 1, mutate: noFindings }, { agent: "writer", attempt: 2, mutate: noFindings }] }, async (t) => {
+  await fillForm(t.page);
+  await startRun(t.page);
+  const noteAt = () => text(t.page, "#kpi-pressure");
+  check(/after the scan/.test(await noteAt()), `after the scan, the live tiles say their figures stand after the scan: "${await noteAt()}"`);
+  await challenge(t.page);
+  await adopt(t.page).catch(() => {});
+  await waitIdle(t.page);
+  const m = await t.page.evaluate(() => ({
+    ring: document.querySelectorAll('.ring .vc-ring__cell[data-status="pressure"]').length,
+    tile: document.querySelector("#kpi-pressure .kpi-value")?.textContent.trim(),
+    stop: document.querySelector(".stop-alert")?.textContent.replace(/\s+/g, " ").trim(),
+  }));
+  check(/Writer/.test(m.stop || "") && m.tile === `${m.ring} of 6`, `after Adopt, a stop at the Writer shows the ring as the tiles do (${m.ring} under pressure in the ring, "${m.tile}" on the tile)`);
 });
 
 // The audit alone, twice: the text stays, tagged Unchecked.

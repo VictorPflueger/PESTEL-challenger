@@ -86,6 +86,11 @@ check((() => { try { riskScore(0, 3); return false; } catch { return true; } })(
   const r = run(factors, []);
   check(r.before.readiness === 50 && r.before.monetised === 4 && r.before.threats === 5, "a threat without a euro range still counts in readiness, not in money");
   check(facts(r, "en").at_stake === "€6.4m on 4 of 5 threats" && facts(r, "de").at_stake === "6,4 Mio. € aus 4 von 5 Risiken", `money on part of the threats says so: "${facts(r, "en").at_stake}", "${facts(r, "de").at_stake}"`);
+  // A mitigation of that threat keeps it out of the money, whatever residual range the Strategist gives.
+  const unready = factors.map((f) => (f.id === "F5" ? { ...f, readiness: 2 } : f));
+  const m = run(unready, [{ factor: "F5", kind: "mitigate", readiness: 4, residual: { eur_year_low: 1000000, eur_year_high: 5000000, likelihood: 1 } }]);
+  check(m.after.monetised === 4 && m.after.threats === 5 && near(m.after.atStake, m.before.atStake) && m.after.readiness > m.before.readiness,
+    `mitigating a threat without a euro range changes its readiness, not the money: left ${facts(m, "en").left} against ${facts(m, "en").at_stake}, readiness ${facts(m, "en")["readiness.before"]} to ${facts(m, "en")["readiness.after"]}`);
   const withOpportunity = [...golden.P1.factors, { id: "O1", dimension: "economic", direction: "opportunity", impact: 3, likelihood: 4, readiness: null, source: "ai" }];
   const r2 = run(withOpportunity, [{ factor: "O1", kind: "advantage", upside: { eur_year_low: 400000, eur_year_high: 800000, likelihood: 3 } }]);
   check(near(r2.upside, 300000) && facts(r2, "en").upside === "€300k" && facts(r2, "de").upside === "300 Tsd. €", `an advantage adds its upside: ${facts(r2, "en").upside}`);

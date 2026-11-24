@@ -15,6 +15,7 @@ import { handoffOf, handoffProblems, countryCode, canHandOff } from "../js/hando
 import { reportName, slugOf } from "../js/live_save.js";
 import * as R from "../js/run.js";
 import { APP } from "../js/config.js";
+import { expected } from "../js/risk.js";
 
 const results = [];
 const check = (ok, what) => results.push([!!ok, what]);
@@ -37,6 +38,23 @@ function walk(v, visit, key = "") {
   if (Array.isArray(v)) v.forEach((x) => walk(x, visit, key));
   else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) { visit(k, null); walk(x, visit, k); }
   else visit(key, v);
+}
+
+// A threat the Analyst could not price, mitigated as recommended: it counts in readiness, not in money, so
+// what is left stays within what is at stake and the file gives its mitigation no residual range.
+{
+  const sc = clone(SCENARIOS.find((x) => x.id === "s3"));
+  const rec = new Map(sc.choices.map((c) => [c.factor, c.choice]));
+  const mit = sc.answers.strategist.responses.find((r) => r.kind === "mitigate" && rec.get(r.factor) === r.id);
+  const imp = sc.answers.analyst.impacts.find((i) => i.factor === mit.factor);
+  Object.assign(imp, { eur_year_low: null, eur_year_high: null, not_monetisable: { en: "No euro figure: planted by the test.", de: "Keine Euro-Zahl: vom Test gesetzt." } });
+  const run = runWith(sc, "en", "recorded");
+  const figs = R.figures(run);
+  const file = handoffOf(run, { lang: "en", now: NOW });
+  const issue = file.issues.find((i) => i.items.includes(mit.factor));
+  const response = file.responses.find((r) => r.issue === issue.id && r.kind === "mitigate" && r.title === (mit.title.en || mit.title));
+  check(issue.eur_year_low === null && response && response.residual === null && figs.after.monetised === figs.before.monetised && figs.after.atStake <= figs.before.atStake + 1e-9 && !handoffProblems(file).length,
+    `a mitigated threat without a euro figure adds nothing to what is left (${figs.before.monetised} of ${figs.before.threats} priced before and after) and has no residual range in the file`);
 }
 
 // The Prototype Ideator's reader, when its checkout sits beside this repository.
@@ -85,7 +103,13 @@ for (const sc of SCENARIOS) {
       check(watched.length === watchList.length && watched.every((r) => r.changes.length === 1 && r.changes[0].action === "watch" && watchList.some((w) => w.factor === r.changes[0].item && w.signal === r.changes[0].signal && w.trigger === r.changes[0].trigger)),
         `${where}: each of the ${watchList.length} chosen watch responses carries its signal and trigger as a watch entry, as the watch list has them`);
       check(file.responses.filter((r) => r.kind !== "monitor").every((r) => !r.changes.length), `${where}: only watch responses carry changes`);
-      check(file.responses.filter((r) => r.kind === "mitigate").every((r) => r.residual && r.residual.eur_year_expected <= (file.issues.find((i) => i.id === r.issue).eur_year_expected ?? Infinity) + 1e-9), `${where}: every mitigation's residual is no more than what the force put at stake`);
+      const issueOf = (r) => file.issues.find((i) => i.id === r.issue);
+      const mitigations = file.responses.filter((r) => r.kind === "mitigate");
+      check(mitigations.every((r) => (issueOf(r).eur_year_low === null ? r.residual === null : r.residual && r.residual.eur_year_expected <= issueOf(r).eur_year_expected + 1e-9)),
+        `${where}: every mitigation's residual is no more than what the force put at stake, and a force without a euro figure has none (${mitigations.filter((r) => issueOf(r).eur_year_low === null).length} such)`);
+      // As js/risk.js reads an issue: its expected value is its range at its own likelihood.
+      const off = file.issues.filter((i) => i.eur_year_low !== null && Math.abs(i.eur_year_expected - Math.round(expected(i.eur_year_low, i.eur_year_high, i.likelihood))) > 1);
+      check(!off.length, `${where}: every issue's expected value is its range at its own likelihood${off.length ? `; not: ${off.map((i) => `${i.id} likelihood ${i.likelihood}, ${i.eur_year_expected}`).join(", ")}` : ""}`);
 
       // Nothing secret, internal or unfilled leaves.
       const bad = [];

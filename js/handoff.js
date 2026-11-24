@@ -9,11 +9,16 @@
 // response, the chosen ones marked, with each watch response's signal and trigger as a watch entry in its
 // changes; an accepted force gets an "accept" response once the person adopted. The horizons become the
 // schema's now, 1_to_3_years and over_3_years, the readiness score is the score, named readiness.
+// An opportunity's euro range is the Analyst's upside, so the issue carries the likelihood that goes with
+// it, and its expected value is that range at that likelihood, as js/risk.js reads an issue. A threat
+// without a euro figure has no residual range: it counts in readiness, not in money. With no threat the
+// page says so where readiness would stand; the schema needs a number, and the file writes 100, since
+// there is nothing to be unready for.
 
 import { validate, describeErrors } from "./schema.js";
 import { SCHEMAS } from "./schemas.js";
 import * as R from "./run.js";
-import { DIMENSIONS } from "./engine.js";
+import { DIMENSIONS, priced } from "./engine.js";
 import { band as bandOf, expected } from "./risk.js";
 import { inLang, t } from "./i18n/index.js";
 import { dimName, kpiName, kindName } from "./plain.js";
@@ -103,8 +108,8 @@ function build(run, lang, now) {
       areas: [f.dimension],
       items: [f.id],
       impact: f.impact,
-      likelihood: f.likelihood,
-      band: bandOf(f.impact, f.likelihood),
+      likelihood,
+      band: bandOf(f.impact, likelihood),
       horizon: HORIZON[f.horizon] || "now",
       kpis: (est?.kpis || []).filter((k) => /^[a-z_]+\.[a-z0-9_]+$/.test(k.id) && k.unit).map((k) => ({
         id: k.id, name: kpiName(k), unit: k.unit, direction: k.direction, change_low: k.change_low, change_high: k.change_high, basis: k.basis || "",
@@ -126,7 +131,7 @@ function build(run, lang, now) {
   for (const r of run.responses || []) {
     if (!issueId.has(r.factor)) continue;
     const f = byId.get(r.factor);
-    const residual = r.kind === "mitigate" && r.mitigate ? {
+    const residual = r.kind === "mitigate" && r.mitigate && priced(f) ? {
       impact: f.impact,
       likelihood: r.mitigate.residual_likelihood,
       band: bandOf(f.impact, r.mitigate.residual_likelihood),
@@ -200,7 +205,7 @@ function build(run, lang, now) {
       at_stake_eur_year: result.before.atStake,
       left_eur_year: run.decided ? after.after.atStake : result.before.atStake,
       upside_eur_year: run.decided ? after.upside : 0,
-      score: { name: "readiness", scale: "0-100", before: result.before.readiness ?? 0, after: (run.decided ? after.after.readiness : result.before.readiness) ?? 0 },
+      score: { name: "readiness", scale: "0-100", before: result.before.readiness ?? 100, after: (run.decided ? after.after.readiness : result.before.readiness) ?? 100 },
       pressure: { label: t("kpi.pressure"), before: result.before.pressure.length, after: (run.decided ? after.after.pressure : result.before.pressure).length, of: DIMENSIONS.length },
     },
     summary: { headline: s ? fill(s.headline) : t("report.title", { company: run.company.name }), text },
