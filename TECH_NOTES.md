@@ -149,3 +149,6 @@ languages, and the default scenario plays to its end in each.
   PDF arrives.
 - **The cost estimate is an assumption** until Victor's first live runs measure what each step costs; the
   tile and the method dialog say it is an estimate and what it rests on.
+- **Respond on mid-size windows.** Between 961 and 1,100 px wide and under 770 px high, some or all
+  options sit under the "Your turn" bar until the panel is scrolled. They scroll into view; at 1280 × 720,
+  the size the layout suite checks, every option shows in full.
