@@ -192,3 +192,8 @@ and nine factors; five cards; gas prices first; €2.9m and 66 on Watch; €2.2m
 **Keep list:** the byline, the talk track, the four key figures, the ring, the Red team's cards with
 Undo, the risk matrix and horizon strip with their tables, the recommended responses with the bar that
 moves, and the report with its footer on every page.
+
+Both reviews were checked again at `50871bc`, after the independent review's fixes (part 2): the walk, every
+figure the script quotes and the screens nobody demos hold as above. The fixes add a lilac AI tag to the Red
+team's cards, the Strategist's options and the Summary's title, and targets of 40 px, without moving a
+figure, so both verdicts stand.
