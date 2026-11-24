@@ -49,7 +49,7 @@ export default {
   "kpi.note.after": "nach Ihren Antworten",
   "kpi.note.left": "bleibt nach Ihren Antworten",
   "kpi.note.left.upside": "bleibt nach Ihren Antworten; Chancen bringen {money} pro Jahr",
-  "kpi.note.readiness": "0 bis 100, ein eigenes Maß dieses Werkzeugs",
+  "kpi.note.readiness": "0 bis 100, eigenes Maß des Werkzeugs",
   "kpi.note.estimate": "Geschätzt, simulierter Lauf",
 
   "intro.sentence": "KI‑Agenten vervollständigen eine PESTEL-Analyse, hinterfragen sie, beziffern jede äußere Kraft und schlagen vor, was zu tun oder zu beobachten ist. Die Simulation nutzt fiktive Unternehmen, ein Live‑Lauf Ihr Unternehmen und Ihren Claude-Schlüssel.",

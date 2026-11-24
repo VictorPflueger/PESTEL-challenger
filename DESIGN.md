@@ -13,9 +13,9 @@ what it rests on, and the page reads from the back of a room.
 
 It follows the Data Quality Agent, so a partner who has shown one knows where to look:
 
-- **The header:** the radar icon in a lilac hexagon, the name, SIMULATION, Method, How it works, the theme
-  toggle and EN | DE, then the four key figures. Below 1,700 px wide the figures take a row of their own,
-  so every name keeps its full text in both languages.
+- **The header:** the radar icon in a lilac hexagon with the name, the actions under them (SIMULATION,
+  Method, How it works, theme, EN | DE) and the four key figures at the top right. Below 1,900 px the
+  figures get their own row; on a laptop too, actions and values keep one line.
 - **The strip under it:** the brief's one sentence (§8) and the byline.
 - **The step bar:** Play, Back, the six steps as Vici's stepper, then Next. A step where the person acts
   says so on its marker.

@@ -33,16 +33,22 @@ html { font-size: clamp(100%, 0.48vw + 50%, 112.5%); }
 
 /* ---------------------------------------------------------------- header and the strip under it */
 
+/* From 1,900 px the name stands over its actions on the left and the four figures fill the right: one band,
+   with room for the German labels and a decision's before and after. Narrower windows give the figures a
+   row of their own (below). */
 .app-header {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: "brand actions kpis";
+  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-areas: "brand kpis" "actions kpis";
   align-items: center;
-  gap: 12px 18px;
+  gap: 8px 24px;
   padding: 10px 18px;
   background: var(--vc-surface);
   border-bottom: 1px solid var(--vc-border-subtle);
 }
+.app-header > .brand { align-self: end; }
+.app-header > .header-actions { align-self: start; }
+.app-header > .kpis { justify-self: end; }
 .brand { grid-area: brand; display: flex; align-items: center; gap: 12px; min-width: 0; }
 .brand-name { font-family: var(--vc-font-display); font-weight: var(--vc-weight-display); font-size: var(--vc-font-size-2xl); letter-spacing: var(--vc-tracking-heading); line-height: 1.05; white-space: nowrap; }
 .header-actions { grid-area: actions; display: flex; align-items: center; justify-content: flex-start; gap: 8px 10px; min-width: 0; flex-wrap: wrap; }
@@ -292,12 +298,15 @@ html:not([data-ready="true"]) .app-header :is(.vc-button, .vc-icon-button, .vc-t
 
 /* ---------------------------------------------------------------- larger and smaller windows */
 
-/* Below 1,700 px the four figures take a row of their own, so the name, the actions and the tiles keep
-   their full text in both languages. */
-@media (max-width: 1699px) {
-  .app-header { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "brand actions" "kpis kpis"; }
+/* Below 1,900 px the four figures take a row of their own, so the name, the actions and the tiles keep
+   their full text on one line each in both languages. */
+@media (max-width: 1899px) {
+  .app-header { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "brand actions" "kpis kpis"; gap: 12px 18px; }
+  .app-header > :is(.brand, .header-actions, .kpis) { align-self: center; justify-self: stretch; }
   .header-actions { justify-content: flex-end; }
-  .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* Each figure takes the width its line needs and the row shares out what is left, so a decision's
+     before and after stays on one line wherever the row has room for it. */
+  .kpis { grid-template-columns: repeat(4, auto); }
   .kpi.vc-stat { min-width: 0; }
   .kpi .vc-stat__label { white-space: normal; text-wrap: balance; }
 }
@@ -348,18 +357,34 @@ html:not([data-ready="true"]) .app-header :is(.vc-button, .vc-icon-button, .vc-t
 }
 @media (max-width: 960px) {
   .app-shell { height: auto; }
+  /* Two figures a row, so a German value keeps its line on a tablet. */
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stage, .stage[data-layout="assess"] { grid-template-columns: minmax(0, 1fr); padding: 16px; }
   .panel { overflow: visible; }
   .decide, .options { grid-template-columns: minmax(0, 1fr); }
+  /* The six steps take a row of their own under Play, Back and Next, and a long German name breaks
+     rather than running into its neighbour. */
   .stepbar { flex-wrap: wrap; }
+  .stepbar > .vc-button:last-child { margin-inline-start: auto; }
+  .steps.vc-stepper { order: 1; flex-basis: 100%; }
+  .steps .vc-step__label { white-space: normal; hyphens: auto; overflow-wrap: anywhere; }
+  /* Assess stacks: the matrix, then when the threats arrive, then the three with most at stake. */
+  .assess-panel { grid-template-columns: minmax(0, 1fr); }
+  .assess-panel > .matrix { grid-row: auto; }
+  .assess-panel > .top-three { grid-column: auto; margin-bottom: 0; }
+  /* A dimension's state tag may break onto a second line. */
+  .dim-panel .vc-framework__state { white-space: normal; }
+  /* The company and its tag go under the title, which keeps the width of the column. */
+  .stage:is([data-layout="full"], [data-layout="assess"]) .story-head { grid-template-columns: minmax(0, 1fr); }
+  .stage:is([data-layout="full"], [data-layout="assess"]) .story-meta { grid-column: 1; grid-row: auto; justify-self: start; }
 }
-/* A phone: one column, two figures a row. The page is built for a presenter's screen; here it only has
-   to read cleanly. */
+/* A phone: one column. The page is built for a presenter's screen; here it only has to read cleanly. */
 @media (max-width: 640px) {
   .app-header { grid-template-columns: minmax(0, 1fr); grid-template-areas: "brand" "actions" "kpis"; padding: 10px 12px; }
   .header-actions { justify-content: flex-start; }
   .brand-name { font-size: var(--vc-font-size-xl); }
-  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Two figures a row are narrow here: a value may break after its amount. */
+  .kpi .vc-stat__value { white-space: normal; }
   .intro { padding: 6px 12px; }
   .intro .vc-byline { flex-wrap: wrap; white-space: normal; }
   .story-title { font-size: var(--vc-font-size-2xl); }

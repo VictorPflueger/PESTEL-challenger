@@ -3,9 +3,12 @@
 // other two scenarios in the light theme), as it opens and again with every closed part of the stage
 // opened (factor items, signals, the tables behind the risk matrix and the horizon strip),
 //   fit       no sideways scroll, and the page fits the screen without scrolling (a long list scrolls
-//             inside its panel);
+//             inside its panel); no panel scrolls sideways, and the risk matrix and the horizon strip keep
+//             to their own width with their numbers open;
 //   whole     no text is cut to an ellipsis or clipped by its box;
-//   header    the brand, the actions and the four figures don't overlap, and every figure keeps its name;
+//   header    the brand, the actions and the four figures don't overlap, every figure keeps its name, the
+//             actions keep one row, every figure's value keeps one line, and at 1920 the four figures
+//             stand at the top right, beside the name and its actions;
 //   targets   every button and link is at least 40 px high and wide;
 //   contrast  every piece of text reaches 4.5:1 against its background (3:1 when large);
 //   assess    the risk matrix, its key and the horizon strip are in view without scrolling;
@@ -28,6 +31,8 @@ const measure = (page) => page.evaluate(() => {
   const visible = (el) => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && !el.closest("dialog:not([open]), [hidden]"); };
   const doc = document.documentElement;
   const out = { sideways: doc.scrollWidth > doc.clientWidth, tall: doc.scrollHeight > doc.clientHeight + 1, cut: [], overlap: [], small: [], faint: [] };
+  // a panel that scrolls sideways, or a figure laid out wider than itself (a table it holds must scroll in its wrap)
+  out.wide = [...document.querySelectorAll("#stage .panel, #stage .vc-risk, #stage .vc-horizon")].filter((e) => visible(e) && e.scrollWidth > e.clientWidth + 1).map((e) => `${[...e.classList].join(".")} ${e.scrollWidth}px in ${e.clientWidth}px`);
   // whole: an ellipsis, a line clamp, or text wider or taller than a box that hides its overflow
   for (const el of document.querySelectorAll("body *")) {
     if (!visible(el) || !el.textContent.trim() || el.closest("dialog")) continue;
@@ -87,6 +92,19 @@ const measure = (page) => page.evaluate(() => {
     if (ratio < (large ? 3 : 4.5) - 0.01) out.faint.push(`${n.textContent.trim().slice(0, 30)} ${ratio.toFixed(2)}:1`);
   }
   out.tiles = [...document.querySelectorAll(".kpi .vc-stat__label")].map((l) => l.textContent.trim());
+  // header: the actions stand in one row (items whose middles lie within 12 px of each other share a row)
+  const middles = [...document.querySelectorAll(".header-actions > *")].filter(visible).map((e) => { const r = e.getBoundingClientRect(); return (r.top + r.bottom) / 2; }).sort((a, b) => a - b);
+  out.actionRows = middles.reduce((n, m, i) => n + (i && m - middles[i - 1] > 12 ? 1 : 0), middles.length ? 1 : 0);
+  // and each figure's value keeps one line: the old value beside the new one, the new one on a single line
+  out.wrapped = [...document.querySelectorAll(".kpi")].filter((k) => {
+    const was = k.querySelector(".kpi-was"); const now = k.querySelector(".kpi-value");
+    const lines = new Set([...now.getClientRects()].map((r) => Math.round(r.top))).size > 1;
+    return lines || (!was.hidden && was.getBoundingClientRect().bottom <= now.getBoundingClientRect().top + 1);
+  }).map((k) => k.querySelector(".vc-stat__label").textContent.trim());
+  // where the four figures stand: beside the name and its actions (top right) or in a row of their own
+  const kpis = document.querySelector(".kpis").getBoundingClientRect();
+  const left = Math.max(document.querySelector(".brand").getBoundingClientRect().right, document.querySelector(".header-actions").getBoundingClientRect().right);
+  out.topRight = kpis.left >= left - 0.5 && kpis.top < document.querySelector(".brand").getBoundingClientRect().bottom && Math.abs(doc.clientWidth - kpis.right) < 40;
   return out;
 });
 
@@ -101,6 +119,19 @@ const measure = (page) => page.evaluate(() => {
   });
   const m = await measure(page);
   check(m.cut.length > 0 && m.small.length > 0 && m.sideways, `control: a planted ellipsis, a small button and an overflow are caught (${m.cut[0]}; ${m.small[0]})`);
+  await context.close();
+}
+{
+  // A wider action and a narrow figure: the actions take a second row and a value a second line.
+  const { context, page } = await openTool(browser, { base: server.base, query: "?guide=0&step=5" });
+  await page.waitForSelector('#stage[data-step="summary"]');
+  await page.evaluate(() => {
+    document.querySelector(".mode-tag").style.minWidth = "900px";
+    const k = document.querySelector("#kpi-stake"); k.style.maxWidth = "190px"; k.style.minWidth = "0";
+    k.querySelector(".vc-stat__value").style.whiteSpace = "normal";
+  });
+  const m = await measure(page);
+  check(m.actionRows > 1 && m.wrapped.length > 0, `control: actions pushed onto two rows and a squeezed figure are caught (${m.actionRows} rows; ${m.wrapped.join(", ")})`);
   await context.close();
 }
 
@@ -130,7 +161,7 @@ for (const { width, height, theme, lang, sc } of RUNS) {
     check(!flashes.length, `${run}: no control in the header animates while the page starts${flashes.length ? `: ${flashes.slice(0, 3).join("; ")}` : ""}`);
     check(await page.evaluate(() => document.documentElement.getAttribute("data-theme")) === theme, `${run}: the ${theme} theme`);
   }
-  const bad = { fit: [], cut: [], overlap: [], small: [], faint: [] };
+  const bad = { fit: [], cut: [], overlap: [], small: [], faint: [], header: [] };
   for (let step = 0; step < STEP_NAMES.length; step += 1) {
     if (step) {
       await page.goto(`${server.base}?guide=0&lang=${lang}&scenario=${sc}&step=${step}`);
@@ -144,10 +175,14 @@ for (const { width, height, theme, lang, sc } of RUNS) {
       const m = await measure(page);
       const at = `${name} ${state}`;
       if (m.sideways || m.tall) bad.fit.push(at);
+      for (const w of m.wide) bad.fit.push(`${at}: ${w}`);
       for (const c of m.cut) bad.cut.push(`${at}: ${c}`);
       if (m.overlap.length || m.tiles.length !== 4 || !m.tiles.every(Boolean)) bad.overlap.push(`${at}: ${m.overlap.join(", ")}`);
       for (const x of m.small) bad.small.push(`${at}: ${x}`);
       for (const x of m.faint) bad.faint.push(`${at}: ${x}`);
+      if (m.actionRows !== 1) bad.header.push(`${at}: the actions take ${m.actionRows} rows`);
+      if (m.wrapped.length) bad.header.push(`${at}: ${m.wrapped.join(", ")} breaks its value`);
+      if (width === 1920 && !m.topRight) bad.header.push(`${at}: the figures are not at the top right`);
     }
     if (name === "assess") {
       // One picture: the matrix with its key and the horizon strip in view, before anything is opened.
@@ -175,6 +210,7 @@ for (const { width, height, theme, lang, sc } of RUNS) {
   check(!bad.fit.length, `${run}: every step fits the screen${bad.fit.length ? `; not: ${bad.fit.slice(0, 4).join("; ")}` : ""}`);
   check(!bad.cut.length, `${run}: no text cut on any step${bad.cut.length ? `: ${bad.cut.slice(0, 4).join("; ")}` : ""}`);
   check(!bad.overlap.length, `${run}: header parts and the four figures stand apart on every step${bad.overlap.length ? `: ${bad.overlap.slice(0, 2).join("; ")}` : ""}`);
+  check(!bad.header.length, `${run}: the actions keep one row and every figure one line${width === 1920 ? ", top right," : ""} on every step${bad.header.length ? `; not: ${bad.header.slice(0, 3).join("; ")}` : ""}`);
   check(!bad.small.length, `${run}: every target at least 40 px on every step${bad.small.length ? `: ${bad.small.slice(0, 4).join("; ")}` : ""}`);
   check(!bad.faint.length, `${run}: every text reaches its contrast on every step${bad.faint.length ? `: ${bad.faint.slice(0, 4).join("; ")}` : ""}`);
   check(!errors.length, `${run}: no page or console error${errors.length ? `: ${errors.join(" | ")}` : ""}`);

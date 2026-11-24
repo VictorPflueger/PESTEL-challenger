@@ -64,12 +64,13 @@ Decided while building 0.2.0, each within the brief and the plan:
 | German words | A threat is a "Risiko", an opportunity a "Chance", readiness the "Vorbereitungsgrad"; the steps are Start, Scan, Prüfung, Bewertung, Antworten and Zusammenfassung |
 | Assess | The whole stage: the risk matrix, the horizon strip and the three threats that put most at stake by their numbers, so the room reads what "1" is. At 1280 × 720 the matrix's key stands beside its grid, the step's button under the strip, the three names run as one paragraph and the lead gives way to them, so all of it is in view |
 | A dimension's state | "Under pressure", "On watch" or "Addressed" ("Unter Druck", "Im Blick", "Angegangen"), so a state never reads like the response "Watch it" |
+| The header | From 1,900 px the actions stand under the name and the figures at the top right, one band of 114 px; below, the figures take a row of their own, sized to their lines. In German at 1920 the actions used to wrap onto a second row, and in both languages after a decision; the layout suite now checks one row of actions and one line per value on every step |
 | Marker sizes | Thirds of the largest expected loss: smaller below a third, larger from two thirds, with Vici's `vc-risk__marker--sm` and `--lg` (ViciDesign#29); the key names each size in euros |
 | The session cost of a simulation | An estimate on Balanced, said on the tile: each agent's request rebuilt from what it reads and answers at about four characters a token, a 1,500-token prompt, each answer counted twice for thinking, five searches of 4,000 tokens with research, the prices above and €0.894 to the dollar (`js/estimate.js`) |
 | The talk track | The brief's draft (§8): five steps in five minutes, with action labels and figures from the engine. Its last step shows the PDF from 0.4.0; until then it shows the summary and the watch list |
 | The guide's chapters | Six: the brief's four (What it does, How it works, What is real, How to present) and two a stranger needs to play it alone (The six steps, The cost estimate); each fits at 1280 × 720 |
 | Check for updates | A scenario whose facts were read more than 90 days ago says so on Start (`needsUpdate()` in `js/format.js`) |
-| Vici | The ring (ViciDesign#30), the horizon strip (#31) and square radios in the segmented control (#33) went into Vici first; `vici/` copies its main at the commit `vici/README.md` names |
+| Vici | The ring (ViciDesign#30), the horizon strip (#31), square radios in the segmented control (#33) and a fix that keeps the risk matrix and the horizon strip to their width once their numbers open (#34) went into Vici first; `vici/` copies its main at the commit `vici/README.md` names |
 
 ## 4. Security policy and what is kept
 
