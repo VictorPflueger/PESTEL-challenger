@@ -99,7 +99,14 @@ A third fresh agent, on the same terms, looked at `bddfb30`, after the second ro
 read "every fix holds; no high or medium finding open": R1 to R5 and N1 hold. It found six new low findings,
 N6 to N11, and made two observations, O3 and O4, among them two places where the fixes did less than this
 part said: the cap missed the last cut attempt and an Abort (N8), and the editor's warning could run past the
-list's edge (N6). The table holds every finding of the three looks, and what became of it:
+list's edge (N6).
+
+A fourth fresh agent, on the same terms, looked at `cee4b72`, after the third round. Its verdict line again
+read "every fix holds; no high or medium finding open". It found three new low findings, N12 to N14, and made
+four observations, O5 to O8: stops that said less than, or other than, what happened; ranges of dates that
+still raised the warning; a request left unanswered past the time limit that the cap did not count; and a
+German mark that followed the country rather than the name. The table holds every finding of the four looks,
+and what became of it:
 
 | ID | Severity | What | Where | State |
 |---|---|---|---|---|
@@ -113,7 +120,7 @@ list's edge (N6). The table holds every finding of the three looks, and what bec
 | R8 | low | The private-data warning read European dates as phone numbers and "internal combustion" as a private word | `js/privacy.js` | fixed in `48c0630`: neither counts; `tests/live-dialog.mjs` adds both to its clean texts; ranges of dates since `5675acd` (N10) |
 | R9 | low | Text shaped like an API key, pasted into the form, raised no warning, went into the prompts and into "Save run as simulation" | `js/presenter.js`, `js/privacy.js`, `js/pipeline.js` | fixed in `48c0630`: the dialog names it, the run redacts it before a prompt reads it, and the saved run redacts it; `tests/live-flow.mjs` checks the requests and the file |
 | R10 | low | "Clear everything" left a copy of the checked key in the live-run dialog | `js/live_dialog.js` | fixed in `48c0630`: the dialog keeps no copy; the key lives in `js/keystore.js` alone |
-| R11 | low | Spending could pass the cap in edge cases: a cut-off stream adds nothing to the meter, a retry does not check the cap again, and the Scout's search size is assumed | `js/pipeline.js`, `js/anthropic.js` | fixed in `5675acd`, completing `1cba922`: every attempt cut off after its stream began, the last one too, and a request aborted while under way count at their worst case against the cap, and a retry, or any request after them with Go on, goes only if it still fits; `tests/live-budget.mjs` cuts one and three attempts and aborts one, then goes on with the same cap. The meter still shows only what the API reported, and the Scout's search size stays assumed until Victor's first research run measures it (TECH_NOTES section 8) |
+| R11 | low | Spending could pass the cap in edge cases: a cut-off stream adds nothing to the meter, a retry does not check the cap again, and the Scout's search size is assumed | `js/pipeline.js`, `js/anthropic.js`, `js/agents/scout.js` | fixed in `85de999`, completing `1cba922` and `5675acd`: every attempt cut off after its stream began, the last one too, a request aborted while under way and one left unanswered past the client's time limit count at their worst case against the cap, and a retry, or any request after them with Go on, goes only if it still fits; a Scout request counts the searches still open in its turn, five again for the repair's new instruction; `tests/live-budget.mjs` cuts one and three attempts, aborts one and leaves three unanswered, then goes on with the same cap, and `tests/live-research.mjs` counts the Scout's searches. The meter still shows only what the API reported, and the size of a search's results stays assumed until Victor's first research run measures it (TECH_NOTES section 8) |
 | R12 | low | In the handoff file some opportunities' likelihood did not go with their expected value, and with no threat the score was 0 | `js/handoff.js` | fixed in `48c0630`: an opportunity carries the likelihood of the Analyst's upside, and the score is 100 then; `tests/handoff.mjs` checks every issue's expected value |
 | R13 | low | A long company name ran out of the ring's centre and broke inside a word | `js/hexagon.js` | fixed in `1cba922`, completing `48c0630`: the centre steps a long name down in three sizes and leaves out the sector, so the form's 80 characters stay inside the cell at 1280 × 720, and a name over 40 characters from a German-speaking country is marked German, so it breaks at a syllable; `tests/live-scan.mjs` checks the mark |
 | R14 | low | German PDFs print the footer in German, where standing requirement 8 quotes the English words | `js/i18n/de.js` | kept: decided in 0.4.0, as Vici's byline speaks the page's language, and every English report carries the English words; Victor confirms (TECH_NOTES section 8) |
@@ -135,6 +142,13 @@ list's edge (N6). The table holds every finding of the three looks, and what bec
 | N11 | low | N3's filter compared kinds and words, not each occurrence: a second "internal", or another phone number, raised no warning when the AI's words held one | `js/privacy.js`, `js/hexagon.js` | fixed in `5675acd`: the editor counts what the person adds occurrence by occurrence, against the AI's words as it wrote them; `tests/live-dialog.mjs` and `tests/live-scan.mjs` check both |
 | O3 | observation | A German name was marked German only over 40 characters and with the country written one of 14 ways, so a shorter one broke inside a word on an English page | `js/hexagon.js` | fixed in `5675acd`: a name from a German-speaking country is marked German at any length, the country found in a longer text too ("Bundesrepublik Deutschland"); `tests/live-scan.mjs` checks a 34-character name |
 | O4 | observation | The header's mode tag takes focus for its tooltip and measures 125 × 30 px, which the layout suite does not measure | `index.html` | kept: it starts nothing, so it is no target under AC-14; it takes focus only so the keyboard reaches its tooltip, it is above the 24 px of WCAG 2.5.8, and it keeps Vici's large tag (TECH_NOTES section 3) |
+| N12 | low | An overload the API reported inside the stream read as "could not reach the API" | `js/views/live_work.js` | fixed in `85de999`: it reads as the busy service; `tests/live-budget.mjs` plants three overloads inside the stream with the stand-in's new `streamError` fault |
+| N13 | low | The cap stop said "before the first request" after a request had been sent and paid for | `js/views/live_work.js` | fixed in `85de999`: it says no step was done yet, and "before the first request" only while none was sent; `tests/live-budget.mjs` stops at the cap after the Scanner's first answer |
+| N14 | low | Some ranges of dates still raised the phone warning, though the documents said none did | `js/privacy.js`, `TECH_NOTES.md` | fixed in `85de999`: the usual forms count as dates (without a year, joined by a slash, with hyphenated dates, of months, of calendar weeks), and the documents name the forms and say others may still warn; `tests/live-dialog.mjs` adds seven ranges to its clean texts and six phone shapes to its planted ones |
+| O5 | observation | A stop that came from something else after a held attempt did not say that an amount was held | `js/views/live_work.js` | fixed in `85de999`: every stop says so while the run holds an amount; `tests/live-budget.mjs` aborts in the wait before a retry |
+| O6 | observation | A request left unanswered past the client's 90 s counted as unbilled, though a proxy that buffers the stream can hold back an answer the API is writing | `js/pipeline.js` | fixed in `85de999`: such an attempt counts at its worst case too; `tests/live-budget.mjs` checks it in Node against three unanswered attempts |
+| O7 | observation | The German mark followed the country, not the name, so a screen reader would read "Delivery Hero SE" or a French Swiss name by German rules | `js/hexagon.js` | fixed in `85de999`: only a name with a word of twelve letters or more, which may not fit the cell, is marked, and "Suisse" no longer counts; `tests/live-scan.mjs` checks a short name from Germany |
+| O8 | observation | Scan's German Your turn text became a statement while the English stayed an instruction | `js/i18n/en.js` | fixed in `85de999`: both say what to do with the AI's factors, then what the Red team does |
 
 ## Part 3. Steve Jobs review and partner review
 
@@ -220,11 +234,12 @@ Undo, the risk matrix and horizon strip with their tables, the recommended respo
 moves, and the report with its footer on every page.
 
 Both reviews were checked again at `50871bc`, after the first round of the independent review's fixes, and
-ran again at `1cba922` and at `5675acd`, after the second and third (part 2), along the same walk in Chromium at
-1280 × 720 in both languages: every figure the script quotes appears as it says, the page logs no error, and
-the screens nobody demos hold as above. The fixes add a lilac AI tag to the Red team's cards, the
+ran again at `1cba922`, `5675acd` and `85de999`, after the later rounds (part 2), along the same walk in Chromium
+at 1280 × 720 in both languages: every figure the script quotes appears as it says, the page logs no error,
+and the screens nobody demos hold as above. The fixes add a lilac AI tag to the Red team's cards, the
 Strategist's options and the Summary's title, a basis to every AI figure under the options ("AI estimate from
 the range above", "from the factor and figures above"), a live run's tiles that say after which step they
-stand, and targets of 40 px. A live run's Scan editor now opens with "Public information only" and the line
-on where the words go in view, and keeps its warning above the Your turn bar as it grows, in both languages.
-None of them moves a figure, so both verdicts stand.
+stand, stops that say what happened and what counts against the cap, and targets of 40 px. A live run's Scan
+editor now opens with "Public information only" and the line on where the words go in view, and keeps its
+warning above the Your turn bar as it grows, in both languages. None of them moves a figure, so both verdicts
+stand.
