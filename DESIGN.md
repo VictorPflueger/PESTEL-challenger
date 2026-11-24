@@ -1,7 +1,7 @@
 # Design
 
 The PESTEL Challenger is built on Vici, Victor's design system, at the commit `vici/README.md` names.
-This file records the decisions Vici leaves to the tool.
+This file records what Vici leaves to the tool.
 
 ## 1. Who looks at it, and where
 
@@ -14,7 +14,7 @@ the page reads from the back of a room.
 It follows the Data Quality Agent, so a partner who has shown one knows where to look:
 
 - **The header:** the radar icon in a lilac hexagon, the name, the actions under it (SIMULATION, Method,
-  How it works, theme, EN | DE) and the four key figures at the top right, on a row of their own below
+  How it works, theme, EN | DE) and the four key figures at the top right, on their own row below
   1,900 px.
 - **The strip under it:** the brief's one sentence (§8) and the byline.
 - **The step bar:** Play, Back, the six steps as Vici's stepper, and Next; a step where the person acts
@@ -33,15 +33,14 @@ Each step answers one question in its title; Play stops where the person acts.
 | Challenge | One card per issue, its correction in words and an Undo | The ring turns coral where a dimension comes under pressure |
 | Assess | The whole stage: risk matrix, horizon strip and the three largest threats, tables one click away | |
 | Respond | The whole stage: each factor's options as cards, the recommended one chosen | |
-| Summary | The summary with figures filled in by code, the chosen responses and the watch list | The ring with what was addressed |
+| Summary | The report, page by page, with the figures code computed; Save as PDF and the two files under it | The ring with what was addressed |
 
 The key figures show the analysis before anything plays; the decision strikes the old value through
 beside the new one.
 
-A live run uses the same steps. Start is an empty form under the public-information notice; "Start the
-agents" opens Vici's live-run dialog. While an agent works, its step shows its role, the time, the spend
-against the cap and Abort, and each key figure says what it waits for. A stop says why and keeps what is
-done. At Scan the person keeps, edits or removes each AI factor.
+A live run uses the same steps: an empty form under the public-information notice, then Vici's live-run
+dialog. While an agent works, its step shows its role, the time, the spend against the cap and Abort. A
+stop says why and keeps what is done. At Scan the person keeps, edits or removes each AI factor.
 
 ## 4. Colour
 
@@ -59,13 +58,15 @@ The page starts light until a visitor chooses dark: rooms are lit.
 ## 5. Two languages
 
 English opens every first visit; German switches every word in place, and has its own guide.
-"KI‑Agenten" and "Live‑Lauf" use a hyphen that does not break.
+"KI‑Agenten" and "Live‑Lauf" use non-breaking hyphens.
 
-## 6. The shape of M3
+## 6. The shape of the report
 
-- **Job:** someone runs the agents on their own company and key, alone. Operate mode.
-- **Outcome:** a live run reaches the summary within its cap, or stops, says why and keeps what is done.
-- **Direction:** Vici as it is, with the SWOT Challenger's live-run dialog and the ring and horizon strip
-  this tool added first.
-- **Constraints:** the strict security policy, the key in memory only, both themes and languages,
-  1920 × 1080 and 1280 × 720 without page scroll, no text cut, targets of at least 40 px, nothing round.
+- **Job:** after the run, the customer gets a document to keep and forward. Read mode.
+- **Outcome:** Save as PDF prints the report alone on A4 with the footer on every page; the HTML and
+  handoff files download beside it.
+- **Direction:** Vici's report, which this tool added first: light sheets in either theme, a cover, one
+  heading per page, the footer in the margins.
+- **Constraints:** the strict security policy, nothing kept, a live run's report in the run's language,
+  tables that break between rows; on screen, 1920 × 1080 and 1280 × 720 without page
+  scroll, no text cut, targets of at least 40 px, nothing round.

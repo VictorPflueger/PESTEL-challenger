@@ -39,44 +39,42 @@ function put(tile, { value, tail = "", was = null, note, state = "ready" }) {
 }
 
 /**
- * A live run's tiles (brief §5.5 and AC-07): each figure once its step has run, before that "…" and what
- * it waits for; the session cost is what the run has spent, with the cap in its note.
+ * The four figures as the tiles show them, in a language: { stake, pressure, readiness, cost }, each
+ * { value, tail, was, note, state }. The tiles, the report and the tests read the same words (AC-20).
  */
-function renderLive(run, lang) {
-  const rated = !!run.scan;
-  const priced = !!run.impacts;
-  put(tiles.cost, { value: fmtCost(run.spend?.eur ?? 0, lang), note: t("kpi.note.live.cost", { cap: fmtCost(run.cap, lang) }), state: "live" });
-  if (!rated) {
-    for (const k of ["stake", "pressure", "readiness"]) put(tiles[k], { value: t("kpi.wait"), note: t(k === "stake" ? "kpi.note.afterAssess" : "kpi.note.afterScan"), state: "waiting" });
-    return false;
-  }
-  return priced;
-}
-
-/** Fills the tiles from the run: before the decision, or after it with the old values struck through. */
-export function renderKpis(run, { estimate = null, live = false } = {}) {
-  const lang = getLang();
-  let pricedLive = true;
-  if (live) {
-    pricedLive = renderLive(run, lang);
-    if (!run.scan) return;
+export function kpiValues(run, { estimate = null, live = false, lang = getLang() } = {}) {
+  const out = {};
+  const waiting = (note) => ({ value: t("kpi.wait", null, lang), tail: "", was: null, note: note ? t(note, null, lang) : "", state: "waiting" });
+  if (live) out.cost = { value: fmtCost(run.spend?.eur ?? 0, lang), tail: "", was: null, note: t("kpi.note.live.cost", { cap: fmtCost(run.cap, lang) }, lang), state: "live" };
+  else out.cost = estimate
+    ? { value: `≈ ${fmtCost(estimate.eur, lang)}`, tail: "", was: null, note: t("kpi.note.estimate", null, lang), state: "estimate" }
+    : waiting("");
+  if (live && !run.scan) {
+    out.stake = waiting("kpi.note.afterAssess");
+    out.pressure = waiting("kpi.note.afterScan");
+    out.readiness = waiting("kpi.note.afterScan");
+    return out;
   }
   const r = R.figures(run);
   const decided = !!run.decided;
   const pressure = (x) => t("fig.pressure", { n: x.pressure.length }, lang);
   const tail = (x) => (x.monetised < x.threats ? t("fig.moneyTail", { n: x.monetised, total: x.threats }, lang) : "");
-  if (!pricedLive) put(tiles.stake, { value: t("kpi.wait"), note: t("kpi.note.afterAssess"), state: "waiting" });
-  else put(tiles.stake, decided
-    ? { value: money(r.after.atStake, lang), tail: tail(r.after), was: money(r.before.atStake, lang), note: r.upside > 0 ? t("kpi.note.left.upside", { money: money(r.upside, lang) }) : t("kpi.note.left") }
-    : { value: money(r.before.atStake, lang), tail: tail(r.before), note: t("kpi.note.before") });
-  put(tiles.pressure, decided
-    ? { value: pressure(r.after), was: pressure(r.before), note: t("kpi.note.after") }
-    : { value: pressure(r.before), note: t("kpi.note.before") });
-  put(tiles.readiness, decided
-    ? { value: readinessText(r.after.readiness, lang), was: readinessText(r.before.readiness, lang), note: t("kpi.note.readiness") }
-    : { value: readinessText(r.before.readiness, lang), note: t("kpi.note.readiness") });
-  if (live) return;
-  put(tiles.cost, estimate
-    ? { value: `≈ ${fmtCost(estimate.eur, lang)}`, note: t("kpi.note.estimate"), state: "estimate" }
-    : { value: t("kpi.wait"), note: "", state: "waiting" });
+  const ready = (x) => ({ tail: "", state: "ready", ...x });
+  if (live && !run.impacts) out.stake = waiting("kpi.note.afterAssess");
+  else out.stake = ready(decided
+    ? { value: money(r.after.atStake, lang), tail: tail(r.after), was: money(r.before.atStake, lang), note: r.upside > 0 ? t("kpi.note.left.upside", { money: money(r.upside, lang) }, lang) : t("kpi.note.left", null, lang) }
+    : { value: money(r.before.atStake, lang), tail: tail(r.before), was: null, note: t("kpi.note.before", null, lang) });
+  out.pressure = ready(decided
+    ? { value: pressure(r.after), was: pressure(r.before), note: t("kpi.note.after", null, lang) }
+    : { value: pressure(r.before), was: null, note: t("kpi.note.before", null, lang) });
+  out.readiness = ready(decided
+    ? { value: readinessText(r.after.readiness, lang), was: readinessText(r.before.readiness, lang), note: t("kpi.note.readiness", null, lang) }
+    : { value: readinessText(r.before.readiness, lang), was: null, note: t("kpi.note.readiness", null, lang) });
+  return out;
+}
+
+/** Fills the tiles from the run: before the decision, or after it with the old values struck through. */
+export function renderKpis(run, { estimate = null, live = false } = {}) {
+  const v = kpiValues(run, { estimate, live });
+  for (const k of ["stake", "pressure", "readiness", "cost"]) put(tiles[k], v[k]);
 }

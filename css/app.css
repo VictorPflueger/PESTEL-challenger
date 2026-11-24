@@ -374,7 +374,7 @@ html:not([data-ready="true"]) .app-header :is(.vc-button, .vc-icon-button, .vc-t
 .used > summary { cursor: pointer; font-weight: var(--vc-weight-semibold); }
 .used[open] > summary { margin-bottom: 8px; }
 .used-table td, .used-table th { white-space: nowrap; }
-.live-save { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.live-save { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; }
 .live-save > .vc-help { margin: 0; max-width: 60ch; }
 .run-lang { letter-spacing: 0.04em; }
 

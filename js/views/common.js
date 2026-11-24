@@ -5,6 +5,7 @@
 
 import { h } from "../dom.js";
 import { t } from "../i18n/index.js";
+import { IDEATOR_URL } from "../config.js";
 
 export const icon = (name) => h("span", { class: `vc-icon vc-icon--${name}`, "aria-hidden": "true" });
 
@@ -57,3 +58,23 @@ export function withNotice(button) {
   return h("div", { class: "with-notice" }, aiTag(), button);
 }
 
+/**
+ * The report's downloads (brief §9): Save as PDF, which opens the print dialog on the report alone, then the
+ * HTML file and the handoff file for the Prototype Ideator, and the link to the Ideator. handoff: false before
+ * the Analyst has priced the forces, since the file carries figures. primary: Save as PDF is the step's one
+ * primary action (the Summary's last bar); otherwise it is a secondary button (a stopped run).
+ */
+export function downloads(handlers, { handoff = true, primary = true } = {}) {
+  const pdf = h("button", { type: "button", class: ["vc-button", primary ? "cta" : "vc-button--secondary"], id: primary ? "btn-cta" : "btn-save-pdf", "aria-describedby": "pdf-hint", on: { click: handlers.savePdf } }, icon("download"), t("summary.pdf"));
+  // In the last bar the bar's sentence carries the hint (id pdf-hint); elsewhere it stands under the button.
+  const files = h("div", { class: "report-files" },
+    primary ? null : h("p", { class: "vc-help report-pdf-hint", id: "pdf-hint" }, t("summary.pdf.hint")),
+    h("p", { class: "report-file-actions" },
+      h("button", { type: "button", class: "vc-button vc-button--secondary", id: "btn-save-html", on: { click: handlers.saveHtml } }, icon("download"), t("summary.html")),
+      handoff ? h("button", { type: "button", class: "vc-button vc-button--secondary", id: "btn-save-json", on: { click: handlers.saveJson } }, icon("download"), t("summary.json")) : null,
+      // The Ideator reads the handoff file the person drops into it: the link says so to a screen reader, and the
+      // report's last page says so in print.
+      handoff ? h("a", { class: "vc-button vc-button--ghost report-ideator", id: "link-ideator", href: IDEATOR_URL, target: "_blank", rel: "noopener", "aria-describedby": "ideator-hint" }, t("summary.ideator"), icon("external")) : null,
+      handoff ? h("span", { class: "vc-visually-hidden", id: "ideator-hint" }, t("summary.ideator.hint")) : null));
+  return { pdf, files };
+}

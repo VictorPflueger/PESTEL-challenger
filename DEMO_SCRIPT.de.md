@@ -20,14 +20,15 @@ betreibt. Jede Zahl unten stammt aus der Rechenlogik, und der Leitfaden nennt di
 | 1 min | Agenten starten, ein datiertes Signal öffnen | „Der Scanner füllt alle sechs Dimensionen aus den Nachrichten, jede mit Quelle.“ | **Agenten starten** klicken. Die sieben Signale öffnen und einen der neun Faktoren in Flieder: seine Grundlage, seine Quelle und das Lesedatum. |
 | 1 min | Prüfen lassen, dann Rechtlich öffnen | „Das Red Team zieht den Wärmeplan auf jetzt vor: Rechtlich gerät unter Druck.“ | **Diese Analyse prüfen** klicken. Fünf Karten, jede mit Begründung und **Zurücknehmen**. Im Ring auf *Rechtlich* klicken: Der Wärmeplan ist bis 31. Dezember 2026 fällig, nicht in ein bis drei Jahren. Weiter: Die Risikomatrix setzt die Gaspreise auf Platz eins. |
 | 1,5 min | Bei Antworten eine Wahl ändern | „Wärmeplan angehen, Forderungen beobachten: Jede Wahl bewegt die Zahlen.“ | Weiter. Die empfohlenen Antworten sind gewählt. Bei den Gaspreisen **Beobachten** wählen: Die Leiste zeigt 2,9 Mio. € und Vorbereitungsgrad 66. Zurück zur Absicherung, dann **Diese Antworten übernehmen** klicken. |
-| 0,5 min | Übernehmen, die Beobachtungsliste zeigen | „Es bleiben 2,2 Mio. € pro Jahr auf dem Spiel, Vorbereitungsgrad 72.“ | Die Kacheln streichen 3,8 Mio. €, 51 und drei von sechs durch. Zur Beobachtungsliste scrollen: vier Signale, jedes mit Auslöser und wie oft hinzusehen ist. |
+| 0,5 min | Übernehmen, dann das PDF mit der Beobachtungsliste speichern | „Es bleiben 2,2 Mio. € pro Jahr auf dem Spiel, Vorbereitungsgrad 72.“ | Die Kacheln streichen 3,8 Mio. €, 51 und drei von sechs durch. Die Beobachtungsliste zeigen, dann **Als PDF speichern**, mit *Als PDF speichern* als Drucker. |
 
 ## Wenn etwas schiefgeht
 
 - **Ein falscher Klick.** Jede Korrektur des Red Teams lässt sich zurücknehmen. Eine Wahl, die Sie nach
   dem Übernehmen ändern, öffnet die Entscheidung wieder; übernehmen Sie noch einmal.
-- **Den Faden verloren.** `?lang=de&scenario=s3&step=4` öffnet die Entscheidung, `step=5` die
-  Zusammenfassung mit den empfohlenen Antworten.
+- **Den Faden verloren.** `?lang=de&scenario=s3&step=4` öffnet die Entscheidung, `step=5` den Bericht
+  mit den empfohlenen Antworten.
+- **Keine Seitenzahlen.** Drucken Sie aus Chrome oder Edge; Firefox und Safari lassen sie weg.
 - **Ein kleiner Beamer.** Die Seite passt auf 1280 × 720. Senken Sie lieber die Auflösung, statt zu zoomen.
 
 ## Fragen, die kommen werden
@@ -51,7 +52,7 @@ Claude-Schlüssel, bis zu einer Kostenobergrenze, die Sie setzen.
 
 ## Nach der Vorführung
 
-- Schicken Sie den Link mit `?lang=de&guide=present`: Mit dem Vorführungsteil kann jeder sie allein
-  nachspielen.
+- Schicken Sie das PDF und den Link mit `?lang=de&guide=present`: Mit dem Vorführungsteil kann jeder
+  sie allein nachspielen.
 - Zeigen Sie ein weiteres Unternehmen, wenn Zeit ist: `?scenario=s1` ist eine Containerreederei mit
   Recherche, `?scenario=s2` ein Antriebshersteller ohne Recherche, der sagt, wo das Wissen des Modells endet.

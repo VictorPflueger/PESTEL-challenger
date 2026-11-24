@@ -69,6 +69,18 @@ export function setLang(next) {
   }
 }
 
+/**
+ * Runs fn with `l` as the active language of t(), tn(), getLang() and every formatter that asks for it, and
+ * returns what fn returns. Nothing is stored and no view hears of it: a live run's report speaks the run's
+ * language whatever the page shows (brief §5.11).
+ */
+export function inLang(l, fn) {
+  if (!LANGS.includes(l) || l === lang) return fn();
+  const was = lang;
+  lang = l;
+  try { return fn(); } finally { lang = was; }
+}
+
 /** Calls fn(lang) after every language change. Returns an unsubscribe function. */
 export function onLang(fn) {
   listeners.add(fn);

@@ -61,13 +61,22 @@ export function scenarioOf(view, { now = new Date() } = {}) {
   return sc;
 }
 
+/** A company's name for a file name: lower case, umlauts written out, other marks dropped, hyphens between. */
+export function slugOf(name) {
+  return String(name || "company").toLowerCase()
+    .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+    .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "company";
+}
+
 /** The file name: pestel-challenger-<company>-<date>-<lang>-run.json, umlauts written out. */
 export function saveName(view) {
-  const slug = String(view.company.name || "company").toLowerCase()
-    .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
-    .normalize("NFKD").replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "company";
-  return `${APP.id}-challenger-${slug}-${view.as_of}-${view.lang}-run.json`;
+  return `${APP.id}-challenger-${slugOf(view.company.name)}-${view.as_of}-${view.lang}-run.json`;
+}
+
+/** A report's file name (brief §9): pestel-challenger-<company>-<YYYY-MM-DD>-<lang>.<ext>. */
+export function reportName(run, { date, lang, ext }) {
+  return `${APP.id}-challenger-${slugOf(run.company.name)}-${date}-${lang}.${ext}`;
 }
 
 /** Downloads a text as a file the person keeps; nothing else leaves the page. */

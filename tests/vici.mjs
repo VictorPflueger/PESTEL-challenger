@@ -1,7 +1,8 @@
 // Vici's own rules, checked with Vici's own functions (Build a prototype, "Before you share it"; AC-01):
 // the How it works guides and the key figures they explain (guideProblems), the byline (bylineProblems),
 // the Writing guideline's checkable patterns (writingProblems), the AI notice of a page that can start a
-// live run (aiNoticeProblems) and names rather than record ids (recordIdProblems). They run on the page,
+// live run (aiNoticeProblems), names rather than record ids (recordIdProblems) and the report a run ends in
+// (reportProblems). They run on the page,
 // on every string of both languages and on the documents. Also the page's frame from Vici's brief:
 // SIMULATION in the header, one sentence and the byline under it, and the four key figures in order.
 // From 0.2.0 the same writing and record-id checks run on every text of the three scenarios in both
@@ -35,6 +36,7 @@ const { aiNoticeProblems, AI_NOTICE } = await lib("ai.mjs");
 const { recordIdProblems } = await lib("ids.mjs");
 const { frameworkProblems } = await lib("framework.mjs");
 const { riskMatrixProblems } = await lib("risk.mjs");
+const { reportProblems } = await lib("report.mjs");
 const { SCENARIOS } = await import(pathToFileURL(path.join(APP_ROOT, "js/simulation.js")).href);
 const { SOURCES } = await import(pathToFileURL(path.join(APP_ROOT, "data/sources.js")).href);
 
@@ -62,6 +64,7 @@ control(recordIdProblems("Churn moved in energy_utilities.customer_churn", ids).
 const AREA = '<section class="vc-framework__area"><header class="vc-framework__head"><h2 class="vc-framework__title">Legal</h2></header><ul class="vc-framework__items"><li><details class="vc-item" data-source="ai"><summary class="vc-item__summary"><span class="vc-item__mark"><span class="vc-icon vc-icon--sparkle"></span></span><span class="vc-item__text">A rule</span><span class="vc-item__states">STATE</span></summary></details></li></ul></section>';
 control(frameworkProblems(AREA.replace("STATE", "")).length > 0 && !frameworkProblems(AREA.replace("STATE", '<span class="vc-tag vc-tag--sm vc-item__state vc-item__state--source">AI</span>')).length, "control: frameworkProblems catches an AI item without its word and passes one with it");
 control(riskMatrixProblems('<figure class="vc-risk"><figcaption>Threats</figcaption><div class="vc-risk__grid"></div></figure>').length > 0, "control: riskMatrixProblems catches a matrix without its axes, key and table");
+control(reportProblems('<article class="vc-report" lang="en-GB" data-theme="light"><section class="vc-report__page vc-report__cover"><h2 class="vc-report__title">A report</h2></section><section class="vc-report__page"><h3>About</h3></section></article>').length > 0, "control: reportProblems catches a report without its byline and fixed footer");
 
 // ---- the page ---------------------------------------------------------------------------------------
 const g = guideProblems(html);
@@ -129,7 +132,8 @@ for (const sc of SCENARIOS) {
 {
   const server = await serveStatic(APP_ROOT);
   const browser = await launchBrowser();
-  const found = { writing: [], ids: [], framework: [], matrix: [] };
+  const found = { writing: [], ids: [], framework: [], matrix: [], report: [] };
+  let reports = 0;
   let screens = 0;
   const errors = await eachScreen(browser, server.base, ({ sc, lang, name, html, text }) => {
     screens += 1;
@@ -138,6 +142,7 @@ for (const sc of SCENARIOS) {
     for (const p of recordIdProblems(text, ids)) found.ids.push(`${where}: ${p}`);
     if (/\bvc-framework__area\b/.test(html)) for (const p of frameworkProblems(html)) found.framework.push(`${where}: ${p}`);
     if (/\bvc-risk__grid\b/.test(html)) for (const p of riskMatrixProblems(html)) found.matrix.push(`${where}: ${p}`);
+    if (/\bvc-report__page\b/.test(html)) { reports += 1; for (const p of reportProblems(html)) found.report.push(`${where}: ${p}`); }
   });
   await browser.close();
   await server.close();
@@ -146,6 +151,7 @@ for (const sc of SCENARIOS) {
   check(!found.ids.length, `no screen shows a record id${found.ids.length ? `: ${found.ids.slice(0, 3).join("; ")}` : ""}`);
   check(!found.framework.length, `every factor list on screen keeps Vici's framework rules${found.framework.length ? `: ${found.framework.slice(0, 3).join("; ")}` : ""}`);
   check(!found.matrix.length, `every risk matrix on screen keeps Vici's rules${found.matrix.length ? `: ${found.matrix.slice(0, 3).join("; ")}` : ""}`);
+  check(reports === 6 && !found.report.length, `the report on each of the ${reports} Summary screens keeps Vici's report rule${found.report.length ? `: ${found.report.slice(0, 3).join("; ")}` : ""}`);
 }
 
 // ---- the documents ----------------------------------------------------------------------------------
