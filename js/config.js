@@ -6,9 +6,12 @@
 export const APP = Object.freeze({
   id: "pestel",
   name: "PESTEL Challenger",
-  version: "0.3.0",
+  version: "0.4.0",
   url: "https://victorpflueger.github.io/PESTEL-challenger/",
 });
+
+/** The Prototype Ideator, which reads the handoff file (brief §4.1); the report and the last bar link to it. */
+export const IDEATOR_URL = "https://victorpflueger.github.io/PrototypeIdeator/";
 
 /**
  * The only keys this tool keeps in the browser (brief §5.9): the language under its own prefix, since all

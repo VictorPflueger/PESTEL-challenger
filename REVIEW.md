@@ -5,12 +5,12 @@ from and what changed. A copied file is byte for byte the source; an adapted fil
 
 | File | Verdict | Source | What changed and why |
 |---|---|---|---|
-| `vici/**` | copy | ViciDesign `ca9c552` | Vici's `dist/`, fonts, portrait, marks and licence, unchanged; `vici/README.md` names the commit |
+| `vici/**` | copy | ViciDesign `64044bd` | Vici's `dist/`, fonts, portrait, marks and licence, unchanged; `vici/README.md` names the commit, which holds the report this tool added first (ViciDesign#40) |
 | `data/kpis.js` | copy | SWOT Challenger 0.1.0, `617b122` | Unchanged: a shared part the SWOT Challenger merged first (brief §4.1) |
 | `js/risk.js` | copy | SWOT Challenger 0.1.0, `617b122` | Unchanged: a shared part; `js/engine.js` uses its bands, expected values and money format |
 | `schemas/strategy-challenge-1.json` | copy | SWOT Challenger 0.1.0, `617b122` | Unchanged: the shared handoff schema, which keeps its parts under `$defs` |
 | `js/schema.js` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | Only the header comment, which now names this tool's files; the validator's code is unchanged |
-| `js/i18n/index.js` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | The storage key `pestel.lang`, the log prefix, no Diagnostics, and the meta description follows the language |
+| `js/i18n/index.js` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | The storage key `pestel.lang`, the log prefix, no Diagnostics, and the meta description follows the language; from 0.4.0 `inLang()` lends a run's language to its report |
 | `js/lang.js` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | The storage key, and no loading screen |
 | `js/facts.js` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | Dates in every common form, the run's evidence URLs and names with digits set aside; none of that tool's ids |
 | `js/format.js` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | Money from the shared `js/risk.js`, euro ranges, KPI changes and dates; no shares or deltas |
@@ -18,9 +18,9 @@ from and what changed. A copied file is byte for byte the source; an adapted fil
 | `js/dom.js` | adapt | Data Quality Agent 2.2.0, `831f050` | Only `h()` and `clear()`, and no option that writes markup as text |
 | `js/clock.js` | copy | Data Quality Agent 2.2.0, `831f050` | Unchanged: today for the scenario's age, which a test can pin |
 | `js/run.js` | adapt | Data Quality Agent 2.2.0, `831f050` | From its run_model.js: the six steps of this method, the factors at each step, the person's choices and, from 0.3.0, their edits |
-| `js/presenter.js` | adapt | Data Quality Agent 2.2.0, `831f050` | From its app.js: this tool's steps, Play, Your turn, the ring and the address of a step; from 0.3.0 the live run, which has no address |
-| `js/views/common.js` | adapt | Data Quality Agent 2.2.0, `831f050` | From its steps_view.js: the heading, the button, Your turn and the foot of each step |
-| `js/kpis.js` | adapt | Data Quality Agent 2.2.0, `831f050` | This tool's four key figures, worked out by the engine from the run, recorded or live |
+| `js/presenter.js` | adapt | Data Quality Agent 2.2.0, `831f050` | From its app.js: this tool's steps, Play, Your turn, the ring and the address of a step; from 0.3.0 the live run, which has no address; from 0.4.0 the report's three downloads |
+| `js/views/common.js` | adapt | Data Quality Agent 2.2.0, `831f050` | From its steps_view.js: the heading, the button, Your turn and the foot of each step; from 0.4.0 the download buttons |
+| `js/kpis.js` | adapt | Data Quality Agent 2.2.0, `831f050` | This tool's four key figures, worked out by the engine from the run, recorded or live, and from 0.4.0 the same values for the report |
 | `js/plain.js` | adapt | Data Quality Agent 2.2.0, `831f050` | This method's dimensions, horizons, issue types, responses and sectors in words |
 | `js/anthropic.js` | copy | Prototype Ideator 0.2.0, `532e0f5` | Unchanged: the set's shared client (streaming, retries, the free key check), which the Prototype Ideator merged first (brief §4.1) |
 | `js/sse.js` | copy | Prototype Ideator 0.2.0, `532e0f5` | Unchanged: the shared reader of the API's server-sent events |
@@ -35,8 +35,8 @@ from and what changed. A copied file is byte for byte the source; an adapted fil
 | `js/estimate.js` | adapt | Data Quality Agent 2.2.0, `831f050` | One request per step rather than a tool loop, no prompt caching, and a range from the recorded runs |
 | `tests/hygiene.mjs` | copy | Sovereignty Assessment 2.0.0, `35c0dea` | Unchanged; it reads the private list from `HYGIENE_TERMS`, `HYGIENE_TERMS_FILE` or `../.hygiene-terms` |
 | `tests/lib/harness.mjs` | adapt | Data Quality Agent 2.2.0, `831f050` | This tool's paths and `PESTEL_TEST_OUT`, Chromium without its sandbox when the tests run as root, and the shared `openTool()` and `report()` |
-| `tests/vici.mjs` | adapt | Data Quality Agent 2.2.0, `831f050` | This tool's page, key figures, strings in both languages, data ids and documents |
-| `tests/policy.mjs` | adapt | Data Quality Agent 2.2.0, `831f050` | The brief's policy, this tool's storage modules, and Vici's new `policyProblems()` and `storageProblems()` |
+| `tests/vici.mjs` | adapt | Data Quality Agent 2.2.0, `831f050` | This tool's page, key figures, strings in both languages, data ids and documents; from 0.4.0 Vici's report check on the Summary |
+| `tests/policy.mjs` | adapt | Data Quality Agent 2.2.0, `831f050` | The brief's policy, this tool's storage modules, Vici's new `policyProblems()` and `storageProblems()`, and the addresses a link may open |
 | `tests/vici-files.mjs` | adapt | Data Quality Agent 2.2.0, `831f050` | Compares `vici/` with ViciDesign at the exact commit through git, rather than by version number |
 | `tests/i18n.mjs` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | This tool's strings and guides, and the storage keys left after switching language |
 | `tests/guide-behaviour.mjs` | adapt | Duty Radar 2.1.0, `c93498e` | Runs Vici's guide check on this tool's two guides |
@@ -48,7 +48,7 @@ from and what changed. A copied file is byte for byte the source; an adapted fil
 | `tests/page-icon.mjs` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | No loading screen, since the page is drawn before any script runs; the website's card is compared once it exists |
 | `tests/run-all.mjs` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | This tool's suites; every flag goes to every suite; "ALL SUITES OK" only when all have run |
 | `tests/live_site.mjs` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | This tool's files and first screen; a scenario played to its end joins in 0.2.0 |
-| `.github/workflows/tests.yml` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | ViciDesign at `ca9c552`, and the website, the siblings and the sources cloned beside the tool |
+| `.github/workflows/tests.yml` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | ViciDesign at `64044bd`, and the website, the siblings and the sources cloned beside the tool |
 | `.github/workflows/live-site.yml` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | Only its header comment |
 
 Not taken: the sisters' `js/theme.js`. Its job, applying the theme before the first paint without an
@@ -66,6 +66,8 @@ live run in `js/pipeline.js`, the private-data warning in `js/privacy.js`, "Save
 `js/live_save.js`, the live views `js/views/live_start.js` and `js/views/live_work.js`, the stand-in's
 answers in `tests/lib/turns.mjs`, the live suites' moves in `tests/lib/live.mjs`, and the suites `guards`,
 `estimate`, `live-dialog`, `live-requests`, `live-repair`, `live-budget`, `live-errors`, `live-research`,
-`live-scan`, `live-flow` and `storage`. This tool first built its own KPI library, money format
+`live-scan`, `live-flow` and `storage`. From 0.4.0: the report in `js/report.js` and `css/report.css`, the
+handoff file in `js/handoff.js`, and the suites `handoff`, `report`, `report-files` and `report-figures`.
+This tool first built its own KPI library, money format
 and handoff schema; when the SWOT Challenger merged its versions first, it took theirs, as brief §4.1
 asks, and the Business Model Canvas Challenger did the same.

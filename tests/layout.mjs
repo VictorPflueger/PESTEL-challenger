@@ -14,8 +14,11 @@
 //   assess    the risk matrix, its key and the horizon strip are in view without scrolling;
 //   respond   at 1280 × 720 every option of every factor shows in full above the "Your turn" bar;
 //   guide     every chapter of the How it works guide fits its dialog without scrolling, in both languages;
+//   summary   Save as PDF, the two files and the Ideator link stand in the window, and the report's sheets
+//             stay white in either theme;
 //   live      a live run's form, its dialog (in the window, the start button and notice in view), the wait,
-//             editing at Scan and a stop meet the same checks, against the stand-in;
+//             editing at Scan and a stop meet the same checks, against the stand-in; a stop's downloads come
+//             into view without the page scrolling;
 // and saves a screenshot of each step as it opens, for a person to look at. A planted overflow proves the
 // checks can fail.
 // Usage: node tests/layout.mjs
@@ -121,6 +124,22 @@ const measure = (page, { dialog = false } = {}) => page.evaluate((inDialog) => {
   return out;
 }, dialog);
 
+/**
+ * The report's last bar: Save as PDF, the two files and the Ideator link in the window; and the report's
+ * sheets stay white in either theme, as paper does.
+ */
+async function summaryProblems(page) {
+  const s = await page.evaluate(() => {
+    const inView = (q) => { const e = document.querySelector(q); if (!e) return false; const r = e.getBoundingClientRect(); return r.width > 0 && r.top >= -0.5 && r.bottom <= innerHeight + 0.5 && r.left >= -0.5 && r.right <= innerWidth + 0.5; };
+    return { out: ["#btn-cta", "#btn-save-html", "#btn-save-json", "#link-ideator"].filter((q) => !inView(q)),
+      sheets: [...new Set([...document.querySelectorAll("#report .vc-report__page")].map((p) => getComputedStyle(p).backgroundColor))] };
+  });
+  return {
+    fit: s.out.length ? [`summary: out of the window: ${s.out.join(", ")}`] : [],
+    faint: s.sheets.join() !== "rgb(255, 255, 255)" ? [`summary: the report's sheets are ${s.sheets.join(", ") || "missing"}, not white`] : [],
+  };
+}
+
 // ---- the checks can fail ----------------------------------------------------------------------------
 {
   const { context, page } = await openTool(browser, { base: server.base, query: "?guide=0" });
@@ -145,6 +164,22 @@ const measure = (page, { dialog = false } = {}) => page.evaluate((inDialog) => {
   });
   const m = await measure(page);
   check(m.actionRows > 1 && m.wrapped.length > 0, `control: actions pushed onto two rows and a squeezed figure are caught (${m.actionRows} rows; ${m.wrapped.join(", ")})`);
+  await context.close();
+}
+
+{
+  // The Summary in the dark theme: a clean one passes; a sheet that follows the theme and a link pushed out
+  // of the window are caught.
+  const init = { fn: () => { try { localStorage.setItem("vc-theme", "dark"); } catch { /* blocked */ } }, arg: null };
+  const { context, page } = await openTool(browser, { base: server.base, query: "?guide=0&step=5", init });
+  await page.waitForSelector("#report .vc-report__cover");
+  const clean = await summaryProblems(page);
+  await page.evaluate(() => {
+    document.getElementById("report").setAttribute("data-theme", "dark");
+    document.getElementById("link-ideator").style.cssText = "position:fixed;left:-400px";
+  });
+  const planted = await summaryProblems(page);
+  check(!clean.fit.length && !clean.faint.length && planted.fit.length === 1 && planted.faint.length === 1, `control: the Summary's check passes a clean report in the dark theme and catches a dark sheet and a link out of the window (${[...planted.fit, ...planted.faint].join("; ")})`);
   await context.close();
 }
 
@@ -206,6 +241,11 @@ for (const { width, height, theme, lang, sc } of RUNS) {
         return [".matrix .vc-risk__grid", ".matrix .vc-risk__key", ".strip .vc-horizon__lanes"].every((q) => { const r = document.querySelector(q).getBoundingClientRect(); return r.top >= panel.top - 0.5 && r.bottom <= panel.bottom + 0.5; });
       });
       if (!inView) bad.fit.push("assess: the matrix, its key or the horizon strip lies outside the view");
+    }
+    if (name === "summary") {
+      const s = await summaryProblems(page);
+      bad.fit.push(...s.fit);
+      bad.faint.push(...s.faint);
     }
     if (theme === "light" && sc === "s3") await page.screenshot({ path: path.join(shots, `${width}x${height}-${lang}-${step}-${name}.png`) });
     if (name === "respond" && width === 1280) {
@@ -296,6 +336,17 @@ for (const [width, height] of [[1920, 1080], [1280, 720]]) {
         }
         await live.challenge(p);
         await look("a stop on an error");
+        // A stop offers what is done: the PDF and the HTML file in the window, or in view once its panel
+        // scrolls to them, as a person would.
+        const offer = await p.evaluate(() => {
+          const ids = ["#btn-save-pdf", "#btn-save-html"].map((q) => document.querySelector(`.stop-downloads ${q}`));
+          if (ids.some((e) => !e)) return "missing";
+          ids[0].scrollIntoView({ block: "nearest" });
+          const out = ids.filter((e) => { const r = e.getBoundingClientRect(); return !(r.width > 0 && r.top >= -0.5 && r.bottom <= innerHeight + 0.5); });
+          return out.length ? `out of the window: ${out.map((e) => e.id).join(", ")}` : (document.documentElement.scrollTop ? "the page scrolled to show them" : "");
+        });
+        if (offer) bad.fit.push(`the stop's downloads: ${offer}`);
+        await look("a stop at its downloads");
       } catch (e) {
         bad.fit.push(`the run failed: ${e.message.split("\n")[0]}`);
       }

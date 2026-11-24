@@ -15,8 +15,11 @@ import { sourceLink } from "./views/common.js";
 const icon = (name) => h("span", { class: `vc-icon vc-icon--${name}`, "aria-hidden": "true" });
 const STATE_ICON = { pressure: "warning", watch: "eye", addressed: "check" };
 
-/** The ring: the company in the centre, the six dimensions clockwise from the top in the order of PESTEL. */
-export function ring(run, step, { selected = null, onSelect = null, lang = getLang() } = {}) {
+/**
+ * The ring: the company in the centre, the six dimensions clockwise from the top in the order of PESTEL. Without
+ * onSelect its cells are plain cells, as in the report, which names its ring with its own titleId.
+ */
+export function ring(run, step, { selected = null, onSelect = null, lang = getLang(), titleId = "ring-title" } = {}) {
   const states = R.dimensionStates(run, step);
   const statuses = new Set(Object.values(states).map((s) => s.status).filter(Boolean));
   const cell = (d) => {
@@ -35,14 +38,14 @@ export function ring(run, step, { selected = null, onSelect = null, lang = getLa
       s.status ? h("span", { class: "vc-ring__state" }, icon(STATE_ICON[s.status]), t(`state.${s.status}`, null, lang)) : null));
   };
   const legend = ["pressure", "watch", "addressed"].filter((s) => s !== "addressed" || statuses.has("addressed"));
-  return h("figure", { class: "vc-ring ring", "aria-labelledby": "ring-title" },
+  return h("figure", { class: "vc-ring ring", "aria-labelledby": titleId },
     h("ol", { class: "vc-ring__cells" },
       h("li", {}, h("p", { class: "vc-ring__centre" },
         h("span", { class: "vc-ring__name" }, run.company.name),
         h("span", { class: "vc-ring__note" }, sectorName(run.company.sector, lang)))),
       DIMENSIONS.map(cell)),
     h("figcaption", {},
-      h("p", { class: "vc-visually-hidden", id: "ring-title" }, t("ring.caption", { company: run.company.name }, lang)),
+      h("p", { class: "vc-visually-hidden", id: titleId }, t("ring.caption", { company: run.company.name }, lang)),
       step >= 1 ? h("ul", { class: "vc-framework__legend" },
         legend.map((s) => h("li", { "data-mark": s }, h("span", { class: "vc-item__mark", "aria-hidden": "true" }, icon(STATE_ICON[s])), t(`state.${s}`, null, lang)))) : null,
       onSelect ? h("p", { class: "ring-hint" }, t("ring.hint", null, lang)) : null));

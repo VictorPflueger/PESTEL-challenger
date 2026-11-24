@@ -1,0 +1,109 @@
+/* ==========================================================================
+   The report (js/report.js) on Vici's report pattern (vici/: .vc-report). Vici sets the pages, the light
+   sheets, A4 and the footer in the margin boxes; this file sets the report's own parts. Everything here
+   reaches the report wherever it stands: in the Summary step, in the copy Vici prints, and in the HTML file
+   Vici.report.html() writes, which keeps the rules that reach the report and drops the rest.
+   ========================================================================== */
+
+/* The Summary shows the report in its panel: the cover as tall as its content, so the summary follows on. */
+.report-panel { gap: 0; }
+.report-panel .vc-report { padding-block: 4px 12px; }
+.report-panel .vc-report__cover { min-height: 0; }
+.report-panel .vc-report__title { font-size: var(--vc-font-size-4xl); }
+@media (max-height: 820px) and (min-width: 961px) {
+  .report-panel .vc-report__title { font-size: var(--vc-font-size-3xl); }
+  .report-panel .vc-report__page { padding: 20px 28px; }
+}
+
+.report { --report-gap: 10px; font-size: var(--vc-font-size-md); line-height: 1.5; }
+.report p, .report ul, .report ol, .report dl, .report table { margin: 0 0 var(--report-gap); }
+.report ul, .report ol { padding-left: 1.3em; }
+.report li + li { margin-top: 4px; }
+.report a { color: var(--vc-accent-text); }
+.report .ring { --vc-ring-cell: 7.5rem; margin: 8px auto 16px; }
+.report .vc-table { width: 100%; }
+.report .vc-table caption { text-align: left; color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); padding-bottom: 4px; }
+.report .item-label { color: var(--vc-text-muted); font-weight: var(--vc-weight-semibold); }
+
+/* The cover */
+.report-tags { display: flex; flex-wrap: wrap; gap: 6px 8px; margin-top: var(--vc-space-4) !important; }
+.report-stopped { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--vc-coral-300); background: var(--vc-coral-50); color: var(--vc-coral-800); font-weight: var(--vc-weight-semibold); }
+.report-public { color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); }
+
+/* The pages */
+.report-headline { font-size: var(--vc-font-size-lg); font-weight: var(--vc-weight-semibold); text-wrap: pretty; }
+.report-lead { color: var(--vc-text-muted); max-width: 72ch; }
+.report-note { color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); }
+.report-ai-note { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); }
+.report-figures td { white-space: nowrap; }
+.report-steps tbody th { font-weight: var(--vc-weight-regular); min-width: 14em; }
+.report-step-title { display: block; font-weight: var(--vc-weight-semibold); }
+.report-step-force { display: block; color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); }
+.report-risk .vc-table tbody th { min-width: 10em; }
+/* Report tables keep to the sheet: tighter cells and headers that wrap between words. A word stays whole or
+   hyphenates in the report's language (words of ten letters or more, four letters each side), and breaks
+   only when it alone is wider than its column; figures stay whole. */
+.report .vc-table :is(th, td) { padding: 6px 8px; overflow-wrap: break-word; hyphens: auto; hyphenate-limit-chars: 10 4 4; }
+.report .vc-table thead th { white-space: normal; }
+.report .vc-table :is(.vc-num, .num) { overflow-wrap: normal; white-space: nowrap; }
+/* The matrix as Vici lays it out, its key under the grid: the stage's laptop layout, key beside, is for Assess. */
+.report .matrix.vc-risk { grid-template-columns: minmax(0, 1fr); }
+.report .matrix .vc-risk__key { grid-column: auto; grid-row: auto; flex-direction: row; flex-wrap: wrap; align-self: auto; }
+.report .matrix .vc-chart__subtitle { display: block; }
+/* On screen a presenter may click a source on a projector: each link in the report gets a 40 px target, padded
+   beyond its text without changing the lines it stands in. Print and the HTML file keep plain links. */
+@media screen {
+  .report-panel .report a:not([class*="vc-byline"]) { display: inline-block; max-width: 100%; padding-block: 10px; margin-block: -10px; }
+  .report-panel .report a.vc-byline__person { min-height: 40px; }
+  .report-panel .report a.vc-byline__icon { min-width: 40px; min-height: 40px; justify-content: center; }
+}
+.report-figures tbody th { font-weight: var(--vc-weight-semibold); }
+
+/* The factors, the corrections and the responses: one entry each, a rule between them. */
+.report-factors, .report-issues, .report-responses { list-style: none; padding-left: 0 !important; }
+.report-factors > li, .report-issues > li, .report-responses > li { margin: 0; padding: 8px 0; border-top: 1px solid var(--vc-border-subtle); break-inside: avoid; }
+.report-factors > li > p, .report-issues > li > p, .report-responses > li > p { margin: 0 0 2px; }
+.report-factor-text { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.report-factor-facts, .report-factor-sources, .report-factor-basis, .report-factor-kpis { color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); }
+.report-factor-money { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.report-issues { counter-reset: issue; }
+.report-issue[data-undone="true"] > p:first-child strong { text-decoration: line-through; text-decoration-thickness: 1px; }
+.report-numbers-title { margin-top: 8px !important; font-weight: var(--vc-weight-semibold); font-size: var(--vc-font-size-sm); }
+.report-risk .matrix, .report-risk .strip { margin: 0 0 16px; }
+.report-risk .vc-table-wrap { overflow: visible; }
+.report-scales { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 16px; }
+.report-scales dt { color: var(--vc-text-muted); font-weight: var(--vc-weight-semibold); }
+.report-scales dd { margin: 0; }
+.report-sources { font-size: var(--vc-font-size-sm); }
+.report-about .vc-byline { margin-top: var(--vc-space-5); }
+
+/* The downloads in the last "Your turn" bar and after a stopped run. In the bar the files take the whole
+   width under the sentence and the button, so they stay on one line at 1280 × 720. */
+.turn-bar.report-turn { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 14px; row-gap: 2px; }
+.report-turn > .vc-callout__body { display: contents; }
+.report-turn > .vc-callout__cell { grid-column: 1; grid-row: 1 / span 4; align-self: center; }
+.report-turn > .vc-callout__body > * { grid-column: 2; margin: 0; }
+.report-turn > .vc-callout__body > :is(.report-files, .live-save) { grid-column: 2 / -1; }
+.report-turn > .cta { grid-column: 3; grid-row: 1 / span 2; }
+.report-files { display: grid; gap: 4px; }
+.report-files > * { margin: 0; }
+/* The two files and the Ideator link keep one row at 1280 px in English, so the report above keeps its height. */
+.report-file-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0; padding-top: 4px; }
+.report-ideator { --_px: var(--vc-space-3); }
+.report-pdf-hint { margin: 0; }
+.stop-downloads { display: grid; gap: 6px; padding-top: 4px; }
+.stop-downloads > * { margin: 0; }
+.stop-downloads-title { font-weight: var(--vc-weight-semibold); }
+
+@media print {
+  .report { font-size: 10pt; line-height: 1.45; }
+  /* Long tables and the risk figures run on over the page break, row by row, rather than leaving a page
+     half empty; a row, the matrix's grid and the strip's lanes stay whole. */
+  .report :is(.report-steps, .report-watch, .report-used, .report-dims), .report-risk .vc-table { break-inside: auto; }
+  .report tr { break-inside: avoid; }
+  .report-risk figure { break-inside: auto; }
+  .report-risk :is(.vc-risk__plot, .vc-horizon__lanes) { break-inside: avoid; }
+  .report .ring { --vc-ring-cell: 7rem; }
+  .report-factor-facts, .report-factor-sources, .report-factor-basis, .report-factor-kpis, .report-note, .report-sources { font-size: 8.5pt; }
+  .report a { color: inherit; text-decoration: underline; text-decoration-thickness: 0.5pt; }
+}

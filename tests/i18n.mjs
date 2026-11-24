@@ -10,7 +10,10 @@
 //   scenarios every text of the three scenarios exists in English and German, neither empty, with the same
 //             placeholders in both
 //   steps     on every step of a run, EN | DE switches every word of the stage and the tiles without a
-//             reload and keeps the run where it was: the step, the corrections undone and the choices made
+//             reload and keeps the run where it was: the step, the corrections undone and the choices made;
+//             a scenario's report, on the Summary, switches with the page
+//   report    a live run's report keeps the run's language when the page switches: its words, its footer
+//             and its file name, while the page around it changes
 // Adapted from the Sovereignty Assessment 2.0.0: this tool's strings and guides.
 // Usage: node tests/i18n.mjs
 import path from "node:path";
@@ -164,6 +167,47 @@ const pressed = (page) => page.evaluate(() => [...document.querySelectorAll(".la
   const bad = steps.filter((x) => !x.ok);
   check(noReload && steps.length === 6 && !bad.length, `steps: on each of the six steps EN | DE switches the stage and the tiles without a reload and keeps the run${noReload ? "" : "; the page reloaded"}${bad.length ? `; ${bad.map((x) => `${x.step}: ${x.why}`).join("; ")}` : ""}`);
   check(!errors.length, `steps: no page error${errors.length ? `: ${errors[0]}` : ""}`);
+  await context.close();
+}
+
+// ---- report: a live run's report speaks the run's language, whatever the page shows ------------------------
+{
+  const live = await import("./lib/live.mjs");
+  const t = await live.livePage({ base: server.base, browser }, { lang: "de" });
+  await live.fillForm(t.page, { lang: "de" });
+  await live.startRun(t.page);
+  await live.challenge(t.page);
+  await live.adopt(t.page);
+  await t.page.waitForSelector("#report .vc-report__cover");
+  const look = () => t.page.evaluate(() => {
+    const r = document.getElementById("report");
+    return { lang: r.getAttribute("lang"), start: r.getAttribute("data-vc-footer-start"), end: r.getAttribute("data-vc-footer-end"), about: r.querySelector('[data-page="about"] h3, [data-page="about"] h2')?.textContent.trim(),
+      page: document.documentElement.lang, button: document.getElementById("btn-cta")?.textContent.trim() };
+  });
+  const before = await look();
+  await t.page.evaluate(() => { window.__noReload = true; });
+  await t.page.click('.lang-option[data-lang="en"]');
+  await t.page.waitForTimeout(200);
+  const after = await look();
+  // The print takes the report's file name: the run's language stays in it.
+  await t.page.evaluate(() => { window.print = () => { dispatchEvent(new Event("beforeprint")); window.__title = document.title; dispatchEvent(new Event("afterprint")); }; });
+  await t.page.click("#btn-cta");
+  const title = await t.page.evaluate(() => window.__title || "");
+  const noReload = await t.page.evaluate(() => window.__noReload === true);
+  check(before.lang === "de" && after.lang === "de" && after.about === DE["report.about"] && /^Erstellt mit/.test(after.start) && /^Erstellt von/.test(after.end),
+    `report: a German live run's report stays German when the page switches to English (lang ${after.lang}, "${after.about}", footer "${String(after.end).slice(0, 24)}")`);
+  check(noReload && after.page.startsWith("en") && after.button === EN["summary.pdf"] && before.button === DE["summary.pdf"], `report: the page around it switches without a reload ("${before.button}" to "${after.button}")`);
+  check(/-de$/.test(title), `report: its file name keeps the run's language ("${title}")`);
+  await t.context.close();
+}
+// The control: a scenario's report follows the page, so the check above can tell the two apart.
+{
+  const { context, page } = await openTool(browser, { base: server.base, query: "?guide=0&lang=de&scenario=s3&step=5", locale: "en-GB" });
+  await page.waitForSelector("#report .vc-report__cover");
+  await page.click('.lang-option[data-lang="en"]');
+  await page.waitForTimeout(200);
+  const lang = await page.evaluate(() => document.getElementById("report")?.getAttribute("lang"));
+  check(lang === "en-GB", `report: a scenario's report follows the page into English (lang ${lang})`);
   await context.close();
 }
 

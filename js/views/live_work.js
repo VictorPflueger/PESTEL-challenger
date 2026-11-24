@@ -8,7 +8,7 @@
 
 import { h } from "../dom.js";
 import { t } from "../i18n/index.js";
-import { head, icon, withNotice } from "./common.js";
+import { head, icon, withNotice, downloads } from "./common.js";
 import { ring } from "../hexagon.js";
 import { apiMessage } from "../api_messages.js";
 import { fmtCost, fmtClock } from "../format.js";
@@ -103,7 +103,12 @@ export function stopView(ctx) {
             s.problems?.length ? h("details", { class: "stop-problems" },
               h("summary", {}, t("stop.problems")),
               h("ul", {}, s.problems.map((p) => h("li", {}, p)))) : null)),
-        h("p", { class: "stop-kept" }, t("stop.kept", { spent: fmtCost(run.spend.eur) }))),
+        h("p", { class: "stop-kept" }, t("stop.kept", { spent: fmtCost(run.spend.eur) })),
+        // What is done leaves as a report that says on every page where the run stopped (brief §5.5).
+        ctx.report?.can ? (() => {
+          const { pdf, files } = downloads(handlers, { handoff: ctx.report.handoff, primary: false });
+          return h("div", { class: "stop-downloads" }, h("p", { class: "stop-downloads-title" }, t("stop.download")), h("p", { class: "report-file-actions" }, pdf), files);
+        })() : null),
       h("div", { class: "story-foot stop-actions" },
         h("button", { type: "button", class: "vc-button vc-button--ghost", id: "btn-back-sim", on: { click: handlers.backToSimulation } }, icon("chevron-left"), t("live.back")),
         withNotice(h("button", { type: "button", class: "vc-button cta", id: "btn-cta", on: { click: handlers.goOn } }, t(s.reason === "checks" ? "stop.goOn.thorough" : "stop.goOn"), icon("chevron-right")))),

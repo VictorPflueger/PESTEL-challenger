@@ -5,15 +5,14 @@ the plan Victor approved on 23 November 2026; this file records what the build f
 
 ## 1. Version
 
-Version 0.3.0 (M3 Live): "Run it live" runs the agents on a person's own company with their own Claude
-API key, in the tab. It brings the empty Start form; the live-run dialog with the key held in memory,
-three settings, research, a budget cap, the acknowledgement, the private-data warning and the estimate;
-the Scout's web research and the Scanner, Red team, Analyst, Strategist and Writer, each answer checked by
-code and sent back once when it fails; the cost meter against the cap; plain messages for every error with
-the retries of brief §5.8; the person's edits at Scan; and "Save run as simulation". It builds on 0.2.0
-(M2 Simulation), three recorded runs on fictional companies that play step by step in English and German
-without a key, and on 0.1.0 (M1 Foundations): the frame, the strings, the engine with its golden cases,
-the schemas, the KPI library, the security policy and CI. The report follows in 0.4.0.
+Version 0.4.0 (M4 Report): every run ends in a report. The Summary shows it page by page; "Save as PDF"
+prints it alone with the footer on every page; the HTML file is the same report as one file of its own;
+the handoff file is the JSON the Prototype Ideator reads, checked against the shared schema before it
+downloads. A run stopped early offers what is done, and its report says on every page where it stopped.
+It builds on 0.3.0 (M3 Live), which runs the agents on a person's own company with their own Claude API
+key in the tab; on 0.2.0 (M2 Simulation), three recorded runs on fictional companies that play step by step
+in English and German without a key; and on 0.1.0 (M1 Foundations): the frame, the strings, the engine
+with its golden cases, the schemas, the KPI library, the security policy and CI.
 
 ## 2. API facts, verified at source
 
@@ -54,8 +53,8 @@ recommendations with PLAN.md on 23 November 2026.
 | D3 | Languages | English and German from version 0.1.0 |
 | D4 | Default setting and cap | Balanced and €0.50 |
 | D5 | Web research | Off by default, with a visible switch that recommends it |
-| D6 | PDF | The browser's Save as PDF, no library (from 0.4.0) |
-| D7 | Handing over to the Ideator | Download and link (from 0.4.0) |
+| D6 | PDF | The browser's Save as PDF, no library |
+| D7 | Handing over to the Ideator | The handoff file downloads, and a link opens the Ideator in a new tab |
 | D8 | Scenario names | Tidewell Lines, Arvento Drives and Auental Energie |
 | D9 | Readiness | As brief §6.5 defines it, shown with its rule and called this tool's own measure |
 | D10 | Research in the scenarios | S1 and S3 with a recorded research step, S2 without |
@@ -76,7 +75,7 @@ Decided while building 0.2.0, each within the brief and the plan:
 | The header | From 1,900 px the actions stand under the name and the figures at the top right, one band of 114 px; below, the figures take a row of their own, sized to their lines. In German at 1920 the actions used to wrap onto a second row, and in both languages after a decision; the layout suite now checks one row of actions and one line per value on every step |
 | Marker sizes | Thirds of the largest expected loss: smaller below a third, larger from two thirds, with Vici's `vc-risk__marker--sm` and `--lg` (ViciDesign#29); the key names each size in euros |
 | The session cost of a simulation | An estimate on Balanced, said on the tile: each agent's request rebuilt from what it reads and answers at about four characters a token, a 1,500-token prompt, each answer counted twice for thinking, five searches of 4,000 tokens with research, the prices above and €0.894 to the dollar (`js/estimate.js`) |
-| The talk track | The brief's draft (§8): five steps in five minutes, with action labels and figures from the engine. Its last step shows the PDF from 0.4.0; until then it shows the summary and the watch list |
+| The talk track | The brief's draft (§8): five steps in five minutes, with action labels and figures from the engine. Its last step adopts the responses and saves the report as PDF |
 | The guide's chapters | Six: the brief's four (What it does, How it works, What is real, How to present) and two a stranger needs to play it alone (The six steps, The cost estimate); each fits at 1280 × 720 |
 | Check for updates | A scenario whose facts were read more than 90 days ago says so on Start (`needsUpdate()` in `js/format.js`) |
 | Vici | The ring (ViciDesign#30), the horizon strip (#31), square radios in the segmented control (#33) and a fix that keeps the risk matrix and the horizon strip to their width once their numbers open (#34) went into Vici first; `vici/` copies its main at the commit `vici/README.md` names |
@@ -102,7 +101,24 @@ Decided while building 0.3.0, each within the brief and the plan:
 | Save run as simulation | Downloads the run in the scenario format without the key, a prompt, a thinking block or the request log. The company keeps its name, marked as not fictional, and the other language stays empty, so the scenario checker lists what curation still owes |
 | The private-data warning | E-mail addresses, phone numbers, IBANs whose check digits add up, and the words confidential, internal, vertraulich and intern. It warns and does not block (brief §5.10) |
 | The stand-in | `tests/lib/fake-claude.mjs` answers the browser suites with scenario S3's recorded answers, streamed as the API streams them, plants faults and holds, and checks every request against what a live run must send |
-| Vici | The live-run dialog is Vici's `.vc-live`, which the SWOT Challenger added (ViciDesign#36). `vici/` copies Vici's main at `ca9c552`, which also holds the Prototype Ideator's fixes for callouts, table figures and the dialog's fit at 1280 × 720 (ViciDesign#35, #37, #38 and #39) |
+| Vici | The live-run dialog is Vici's `.vc-live`, which the SWOT Challenger added (ViciDesign#36). `vici/` copies Vici's main at the commit `vici/README.md` names, which also holds the Prototype Ideator's fixes for callouts, table figures and the dialog's fit at 1280 × 720 (ViciDesign#35, #37, #38 and #39) |
+
+Decided while building 0.4.0, each within the brief and the plan:
+
+| What | Decision |
+|---|---|
+| The report | Vici's report (ViciDesign#40), which this tool added to Vici first: `.vc-report` with a cover and pages, light sheets on screen in either theme, A4 in print. `js/report.js` builds it from the run's state, as brief §9.1 lists it: cover, management summary, the six dimensions, the factors, the corrections, the risk matrix and horizon strip with their tables, the responses, the watch list, method with the decision log and the sources, and About this report. No model writes its layout |
+| Its language | A live run's report speaks the run's language, whatever the page shows; a simulation's the page's. `inLang()` in `js/i18n/index.js` lends every formatter that language while the report is built, and tells no view |
+| The footer | In the page's margin boxes: "Created with PESTEL Challenger" and the address on the left, "Built by Victor Pflüger · page x of y" on the right. A German report says "Erstellt mit …" and "Erstellt von Victor Pflüger · Seite x von y", as Vici's byline does on a German page; AC-13 names the English words, which every English report carries |
+| Browsers | Chrome and Edge print margin boxes from version 131 (read on caniuse.com on 24 November 2026); CSS asks for them with `@supports at-rule(@bottom-left)` from Chrome 148, and `Vici.report.prepare()` marks the print copy itself for 131 to 147. Firefox and Safari have none, so they print the report's fixed footer, without page numbers (R6) |
+| Save as PDF | The button prints the report alone through a copy at the end of `body` and names the page after the report's file, which Chrome offers as the PDF's name. Ctrl+P on the Summary does the same; on other steps it prints the page as it is |
+| The last bar | Its one primary action is "Save as PDF", as brief §9 names it, with the hint "Choose Save as PDF as the printer."; §8's draft label "Download the report" would hide that the PDF comes from the print dialog. The HTML file, the handoff file and "Turn this report into prototype ideas" stand beside it as secondary actions |
+| Unchecked text | Whatever the screens tag Unchecked (brief §6.7) keeps the tag in the report: a factor, its estimate, a correction, a response or the summary, and the method page says once what the tag means |
+| The HTML file | `Vici.report.html()`, so the four tools share one writer rather than each adapting the Sovereignty Assessment 1.0.0's export.js, as PLAN.md section 9 planned. It holds the report's markup with the title as its h1, its pictures drawn to data, the style rules of the page that reach the report, the footer's words on the root, its own policy `default-src 'none'; style-src 'unsafe-inline'; img-src data:`, no script. The web fonts stay out, since the page's policy lets it read no file of its own, so the file falls back to the reader's fonts. About 150 KB |
+| The handoff file | `js/handoff.js`: every force that counts is an issue, threats numbered as the risk matrix numbers them, then the opportunities; every option the Strategist offered is a response, the chosen ones marked, an accepted force adds an "accept" response, and each watch response carries its signal and trigger as a watch entry. Horizons map to now, 1_to_3_years and over_3_years; a country typed as a name becomes its two-letter code, "ZZ" when unknown; the readiness score keeps the engine's exact value. Offered from Assess on, since it carries figures |
+| File names | `pestel-challenger-<company>-<YYYY-MM-DD>-<lang>.<ext>`, the report's date and language, umlauts written out (`reportName()` in `js/live_save.js`) |
+| The decision log | Built from the run's state rather than a separate event log: the AI factors kept, edited or removed, the corrections undone, and each force's chosen response, marked as recommended or the person's own |
+| Long tables in print | The responses, the watch list and the risk tables run on over page breaks row by row, rather than leaving half a page empty; a row stays whole. In a narrow column a word stays whole or hyphenates in the report's language (`hyphens: auto`, words of ten letters or more), rather than splitting between any two letters |
 
 ## 4. Security policy and what is kept
 
@@ -151,20 +167,24 @@ validated with those as the registry.
 
 The tests need Node 22 and, for the browser suites, Playwright with Chromium: `npm install -g playwright`
 and `npx playwright install chromium`, then `NODE_PATH="$(npm root -g)" node tests/run-all.mjs`, which
-runs all thirty-one suites and ends with "ALL SUITES OK"; `node tests/run-all.mjs engine layout` runs only
+runs all thirty-five suites and ends with "ALL SUITES OK"; `node tests/run-all.mjs engine layout` runs only
 the suites named. From 0.2.0 the suites `scenarios` and `audit` prove the scenario checker and the fact
 audit, `presenter` plays every scenario in both languages, `views` checks the ring, the lists, the matrix
 and the strip on every screen, and `layout`, `hexagon`, `vici` and `i18n` look at every step. From 0.3.0 `guards` and `estimate` check
 the agents' checks and the estimate, and nine browser suites (`live-dialog`, `live-requests`,
 `live-repair`, `live-budget`, `live-errors`, `live-research`, `live-scan`, `live-flow` and `storage`) run
-live runs against the stand-in, which answers every request to api.anthropic.com inside the browser. No
-automated test calls the real API, and none needs a key.
+live runs against the stand-in, which answers every request to api.anthropic.com inside the browser. From
+0.4.0 `handoff` builds the handoff file of every scenario, language and choice and has the Prototype
+Ideator read it; `report` prints every scenario's report in Chromium and reads each PDF page for the footer,
+and a capped live run's for its notice; `report-files` opens the HTML file offline and checks both files'
+names and contents; and `report-figures` holds the report and the handoff file to the tiles. No automated
+test calls the real API, and none needs a key.
 `node tools/check-scenarios.mjs` runs the checker alone; `--frozen` prints the figures to freeze after a
 deliberate change. Vici's checks need a ViciDesign checkout beside this repository at the commit
 `vici/README.md` names; `--require-vici` makes its absence a failure, as it always is on GitHub Actions.
 Checkouts of the website (VIP), the three siblings and the prototypes `REVIEW.md` names, beside this
-repository, let the page-icon, parity and docs suites compare with them; without one, that part is skipped
-and says so. `tests/hygiene.mjs` reads its private term list from the `HYGIENE_TERMS` secret, a
+repository, let the page-icon, parity, docs and handoff suites compare with them; without one, that part is
+skipped and says so. `tests/hygiene.mjs` reads its private term list from the `HYGIENE_TERMS` secret, a
 `HYGIENE_TERMS_FILE`, or `../.hygiene-terms`.
 
 The tests workflow does all of this on every push and pull request and keeps the layout suite's
@@ -181,7 +201,9 @@ languages, and the default scenario plays to its end in each.
   Fast, Balanced and Thorough measure each step's tokens, cost and time ("What this run used" on the
   summary); then each step's max_tokens is set from what it used, and the estimate quotes the measured
   figures (`MEASURED` in `js/estimate.js`). The probes of PLAN.md section 16 wait for the same session.
-- **Firefox and Safari print** without page numbers in the footer; checked by hand in M4.
+- **Firefox and Safari print** the report's fixed footer, without page numbers, since neither has margin
+  boxes. Chromium's print is tested; Victor prints a report once in each by hand. An HTML file printed in
+  Chrome 131 to 147, which has no script to mark it, shows both footers.
 - **Shared parts taken from the SWOT Challenger.** This tool first built its own KPI library, money
   format and handoff schema; the SWOT Challenger merged its versions first (`617b122`), so this tool took
   them unchanged, as brief §4.1 asks. Three things this tool's versions had are proposals for a change
@@ -189,8 +211,6 @@ languages, and the default scenario plays to its end in each.
   standard source for the seven KPIs a standard body defines (net promoter score, CO2 per unit, CO2 per
   container-kilometre, grid outage minutes, CET1 ratio, liquidity coverage ratio, solvency ratio), and a
   range format for the factor view of 0.2.0.
-- **What the guide promises ahead.** The guide names the report (0.4.0) as coming. The talk track's last
-  step shows the summary until the PDF arrives.
 - **The cost estimate is an assumption** until Victor's first live runs measure what each step costs; the
   tile, the dialog and the guide say it is an estimate and what it rests on. Its three characters a token
   follows the model pages' 30 percent and has not been counted on this tool's own prompts, since the free

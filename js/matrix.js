@@ -45,8 +45,20 @@ function marker(x, largest, { residual = false, horizon = true } = {}) {
   }, String(x.n));
 }
 
-/** The risk matrix of the threats, with the hollow marker of what is left after a mitigation once decided. */
-export function riskMatrix(run) {
+/**
+ * The numbers of a figure as a table: one click away in a closed details on screen, or in the open in the
+ * report, where nothing may need a click (table: "open").
+ */
+function numbers(summaryText, tableEl, mode) {
+  if (mode === "open") return h("div", { class: "vc-risk__numbers report-numbers" }, h("p", { class: "report-numbers-title" }, summaryText), tableEl);
+  return h("details", { class: "vc-risk__numbers" }, h("summary", {}, summaryText), tableEl);
+}
+
+/**
+ * The risk matrix of the threats, with the hollow marker of what is left after a mitigation once decided.
+ * opts: table ("details" on screen, "open" in the report) and idPrefix for the report's own ids.
+ */
+export function riskMatrix(run, { table: mode = "details", idPrefix = "" } = {}) {
   const lang = getLang();
   const list = numberedThreats(run);
   const largest = Math.max(0, ...list.map((x) => x.fig.expected ?? 0));
@@ -79,24 +91,32 @@ export function riskMatrix(run) {
     sizes ? [h("li", { "data-size": "sm" }, t("matrix.size.sm", { money: money(largest / 3, lang) })), h("li", { "data-size": "lg" }, t("matrix.size.lg", { money: money((2 * largest) / 3, lang) }))] : null,
     residuals.length ? h("li", { class: "key-residual" }, t("matrix.key.residual")) : null);
 
-  const table = h("details", { class: "vc-risk__numbers" },
-    h("summary", {}, t("matrix.numbers")),
-    h("div", { class: "vc-table-wrap" }, h("table", { class: "vc-table vc-table--compact" },
-      h("thead", {}, h("tr", {}, ["matrix.col.threat", "matrix.col.dim", "matrix.col.likelihood", "matrix.col.impact", "matrix.col.score", "matrix.col.band", "matrix.col.horizon", "matrix.col.range", "matrix.col.expected"].map((k) => h("th", { scope: "col" }, t(k))))),
-      h("tbody", {}, list.map((x) => h("tr", {},
-        h("th", { scope: "row" }, `${x.n}. ${x.f.text}`),
-        h("td", {}, dimName(x.f.dimension)),
-        h("td", { class: "num" }, String(x.f.likelihood)),
-        h("td", { class: "num" }, String(x.f.impact)),
-        h("td", { class: "num" }, String(x.fig.risk)),
-        h("td", {}, bandName(x.fig.band)),
-        h("td", {}, horizonName(x.f.horizon)),
-        h("td", { class: "num ai-figure" }, x.f.not_monetisable ? t("matrix.noRange") : moneyRange(x.f.eur_year_low, x.f.eur_year_high, lang)),
-        h("td", { class: "num" }, x.fig.expected === null ? t("fig.none") : money(x.fig.expected, lang))))))));
+  const table = numbers(t(mode === "open" ? "matrix.numbers.open" : "matrix.numbers"),
+    // The report gives each force's range and horizon on its own page, so its table keeps to what fits A4.
+    mode === "open"
+      ? h("table", { class: "vc-table vc-table--compact" },
+        h("thead", {}, h("tr", {}, ["matrix.col.threat", "matrix.col.product", "matrix.col.band", "matrix.col.expected"].map((k, i) => h("th", { scope: "col", class: i === 1 || i === 3 ? "vc-num" : null }, t(k))))),
+        h("tbody", {}, list.map((x) => h("tr", {},
+          h("th", { scope: "row" }, `${x.n}. ${x.f.text}`),
+          h("td", { class: "vc-num" }, `${x.f.likelihood} × ${x.f.impact} = ${x.fig.risk}`),
+          h("td", {}, bandName(x.fig.band)),
+          h("td", { class: "vc-num" }, x.fig.expected === null ? t("fig.none") : money(x.fig.expected, lang))))))
+      : h("div", { class: "vc-table-wrap" }, h("table", { class: "vc-table vc-table--compact" },
+        h("thead", {}, h("tr", {}, ["matrix.col.threat", "matrix.col.dim", "matrix.col.likelihood", "matrix.col.impact", "matrix.col.score", "matrix.col.band", "matrix.col.horizon", "matrix.col.range", "matrix.col.expected"].map((k) => h("th", { scope: "col" }, t(k))))),
+        h("tbody", {}, list.map((x) => h("tr", {},
+          h("th", { scope: "row" }, `${x.n}. ${x.f.text}`),
+          h("td", {}, dimName(x.f.dimension)),
+          h("td", { class: "num" }, String(x.f.likelihood)),
+          h("td", { class: "num" }, String(x.f.impact)),
+          h("td", { class: "num" }, String(x.fig.risk)),
+          h("td", {}, bandName(x.fig.band)),
+          h("td", {}, horizonName(x.f.horizon)),
+          h("td", { class: "num ai-figure" }, x.f.not_monetisable ? t("matrix.noRange") : moneyRange(x.f.eur_year_low, x.f.eur_year_high, lang)),
+          h("td", { class: "num" }, x.fig.expected === null ? t("fig.none") : money(x.fig.expected, lang))))))), mode);
 
-  return h("figure", { class: "vc-risk matrix", "aria-labelledby": "matrix-title" },
+  return h("figure", { class: "vc-risk matrix", "aria-labelledby": `${idPrefix}matrix-title` },
     h("figcaption", {},
-      h("p", { class: "vc-chart__title", id: "matrix-title" }, t("matrix.title", { n: list.length })),
+      h("p", { class: "vc-chart__title", id: `${idPrefix}matrix-title` }, t("matrix.title", { n: list.length })),
       h("p", { class: "vc-chart__subtitle" }, t("matrix.subtitle"))),
     h("div", { class: "vc-risk__plot" },
       h("p", { class: "vc-risk__axis vc-risk__axis--impact" }, t("matrix.impact")),
@@ -106,8 +126,8 @@ export function riskMatrix(run) {
     table);
 }
 
-/** The horizon strip: the same numbered threats in the lane of when they arrive. */
-export function horizonStrip(run) {
+/** The horizon strip: the same numbered threats in the lane of when they arrive. opts as riskMatrix's. */
+export function horizonStrip(run, { table: mode = "details", idPrefix = "" } = {}) {
   const lang = getLang();
   const list = numberedThreats(run);
   const largest = Math.max(0, ...list.map((x) => x.fig.expected ?? 0));
@@ -120,19 +140,18 @@ export function horizonStrip(run) {
         : h("p", { class: "vc-horizon__empty" }, t("strip.none")));
   });
   const sizes = list.some((x) => x.fig.expected !== null);
-  return h("figure", { class: "vc-horizon strip", "aria-labelledby": "strip-title" },
-    h("figcaption", {}, h("p", { class: "vc-chart__title", id: "strip-title" }, t("strip.title"))),
+  return h("figure", { class: "vc-horizon strip", "aria-labelledby": `${idPrefix}strip-title` },
+    h("figcaption", {}, h("p", { class: "vc-chart__title", id: `${idPrefix}strip-title` }, t("strip.title"))),
     h("ol", { class: "vc-horizon__lanes" }, lanes),
     sizes ? h("ul", { class: "vc-risk__key strip-key vc-visually-hidden" },
       h("li", { "data-size": "sm" }, t("matrix.size.sm", { money: money(largest / 3, lang) })),
       h("li", { "data-size": "lg" }, t("matrix.size.lg", { money: money((2 * largest) / 3, lang) }))) : null,
-    h("details", { class: "vc-risk__numbers" },
-      h("summary", {}, t("strip.numbers")),
+    numbers(t(mode === "open" ? "strip.numbers.open" : "strip.numbers"),
       h("div", { class: "vc-table-wrap" }, h("table", { class: "vc-table vc-table--compact" },
-        h("thead", {}, h("tr", {}, ["matrix.col.threat", "strip.col.when", "matrix.col.band", "matrix.col.expected"].map((k) => h("th", { scope: "col" }, t(k))))),
+        h("thead", {}, h("tr", {}, ["matrix.col.threat", "strip.col.when", "matrix.col.band", "matrix.col.expected"].map((k, i) => h("th", { scope: "col", class: mode === "open" && i === 3 ? "vc-num" : null }, t(k))))),
         h("tbody", {}, list.map((x) => h("tr", {},
           h("th", { scope: "row" }, `${x.n}. ${x.f.text}`),
           h("td", {}, horizonName(x.f.horizon)),
           h("td", {}, bandName(x.fig.band)),
-          h("td", { class: "num" }, x.fig.expected === null ? t("fig.none") : money(x.fig.expected, lang)))))))));
+          h("td", { class: mode === "open" ? "vc-num" : "num" }, x.fig.expected === null ? t("fig.none") : money(x.fig.expected, lang))))))), mode));
 }

@@ -25,7 +25,10 @@ import { session, setInput, updateSession, markResult, markDownloaded, clearEver
 import { createLiveRun, createPipeline, AGENT_STEP } from "./pipeline.js";
 import { settingOf } from "./config.js";
 import { initLiveDialog } from "./live_dialog.js";
-import { scenarioOf, saveName, downloadText } from "./live_save.js";
+import { scenarioOf, saveName, reportName, downloadText } from "./live_save.js";
+import { reportDocument, reportLang, hasReport } from "./report.js";
+import { handoffOf, handoffProblems, canHandOff } from "./handoff.js";
+import { redactSecrets } from "./keystore.js";
 import { liveStartView, formProblems, controlOf } from "./views/live_start.js";
 import { workView, stopView, workFigures } from "./views/live_work.js";
 import { startView } from "./views/start.js";
@@ -99,6 +102,41 @@ export function initPresenter() {
     if (!state.estimates.has(state.scenarioId)) state.estimates.set(state.scenarioId, estimateScenario(scenario(), "en"));
     return state.estimates.get(state.scenarioId);
   };
+
+  const today = () => appToday().toISOString().slice(0, 10);
+
+  /**
+   * The report a download takes: the one the Summary shows, or one built where the run stands, off screen, for
+   * a run that stopped early. Its pictures are decoded first, so the PDF and the file show them.
+   */
+  async function reportForDownload() {
+    let el = document.getElementById("report");
+    if (!el) {
+      const r = run();
+      if (!hasReport(r)) return null;
+      const shelf = document.getElementById("report-shelf") || document.body.appendChild(h("div", { id: "report-shelf", class: "report-shelf", hidden: true }));
+      clear(shelf);
+      el = reportDocument(r, { lang: reportLang(r, getLang()), today: today(), estimate: isLive() ? null : estimate(), id: "report-shelved" });
+      shelf.append(el);
+    }
+    await Promise.all([...el.querySelectorAll("img")].map((img) => (img.complete ? null : img.decode().catch(() => null))));
+    return el;
+  }
+
+  // Printing: the report alone (Vici.report.prepare), whether Save as PDF or Ctrl+P on the Summary started it,
+  // and the page's title becomes the report's file name, which Save as PDF offers as the PDF's name (brief §9).
+  let printing = null;
+  let unprint = null;
+  addEventListener("beforeprint", () => {
+    const el = printing || document.getElementById("report");
+    if (!el || !window.Vici?.report || unprint) return;
+    const undo = window.Vici.report.prepare(el);
+    const was = document.title;
+    const r = run();
+    document.title = reportName(r, { date: today(), lang: reportLang(r, getLang()), ext: "pdf" }).replace(/\.pdf$/, "");
+    unprint = () => { undo(); document.title = was; };
+  });
+  addEventListener("afterprint", () => { if (unprint) unprint(); unprint = null; printing = null; });
 
   /** The dimension the list shows when a step opens: the first under pressure, else the first with factors. */
   function defaultDim(step) {
@@ -236,6 +274,38 @@ export function initPresenter() {
       markDownloaded();
       announce.textContent = t("p.announce.saved");
     },
+    // ---- the report (brief §9) ----
+    savePdf: async () => {
+      const el = await reportForDownload();
+      if (!el || !window.Vici?.report) return;
+      announce.textContent = t("p.announce.print");
+      printing = el;
+      window.Vici.report.print(el);
+    },
+    saveHtml: async () => {
+      const el = await reportForDownload();
+      if (!el || !window.Vici?.report) return;
+      const r = run();
+      downloadText(reportName(r, { date: today(), lang: reportLang(r, getLang()), ext: "html" }), redactSecrets(window.Vici.report.html(el)), "text/html");
+      if (isLive()) markDownloaded();
+      announce.textContent = t("p.announce.savedHtml");
+    },
+    saveJson: () => {
+      const r = run();
+      const lang = reportLang(r, getLang());
+      const file = handoffOf(r, { lang, now: new Date() });
+      const problems = handoffProblems(file);
+      if (problems.length) {
+        // Never a file that breaks the shared shape: the Ideator would refuse it. The problems name fields,
+        // never what the person entered.
+        announce.textContent = t("summary.json.invalid");
+        window.Vici?.toast?.({ title: t("summary.json.invalid"), message: problems.slice(0, 3).join("; "), tone: "danger" });
+        return;
+      }
+      downloadText(reportName(r, { date: today(), lang, ext: "json" }), redactSecrets(`${JSON.stringify(file, null, 2)}\n`));
+      if (isLive()) markDownloaded();
+      announce.textContent = t("p.announce.savedJson");
+    },
     // A cell lists its dimension's factors: the list opens if it was closed and scrolls into view in its
     // panel, so the room sees what the click did; focus stays on the cell for the next one.
     setDim: (d) => {
@@ -265,7 +335,8 @@ export function initPresenter() {
     if (isLive()) state.reached = liveReached();
     renderStepBar();
     const r = run();
-    const ctx = { run: r, step: state.step, reached: state.reached, ui: state.ui, handlers, lang: getLang(), today: appToday().toISOString().slice(0, 10), play: { on: P.on, attention: state.attention } };
+    const ctx = { run: r, step: state.step, reached: state.reached, ui: state.ui, handlers, lang: getLang(), today: today(), play: { on: P.on, attention: state.attention },
+      estimate: isLive() ? null : estimate(), report: { can: hasReport(r), handoff: canHandOff(r) } };
     const view = viewFor(ctx);
     // Keep focus, open items and scroll across a re-render of the same step.
     const active = document.activeElement;
@@ -647,7 +718,7 @@ export function initPresenter() {
   function refreshSide() {
     if (!isLive() || state.step !== 0) return;
     const aside = stage.querySelector("aside.side");
-    const view = viewFor({ run: run(), step: 0, reached: state.reached, ui: state.ui, handlers, lang: getLang(), today: appToday().toISOString().slice(0, 10), play: { on: false } });
+    const view = viewFor({ run: run(), step: 0, reached: state.reached, ui: state.ui, handlers, lang: getLang(), today: today(), play: { on: false } });
     if (aside && view.side) { clear(aside); aside.append(view.side); }
     // Each heading says what fills it: the person's lines, or the Scanner.
     for (const d of DIMENSIONS) {

@@ -16,6 +16,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="vici/dist/vici.min.css">
   <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/report.css">
   <script src="vici/dist/vici-theme.js"></script>
   <script src="vici/dist/vici.js" defer></script>
   <script type="module" src="js/main.js"></script>
@@ -192,7 +193,7 @@
       <section class="vc-guide__chapter" data-vc-chapter="what" data-vc-nav="What it does">
         <h3>Which outside forces a company isn't ready for</h3>
         <p class="vc-guide__lead">Name a company and list the outside forces you see under six headings. AI agents complete them, challenge the analysis, put a figure on each threat and propose what to do or watch.</p>
-        <p>The six headings are political, economic, social, technological, environmental and legal: PESTEL. Without a key, this version plays three recorded runs on fictional companies. Run it live, and the agents analyse your own company with your own Claude key. The report as a PDF, an HTML file and a file for the Prototype Ideator follows in 0.4.0.</p>
+        <p>The six headings are political, economic, social, technological, environmental and legal: PESTEL. Without a key, this version plays three recorded runs on fictional companies. Run it live, and the agents analyse your own company with your own Claude key. Every run ends in a report: saved as PDF, as an HTML file, and as a file for the Prototype Ideator.</p>
       </section>
       <section class="vc-guide__chapter" data-vc-chapter="how" data-vc-nav="How it works">
         <h3>Five agents, and code that does the sums</h3>
@@ -220,7 +221,7 @@
             <tr><th scope="row">Challenge</th><td>The Red team corrects the analysis; you can undo each correction.</td></tr>
             <tr><th scope="row">Assess</th><td>The Analyst prices each threat in the sector's KPIs and euros a year.</td></tr>
             <tr><th scope="row">Respond</th><td>The Strategist proposes responses. Your turn: adopt them.</td></tr>
-            <tr><th scope="row">Summary</th><td>The Writer's summary and the watch list; code supplies every figure.</td></tr>
+            <tr><th scope="row">Summary</th><td>The report, with the watch list; save it as PDF.</td></tr>
           </tbody>
         </table></div>
       </section>
@@ -253,7 +254,7 @@
           <li><strong>Start the agents, then open a dated signal.</strong> <span class="vc-guide__say">“The Scanner fills all six dimensions from the news, each with its source.”</span> <span class="vc-guide__time">1 min</span></li>
           <li><strong>Challenge, then open Legal.</strong> <span class="vc-guide__say">“The Red team moves the heat plan to now: legal comes under pressure.”</span> <span class="vc-guide__time">1 min</span></li>
           <li><strong>At Respond, change one choice.</strong> <span class="vc-guide__say">“Mitigate the heat plan, watch overdue bills; each choice moves the figures.”</span> <span class="vc-guide__time">1.5 min</span></li>
-          <li><strong>Adopt, then show the watch list.</strong> <span class="vc-guide__say">“Left at stake: <span data-fig="stake.after">€2.2m</span> a year, readiness <span data-fig="readiness.after">72</span>.”</span> <span class="vc-guide__time">0.5 min</span></li>
+          <li><strong>Adopt, then save the PDF with its watch list.</strong> <span class="vc-guide__say">“Left at stake: <span data-fig="stake.after">€2.2m</span> a year, readiness <span data-fig="readiness.after">72</span>.”</span> <span class="vc-guide__time">0.5 min</span></li>
         </ol>
       </section>
     </div>
@@ -273,7 +274,7 @@
       <section class="vc-guide__chapter" data-vc-chapter="what" data-vc-nav="Was er tut">
         <h3>Worauf ein Unternehmen nicht vorbereitet ist</h3>
         <p class="vc-guide__lead">Nennen Sie ein Unternehmen und die äußeren Kräfte, die Sie sehen, unter sechs Überschriften. KI‑Agenten vervollständigen sie, hinterfragen die Analyse, beziffern jedes Risiko und schlagen vor, was zu tun oder zu beobachten ist.</p>
-        <p>Die sechs Überschriften sind politisch, ökonomisch, gesellschaftlich, technologisch, ökologisch und rechtlich: PESTEL. Ohne Schlüssel spielt diese Version drei aufgezeichnete Läufe mit fiktiven Unternehmen ab. Mit „Live laufen lassen“ analysieren die Agenten Ihr eigenes Unternehmen mit Ihrem eigenen Claude-Schlüssel. Der Bericht als PDF, als HTML-Datei und als Datei für den Prototype Ideator folgt in 0.4.0.</p>
+        <p>Die sechs Überschriften sind politisch, ökonomisch, gesellschaftlich, technologisch, ökologisch und rechtlich: PESTEL. Ohne Schlüssel spielt diese Version drei aufgezeichnete Läufe mit fiktiven Unternehmen ab. Mit „Live laufen lassen“ analysieren die Agenten Ihr eigenes Unternehmen mit Ihrem eigenen Claude-Schlüssel. Jeder Lauf endet in einem Bericht: als PDF, als HTML-Datei und als Datei für den Prototype Ideator.</p>
       </section>
       <section class="vc-guide__chapter" data-vc-chapter="how" data-vc-nav="So funktioniert er">
         <h3>Fünf Agenten und Code, der rechnet</h3>
@@ -301,7 +302,7 @@
             <tr><th scope="row">Prüfung</th><td>Das Red Team korrigiert die Analyse; Sie können jede Korrektur zurücknehmen.</td></tr>
             <tr><th scope="row">Bewertung</th><td>Der Analyst beziffert jedes Risiko in Branchen-KPIs und Euro pro Jahr.</td></tr>
             <tr><th scope="row">Antworten</th><td>Der Stratege schlägt Antworten vor. Sie sind dran: übernehmen.</td></tr>
-            <tr><th scope="row">Zusammenfassung</th><td>Zusammenfassung und Beobachtungsliste; jede Zahl kommt aus dem Code.</td></tr>
+            <tr><th scope="row">Zusammenfassung</th><td>Der Bericht mit der Beobachtungsliste; als PDF speichern.</td></tr>
           </tbody>
         </table></div>
       </section>
@@ -334,7 +335,7 @@
           <li><strong>Agenten starten, ein datiertes Signal öffnen.</strong> <span class="vc-guide__say">„Der Scanner füllt alle sechs Dimensionen aus den Nachrichten, jede mit Quelle.“</span> <span class="vc-guide__time">1 min</span></li>
           <li><strong>Prüfen lassen, dann Rechtlich öffnen.</strong> <span class="vc-guide__say">„Das Red Team zieht den Wärmeplan auf jetzt vor: Rechtlich gerät unter Druck.“</span> <span class="vc-guide__time">1 min</span></li>
           <li><strong>Bei Antworten eine Wahl ändern.</strong> <span class="vc-guide__say">„Wärmeplan angehen, Forderungen beobachten: Jede Wahl bewegt die Zahlen.“</span> <span class="vc-guide__time">1,5 min</span></li>
-          <li><strong>Übernehmen, die Beobachtungsliste zeigen.</strong> <span class="vc-guide__say">„Es bleiben <span data-fig="stake.after">2,2 Mio. €</span> pro Jahr auf dem Spiel, Vorbereitungsgrad <span data-fig="readiness.after">72</span>.“</span> <span class="vc-guide__time">0,5 min</span></li>
+          <li><strong>Übernehmen, dann das PDF mit der Beobachtungsliste speichern.</strong> <span class="vc-guide__say">„Es bleiben <span data-fig="stake.after">2,2 Mio. €</span> pro Jahr auf dem Spiel, Vorbereitungsgrad <span data-fig="readiness.after">72</span>.“</span> <span class="vc-guide__time">0,5 min</span></li>
         </ol>
       </section>
     </div>

@@ -2,7 +2,7 @@
 // checked in the files without a browser:
 //   policy    index.html carries exactly the brief's policy in one meta tag, before any stylesheet or script;
 //   loads     every script, stylesheet, font and image comes from this site; code names no host but
-//             api.anthropic.com, this site and the Console's key page; only the shared client calls fetch;
+//             api.anthropic.com, this site, the Console's key page and LinkedIn; only the shared client calls fetch;
 //   inline    no inline script, style or handler in index.html, and no code that writes markup, a style
 //             attribute or a handler as text, or evaluates text;
 //   storage   local and session storage appear only in the modules allowed them, under the keys allowed:
@@ -23,9 +23,9 @@ import { POLICY, STORAGE } from "../js/config.js";
 const BRIEF_POLICY = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src https://api.anthropic.com; object-src 'none'; base-uri 'none'; form-action 'none'";
 // The modules allowed to touch local or session storage, and why: the language choice, and Vici's own.
 const STORAGE_MODULES = ["js/lang.js", "js/i18n/index.js", "vici/dist/vici.js", "vici/dist/vici-theme.js"];
-// Hosts the code names: the one it connects to, this site, and the Claude Console, which the live dialog links
-// to for a key (a link the person opens, never a request).
-const HOSTS = ["api.anthropic.com", "victorpflueger.github.io", "platform.claude.com"];
+// Hosts the code names: the one it connects to, this site, the Claude Console, which the live dialog links to
+// for a key, and LinkedIn, which the report's byline links to (links the person opens, never a request).
+const HOSTS = ["api.anthropic.com", "victorpflueger.github.io", "platform.claude.com", "www.linkedin.com"];
 
 const results = [];
 const check = (ok, what) => results.push([!!ok, what]);

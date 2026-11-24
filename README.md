@@ -4,20 +4,19 @@ AI agents complete a PESTEL analysis, challenge it, put a figure on each outside
 
 <https://victorpflueger.github.io/PESTEL-challenger/>
 
-Version 0.3.0 runs the agents live on your own company with your own Claude API key. Without a key it
-plays three recorded runs on fictional companies, in English and German: a shipping line, a maker of
-industrial drives and a municipal utility. Each walks through six steps, from the team's own list to a
-management summary with a watch list, and the key figures show what is at stake before anything plays.
-The report as a PDF, an HTML file and a JSON file follows in 0.4.0. [PLAN.md](PLAN.md) holds the plan;
+Version 0.4.0 ends every run in a report: saved as PDF with the footer on every page, as an HTML file
+that opens offline, and as a JSON file the Prototype Ideator reads. It runs the agents live on your own
+company with your own Claude API key; without a key it plays three recorded runs on fictional companies,
+in English and German: a shipping line, a maker of industrial drives and a municipal utility. The key
+figures show what is at stake before anything plays. [PLAN.md](PLAN.md) holds the plan;
 [DEMO_SCRIPT.md](DEMO_SCRIPT.md) and [DEMO_SCRIPT.de.md](DEMO_SCRIPT.de.md) show it in five minutes.
 
 ## What it will do
 
 A person names a company and lists the outside forces they see under six headings: political, economic,
-social, technological, environmental and legal. AI agents complete and rate them, challenge the analysis
-and mark the dimensions under pressure. They put a figure on each threat with the KPIs of the company's
-sector, propose how to mitigate it, turn it into an advantage or watch it, and write a management summary
-with a watch list. The report downloads as a PDF, an HTML file and a JSON file for the Prototype Ideator.
+social, technological, environmental and legal. AI agents complete and rate them, challenge the analysis,
+put a figure on each threat in the KPIs of the company's sector and propose how to mitigate it, turn it
+into an advantage or watch it.
 
 ## What is real and what is simulated
 
@@ -48,20 +47,26 @@ best in a workspace of its own with a monthly spend limit. A Claude plan does no
 Max, Ultra and Team plans include monthly API credits once you link a Console organisation; Free, Pro and
 Enterprise plans do not.
 
-Fast runs Haiku 5.5 at low effort without thinking; Balanced, the default, runs it at medium effort;
-Thorough runs Sonnet 5.5 at medium effort, at about twenty times the cost. Advanced sets the model and
-the effort apart. Research is off until you switch it on. Then a Scout makes up to five web searches
-first, at $10 per 1,000 searches plus the tokens of what they find, and every signal shows its address
+Fast runs Haiku 5.5 at low effort without thinking; Balanced, the default, at medium effort; Thorough runs
+Sonnet 5.5 at about twenty times the cost. Research is off until you switch it on; then a Scout makes up to
+five web searches first, at $10 per 1,000 searches plus their tokens, and every signal shows its address
 and the date it was read. Without research the run says once that the models know the world only up to
 June 2026.
 
-The cap is €0.50 unless you change it, anywhere from €0.05 to €3. No request starts whose worst case
-could take the run past it, and the meter adds up what each answer cost from the API's own token counts
-at list prices. A run sends at most ten requests. When the API refuses one, the page says why in plain
-words and what to do next, and tries twice more where that can help, never for missing credit or a
-spend limit. A run that stops, at the cap, on an error, after an answer failed its checks twice or
-because you aborted it, keeps what is done, and you can go on from there. After a run, "Save run as
-simulation" downloads it in the format the simulation plays, without your key.
+The cap is €0.50 unless you change it, from €0.05 to €3, and no request starts whose worst case could take
+the run past it. When the API refuses a request, the page says why in plain words. A run that stops keeps
+what is done; you can go on, or take it with you as a report that says on every page where it stopped.
+"Save run as simulation" downloads a run in the format the simulation plays, without your key.
+
+## The report
+
+The Summary shows the report page by page, from the cover and the management summary with the key
+figures before and after to the watch list, the method with what you decided, the sources and About this
+report. "Save as PDF" opens the print dialog
+on the report alone; choose Save as PDF as the printer. Every page carries "Created with PESTEL
+Challenger", the address, "Built by Victor Pflüger" and the page number; Firefox and Safari, which cannot
+number pages yet, print the footer without the number. The HTML file is the same report with no script,
+and opens offline; the JSON file is checked against the shared schema before it downloads.
 
 ## Running it
 
