@@ -195,8 +195,8 @@ await t.context.close();
 
 // The editor in German at 1280 × 720, where the list is shortest: its notice says where the words go, and a
 // warning, as it appears and as it grows to four findings, comes into view above the "Your turn" bar while
-// the field stays in view; the same in English. A name with a long word from a German-speaking country, however
-// the country is written, is marked German in the ring; a name of short words is not.
+// the field stays in view; the same in English. A name from a German-speaking country, however the country is
+// written, is marked German in the ring, so a word too long for the cell breaks at a syllable.
 {
   const MAIL = ["anna.berg", "example.org"].join("@");
   const GROWING = {
@@ -208,14 +208,14 @@ await t.context.close();
     const q = t3.page;
     try {
       await fillForm(q, { lang });
-      // A name with a long word from a German-speaking country is marked German; a name of short words is not,
-      // so a screen reader reads it by the page's language.
-      await q.fill("#live-name", lang === "de" ? "Energieversorgungsunternehmen Nord" : "Delivery Hero SE");
+      // A name from a German-speaking country is marked German, however the country is written, so the browser
+      // breaks a word too long for the cell at a syllable: "Commerz- / bank AG" on an English page, not
+      // "Commerzb / ank AG".
+      await q.fill("#live-name", lang === "de" ? "Energieversorgungsunternehmen Nord" : "Commerzbank AG");
       await q.fill("#live-country", lang === "de" ? "Bundesrepublik Deutschland" : "Germany");
       await startRun(q);
       const mark = await q.$eval(".ring .vc-ring__name", (el) => el.getAttribute("lang"));
-      if (lang === "de") check(mark === "de", `a German company name of 34 characters with a long word, in "Bundesrepublik Deutschland", is marked German in the ring (lang ${mark})`);
-      else check(mark === null, `a name of short words from Germany keeps the page's language (lang ${mark})`);
+      check(mark === "de", `a company name from a German-speaking country${lang === "de" ? ', in "Bundesrepublik Deutschland",' : ""} is marked German in the ring (lang ${mark})`);
       const run = await runOf(q);
       const missed = [];
       let notice = "";

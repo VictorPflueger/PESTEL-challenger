@@ -119,7 +119,7 @@ let cutWorst = 0;
   const scans = t.standIn.requests.filter((r) => r.agent === "scanner").length;
   check(cap > cutWorst && cap < 2 * cutWorst && scans === 1 && run.stopped?.reason === "cap",
     `with a €${cap.toFixed(2)} cap the cut attempt's worst case leaves no room for a retry: the run stops at the cap (${scans} attempt, ${JSON.stringify(run.stopped?.reason)})`);
-  check(/a request was cut off mid-way/.test(await text(t.page, ".stop-alert")) && /counts against your cap at its worst case/.test(await text(t.page, ".stop-alert")), `and the stop says why the cap was reached: "${await text(t.page, ".stop-alert")}"`);
+  check(/a request broke off or went unanswered/.test(await text(t.page, ".stop-alert")) && /counts against your cap at its worst case/.test(await text(t.page, ".stop-alert")), `and the stop says why the cap was reached: "${await text(t.page, ".stop-alert")}"`);
   await t.context.close();
 }
 

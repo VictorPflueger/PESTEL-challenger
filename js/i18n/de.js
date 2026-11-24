@@ -462,7 +462,7 @@ export default {
   "stop.cap.title": "An Ihrer Kostengrenze angehalten",
   "stop.cap": "An Ihrer Kostengrenze nach dem Schritt {step} angehalten. Was fertig ist, bleibt.",
   "stop.cap.first": "An Ihrer Kostengrenze vor der ersten Anfrage angehalten. Erhöhen Sie die Grenze, um zu starten.",
-  "stop.cap.retry": "An Ihrer Kostengrenze angehalten: Eine Anfrage brach mittendrin ab, und ein zweiter Versuch könnte die Grenze überschreiten. Erhöhen Sie die Grenze, um weiterzumachen.",
+  "stop.cap.retry": "An Ihrer Kostengrenze angehalten: Eine Anfrage brach ab oder blieb unbeantwortet, und ein zweiter Versuch könnte die Grenze überschreiten. Erhöhen Sie die Grenze, um weiterzumachen.",
   "stop.cap.noStep": "An Ihrer Kostengrenze angehalten, bevor der erste Schritt fertig war. Erhöhen Sie die Grenze, um weiterzumachen.",
   "stop.unmetered": "Eine Anfrage, die abbrach, unbeantwortet blieb oder die Sie abbrachen, zählt gegen Ihre Kostengrenze mit ihrem höchstmöglichen Betrag, da die API für sie keinen Verbrauch meldet.",
   "stop.aborted.title": "Sie haben den Lauf abgebrochen",

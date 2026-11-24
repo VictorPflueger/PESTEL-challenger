@@ -43,10 +43,11 @@ export function ring(run, step, { selected = null, onSelect = null, lang = getLa
     h("ol", { class: "vc-ring__cells" },
       // A long name steps down a size or two and takes the sector's place, so it stays inside the cell.
       h("li", {}, h("p", { class: "vc-ring__centre", dataset: { name: ["", "long", "longer", "longest"][[16, 40, 64].filter((n) => run.company.name.length > n).length] } },
-        // A name with a word longer than the cell is wide, from a German-speaking country, is marked German, so the
-        // browser breaks that word at a syllable with a hyphen rather than anywhere, on an English page too. A
-        // name of short words keeps the page's language, so a screen reader reads "Delivery Hero" as written.
-        h("span", { class: "vc-ring__name", lang: LONG_WORD.test(run.company.name) && GERMAN_SPEAKING.test(String(run.company.country || "").trim()) ? "de" : null }, run.company.name),
+        // A name from a German-speaking country is marked German, so the browser breaks a word too long for the
+        // cell at a syllable with a hyphen rather than anywhere, on an English page too. Which words that is
+        // depends on the size, the font and the browser, so the mark goes on every such name. A company's name is a
+        // proper name, which WCAG 3.1.2 leaves unmarked or marked alike.
+        h("span", { class: "vc-ring__name", lang: GERMAN_SPEAKING.test(String(run.company.country || "").trim()) ? "de" : null }, run.company.name),
         h("span", { class: "vc-ring__note" }, sectorName(run.company.sector, lang)))),
       DIMENSIONS.map(cell)),
     h("figcaption", {},
@@ -144,8 +145,6 @@ const RATINGS = [1, 2, 3, 4, 5];
  * CH, LI and their three-letter forms), or a name in a longer text ("Bundesrepublik Deutschland").
  */
 const GERMAN_SPEAKING = /^(?:de|deu|at|aut|ch|che|li|lie|brd)$|(?<!\p{L})(?:germany|deutschland|austria|österreich|oesterreich|switzerland|schweiz|schweizerische|swiss|liechtenstein)(?!\p{L})/iu;
-/** A word of twelve letters or more, which may not fit the ring's centre on one line. */
-const LONG_WORD = /\p{L}{12,}/u;
 
 /**
  * Keep, edit or remove what the AI added, in a live run before the challenge (AC-18): the item's own

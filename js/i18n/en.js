@@ -463,7 +463,7 @@ export default {
   "stop.cap.title": "Stopped at your budget cap",
   "stop.cap": "Stopped at your budget cap after {step}. What is done stays below.",
   "stop.cap.first": "Stopped at your budget cap before the first request. Raise the cap to start.",
-  "stop.cap.retry": "Stopped at your budget cap: a request was cut off mid-way, and trying it again could pass the cap. Raise the cap to go on.",
+  "stop.cap.retry": "Stopped at your budget cap: a request broke off or went unanswered, and trying it again could pass the cap. Raise the cap to go on.",
   "stop.cap.noStep": "Stopped at your budget cap before the first step was done. Raise the cap to go on.",
   "stop.unmetered": "A request that broke off, went unanswered or was aborted while under way counts against your cap at its worst case, since the API reports no usage for it.",
   "stop.aborted.title": "You aborted the run",
