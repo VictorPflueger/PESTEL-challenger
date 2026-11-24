@@ -6,7 +6,7 @@
  * semantic tokens and type scale, which switch with the theme. What each colour will mean (DESIGN.md):
  *   merlot (--vc-accent)    you: your turn, your choice, the pressed language
  *   lilac (--vc-feature-*)  the AI: what it wrote, suggested or estimated, and the AI notice
- *   coral, honey, sage      a dimension under pressure, one to watch, a factor responded to (from 0.2.0)
+ *   coral, honey, sage      a dimension under pressure, one to watch, one your responses addressed
  *   ink                     everything else
  * The frame follows the Data Quality Agent and the Sovereignty Assessment: the header with the four key
  * figures, the strip with one sentence and the byline, and the stage below, all on one screen.
@@ -20,10 +20,11 @@ html { font-size: clamp(100%, 0.48vw + 50%, 112.5%); }
 :is(input, textarea) { caret-color: var(--vc-accent); }
 
 .app-shell {
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 34rem;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr);
   grid-template-columns: minmax(0, 1fr);
   background: var(--vc-bg);
 }
@@ -32,16 +33,22 @@ html { font-size: clamp(100%, 0.48vw + 50%, 112.5%); }
 
 /* ---------------------------------------------------------------- header and the strip under it */
 
+/* From 1,900 px the name stands over its actions on the left and the four figures fill the right: one band,
+   with room for the German labels and a decision's before and after. Narrower windows give the figures a
+   row of their own (below). */
 .app-header {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: "brand actions kpis";
+  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-areas: "brand kpis" "actions kpis";
   align-items: center;
-  gap: 12px 18px;
+  gap: 8px 24px;
   padding: 10px 18px;
   background: var(--vc-surface);
   border-bottom: 1px solid var(--vc-border-subtle);
 }
+.app-header > .brand { align-self: end; }
+.app-header > .header-actions { align-self: start; }
+.app-header > .kpis { justify-self: end; }
 .brand { grid-area: brand; display: flex; align-items: center; gap: 12px; min-width: 0; }
 .brand-name { font-family: var(--vc-font-display); font-weight: var(--vc-weight-display); font-size: var(--vc-font-size-2xl); letter-spacing: var(--vc-tracking-heading); line-height: 1.05; white-space: nowrap; }
 .header-actions { grid-area: actions; display: flex; align-items: center; justify-content: flex-start; gap: 8px 10px; min-width: 0; flex-wrap: wrap; }
@@ -55,6 +62,7 @@ html { font-size: clamp(100%, 0.48vw + 50%, 112.5%); }
 .kpi .vc-stat__label { line-height: 1.2; white-space: nowrap; }
 .kpi .vc-stat__value { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 0.3em; font-size: var(--fs-kpi); line-height: 1.1; font-variant-numeric: tabular-nums; }
 .kpi[data-state="waiting"] .kpi-value { color: var(--vc-text-muted); }
+.kpi-tail { font-size: var(--vc-font-size-sm); font-weight: var(--vc-weight-semibold); letter-spacing: 0; }
 .kpi-note.vc-stat__note { color: var(--vc-text-muted); font-size: var(--vc-font-size-xs); line-height: 1.3; text-wrap: balance; }
 
 .intro { display: flex; align-items: center; justify-content: space-between; gap: 6px 24px; flex-wrap: wrap; padding: 6px 18px; background: var(--vc-surface); border-bottom: 1px solid var(--vc-border-subtle); }
@@ -67,54 +75,246 @@ html:not([data-ready="true"]) .app-header :is(.vc-button, .vc-icon-button, .vc-t
 /* the name's link keeps Vici's look; only its hit area grows to 40 px, the target size of the plan's layout test (AC-14) */
 .intro a.vc-byline__person { min-height: 40px; }
 
+/* ---------------------------------------------------------------- the step bar */
+
+.stepbar { display: flex; align-items: center; gap: 10px 12px; padding: 6px 18px; background: var(--vc-bg); border-bottom: 1px solid var(--vc-border-subtle); }
+.stepbar .vc-button { --_h: var(--hit); flex: none; }
+.play { min-width: 7.5rem; justify-content: center; }
+.steps.vc-stepper { flex: 1 1 auto; margin: 0; min-width: 0; }
+.steps .vc-step { min-width: 0; }
+.steps .vc-step__button { min-height: var(--hit); padding-block: 2px; }
+.steps .vc-step__label { display: grid; font-weight: var(--vc-weight-semibold); white-space: nowrap; }
+.steps .vc-step__hint { font-weight: var(--vc-weight-medium); font-size: var(--vc-font-size-xs); color: var(--vc-text-muted); white-space: nowrap; }
+.steps .vc-step__hint:empty { display: none; }
+.steps .vc-step__button:disabled { cursor: default; opacity: 0.5; }
+.steps .vc-step[data-turn="yours"] .vc-step__marker { color: var(--vc-on-accent); }
+.steps .vc-step[data-turn="yours"] .vc-step__marker::before { background: var(--vc-accent); clip-path: var(--vc-hex); }
+.steps .vc-step[data-turn="yours"] .vc-step__hint { color: var(--vc-accent-text); font-weight: var(--vc-weight-semibold); }
+
 /* ---------------------------------------------------------------- the stage */
 
+/* The story on the left, the six dimensions on the right; Respond takes the whole width. The story's panel
+   scrolls inside the stage, so the bar with the step's action stays in view. */
 .stage {
+  --ring-cell: 9rem;
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-  align-content: center;
-  align-items: center;
-  gap: 24px 56px;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 20px 40px;
+  min-height: 0;
   width: 100%;
-  max-width: 88rem;
+  max-width: 100rem;
   margin-inline: auto;
-  padding: 28px 32px 24px;
+  padding: 18px 28px 16px;
   outline: none;
 }
-.story { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-.story-title { margin: 0; font-family: var(--vc-font-display); font-weight: var(--vc-weight-display); font-size: var(--vc-font-size-4xl); letter-spacing: var(--vc-tracking-heading); line-height: 1.08; text-wrap: balance; }
-.story-lead { margin: 0; max-width: 60ch; font-size: var(--vc-font-size-lg); line-height: 1.5; text-wrap: pretty; }
-.version-note { display: flex; align-items: flex-start; gap: 12px; max-width: 60ch; padding-top: 16px; border-top: 1px solid var(--vc-border-subtle); color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); }
-.version-note p { margin: 0; text-wrap: pretty; }
-.version-title { color: var(--vc-text); font-weight: var(--vc-weight-semibold); }
+.stage[data-layout="full"] { grid-template-columns: minmax(0, 1fr); }
+.stage:is([data-layout="full"], [data-layout="assess"]) .story-lead { max-width: 120ch; }
+.stage[data-layout="assess"] { grid-template-columns: minmax(0, 1fr); }
+/* At Assess the step's button sits at the bottom right, under the horizon strip, and the matrix on the
+   left runs down beside it: one picture in view even at 1280 × 720. */
+.stage[data-layout="assess"] .story { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; }
+.stage[data-layout="assess"] .assess-panel { grid-column: 1; grid-row: 2 / 4; }
+.stage[data-layout="assess"] .story-foot { grid-column: 1; grid-row: 3; justify-self: end; position: relative; z-index: 1; }
+.story { display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 0; }
+.story-head { display: grid; gap: 6px; }
+.story-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0; color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); }
+.story-company { font-weight: var(--vc-weight-semibold); color: var(--vc-text); }
+/* On the full stage the title has room beside it, so the company and its tag sit at the title's right. */
+.stage:is([data-layout="full"], [data-layout="assess"]) .story-head { grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; }
+.stage:is([data-layout="full"], [data-layout="assess"]) .story-title { grid-column: 1; grid-row: 1; }
+.stage:is([data-layout="full"], [data-layout="assess"]) .story-meta { grid-column: 2; grid-row: 1; justify-self: end; }
+.stage:is([data-layout="full"], [data-layout="assess"]) .story-lead { grid-column: 1 / -1; }
+.story-title { margin: 0; font-family: var(--vc-font-display); font-weight: var(--vc-weight-display); font-size: var(--vc-font-size-3xl); letter-spacing: var(--vc-tracking-heading); line-height: 1.1; text-wrap: balance; outline: none; }
+.story-lead { margin: 0; max-width: 72ch; color: var(--vc-text-muted); font-size: var(--vc-font-size-md); line-height: 1.5; text-wrap: pretty; }
+/* Rows take their content's height: a scrolling child (the segmented control, a wide table) would
+   otherwise shrink to nothing once the panel itself overflows. */
+/* position: relative makes the panel the box of what is positioned inside it, such as a word only a screen
+   reader hears, so nothing in a long list reaches past the panel and makes the page itself scroll. */
+.panel { position: relative; flex: 1 1 auto; display: grid; grid-auto-rows: max-content; align-content: start; gap: 14px; min-height: 0; overflow: auto; padding: 2px 6px 6px 2px; overscroll-behavior: contain; }
+.side { display: grid; align-content: center; justify-items: center; min-width: 0; min-height: 0; }
+.ring { --vc-ring-cell: var(--ring-cell); }
+/* Narrower padding than Vici's default, so "Environmental" and "Technological" fit a laptop-sized cell. */
+.ring .vc-ring__cell { padding-inline: 10%; }
+.ring .vc-ring__centre .vc-ring__note { max-width: 7.5em; }
+.ring-hint { color: var(--vc-text-muted); font-size: var(--vc-font-size-xs); }
 
-/* The six dimensions as the acronym reads: a hexagon cell with each initial, its name and its question. */
-.dims { min-width: 0; }
-.dim-list { display: grid; margin: 0; padding: 4px 0; list-style: none; border: 1px solid var(--vc-border-subtle); border-radius: var(--vc-radius-lg); background: var(--vc-surface); }
-.dim { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 16px; padding: 8px 18px 8px 12px; }
-.dim + .dim { border-top: 1px solid var(--vc-border-subtle); }
-.dim-letter.vc-cell { --_s: 3rem; font-family: var(--vc-font-display); font-weight: var(--vc-weight-display); font-size: var(--vc-font-size-xl); line-height: 1; }
-.dim-text { display: grid; gap: 1px; min-width: 0; }
-.dim-name { font-weight: var(--vc-weight-semibold); font-size: var(--vc-font-size-md); line-height: 1.3; }
-.dim-q { color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); line-height: 1.4; text-wrap: pretty; }
+/* The bar under the story: what happens next and the step's one action. */
+.story-foot { display: flex; align-items: center; justify-content: flex-end; gap: 12px 16px; padding-top: 4px; }
+.foot-note { margin: 0; color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.foot-note[data-tone="move"] { color: var(--vc-accent-text); font-weight: var(--vc-weight-semibold); }
+.foot-note:empty { display: none; }
+.cta { --_h: 48px; flex: none; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; inset: auto 0 0; height: 4px; background: currentColor; opacity: 0.55; transform: scaleX(var(--fill, 0)); transform-origin: left; pointer-events: none; }
+.turn.vc-callout { align-items: center; gap: 14px; padding: 10px 14px; }
+.turn .vc-callout__body { display: grid; gap: 2px; min-width: 0; }
+.turn .vc-callout__body > * { margin: 0; }
+.turn .vc-callout__title { font-size: var(--vc-font-size-lg); line-height: 1.2; }
+.turn-bar.vc-callout { display: flex; }
+.turn-bar .vc-callout__body { flex: 1 1 auto; }
+
+/* What the AI wrote reads in lilac where it stands alone; its figures carry the lilac too. */
+.ai-figure { color: var(--vc-feature-text); }
+.item-label { color: var(--vc-text-muted); font-weight: var(--vc-weight-semibold); }
+
+/* ---------------------------------------------------------------- Start */
+
+.scenario-choice { justify-self: start; }
+.company { display: grid; gap: 6px; }
+.company > p { margin: 0; }
+.company-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); }
+.company-what { max-width: 72ch; }
+.version-note { display: flex; align-items: flex-start; gap: 8px; margin: 0; color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); }
+.version-note .vc-icon { flex: none; margin-top: 2px; }
+
+/* ---------------------------------------------------------------- factor lists */
+
+.vc-framework--1 { --vc-framework-cols: 1; }
+.dim-panel .vc-framework__area, .team-list .vc-framework__area { padding: 12px 14px; }
+.item-dim { display: inline-block; margin-right: 0.5em; color: var(--vc-text-muted); font-size: var(--vc-font-size-xs); font-weight: var(--vc-weight-semibold); letter-spacing: var(--vc-tracking-caps); text-transform: uppercase; }
+.item-meta { display: block; color: var(--vc-text-muted); font-size: var(--vc-font-size-xs); font-weight: var(--vc-weight-regular); }
+.item-number { font-variant-numeric: tabular-nums; }
+.vc-item__body > p { line-height: 1.45; }
+.item-estimate { display: grid; gap: 4px; }
+.item-estimate > * { margin: 0; }
+.item-kpis { margin: 0; padding-left: 1.1em; }
+.kpi-basis, .item-basis { color: var(--vc-text-muted); }
+.item-sources ul, .issue-sources ul, .sources { margin: 0; padding-left: 1.1em; display: grid; gap: 2px; }
+/* A source link is a 40 px target: a presenter clicks it on a projector, often with a touchpad. */
+.src-link { display: inline-flex; align-items: center; min-height: 40px; }
+.item-sources .item-label, .issue-sources .item-label { margin: 0; }
+.src-date { color: var(--vc-text-muted); font-size: var(--vc-font-size-xs); }
+.item-sources .src-date { display: block; padding-bottom: 4px; }
+.item-legend { font-size: var(--vc-font-size-xs); }
+
+/* ---------------------------------------------------------------- Scan */
+
+.signals > summary { cursor: pointer; font-weight: var(--vc-weight-semibold); }
+.signals > summary:focus-visible { outline: var(--vc-stroke-focus) solid var(--vc-focus); outline-offset: 2px; }
+.signal-list { display: grid; gap: 10px; margin: 10px 0 0; padding-left: 1.3em; }
+.signal-list > li > p { margin: 0; }
+.signal-title { font-weight: var(--vc-weight-semibold); }
+.cutoff-note { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 10px 12px; border-radius: var(--vc-radius-md); background: var(--vc-bg-subtle); font-size: var(--vc-font-size-sm); }
+.cutoff-note .vc-icon { flex: none; margin-top: 2px; }
+
+/* ---------------------------------------------------------------- Challenge */
+
+.issues { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.issue-card { display: grid; gap: 6px; padding: 12px 14px; border: 1px solid var(--vc-danger-border); border-left-width: 4px; border-radius: var(--vc-radius-md); background: var(--vc-surface); }
+.issue-card > * { margin: 0; }
+.issue[data-undone="true"] .issue-card { border-color: var(--vc-border); border-left-color: var(--vc-border-strong); background: var(--vc-bg-subtle); }
+.issue[data-undone="true"] .issue-title { color: var(--vc-text-muted); text-decoration: line-through; }
+.issue-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; color: var(--vc-text-muted); font-size: var(--vc-font-size-xs); }
+.issue-type { --_bg: var(--vc-danger-bg); --_fg: var(--vc-danger-text); }
+.issue[data-undone="true"] .issue-type { --_bg: var(--vc-surface); --_fg: var(--vc-text-muted); }
+.issue-title { font-size: var(--vc-font-size-lg); line-height: 1.3; }
+.issue-reason, .issue-fix { line-height: 1.45; }
+.issue-undo { justify-self: start; }
+.dim-details > summary { cursor: pointer; color: var(--vc-accent-text); font-weight: var(--vc-weight-semibold); }
+.dim-details[open] > summary { margin-bottom: 8px; }
+
+/* ---------------------------------------------------------------- Assess */
+
+/* Assess is one picture on the full stage: the matrix on the left, when the threats arrive on the right,
+   and under that the three that put most at stake, by their numbers on the matrix. */
+.assess-panel { grid-template-rows: auto 1fr; }
+.assess-panel > .matrix { grid-row: 1 / span 2; }
+/* The step's button sits under the right column (see the Assess story above), so that column ends
+   above it. */
+.assess-panel > .top-three { grid-column: 2; margin-bottom: 64px; }
+.top-three { display: grid; align-self: start; gap: 6px; margin: 0; }
+.top-three > p { margin: 0; }
+.top-three ol { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.top-three li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; font-size: var(--vc-font-size-sm); line-height: 1.35; }
+.top-n { display: inline-grid; place-items: center; width: 1.6rem; aspect-ratio: var(--vc-hex-ratio); clip-path: var(--vc-hex); background: var(--vc-text); color: var(--vc-surface); font-size: var(--vc-font-size-2xs); font-weight: var(--vc-weight-bold); font-variant-numeric: tabular-nums; }
+.top-money { color: var(--vc-text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.assess-panel { grid-template-columns: minmax(0, 7fr) minmax(0, 6fr); align-items: start; gap: 18px 36px; }
+.matrix .vc-risk__grid { grid-template-columns: auto repeat(5, minmax(3.25rem, 1fr)); grid-template-rows: repeat(5, minmax(2.6rem, auto)) auto; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.vc-risk__key > .key-residual::before { background: transparent; box-shadow: inset 0 0 0 2px var(--vc-text); }
+
+/* ---------------------------------------------------------------- Respond */
+
+.decide { grid-template-columns: minmax(16rem, 1fr) minmax(0, 2.4fr); align-items: start; gap: 16px 24px; }
+.decide-list { position: relative; display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; max-height: 100%; overflow: auto; }
+.decide-item { display: grid; gap: 2px; width: 100%; min-height: var(--hit); padding: 8px 10px; border: 1px solid var(--vc-border-subtle); border-radius: var(--vc-radius-md); background: var(--vc-surface); color: var(--vc-text); font: inherit; text-align: left; cursor: pointer; }
+.decide-item:hover { border-color: var(--vc-border-strong); }
+.decide-item[aria-pressed="true"] { border-color: var(--vc-accent); box-shadow: inset 0 0 0 1px var(--vc-accent); }
+.decide-item:focus-visible { outline: var(--vc-stroke-focus) solid var(--vc-focus); outline-offset: 2px; }
+.decide-dim { display: inline-flex; align-items: center; gap: 4px; color: var(--vc-text-muted); font-size: var(--vc-font-size-xs); font-weight: var(--vc-weight-semibold); letter-spacing: var(--vc-tracking-caps); text-transform: uppercase; }
+.decide-item[data-pressing="true"] .decide-dim { color: var(--vc-danger-text); }
+.decide-text { font-size: var(--vc-font-size-sm); line-height: 1.3; }
+.decide-choice { color: var(--vc-accent-text); font-size: var(--vc-font-size-xs); font-weight: var(--vc-weight-semibold); }
+.decide-detail { display: grid; gap: 10px; min-width: 0; }
+.decide-head { display: grid; gap: 4px; }
+.decide-head > * { margin: 0; }
+.decide-count { display: flex; align-items: center; gap: 6px; color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); white-space: nowrap; }
+.decide-head { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+.decide-head > .decide-title { grid-column: 1; grid-row: 1; }
+.decide-head > .decide-meta { grid-column: 1 / -1; }
+.decide-head > .decide-count { grid-column: 2; grid-row: 1; }
+.decide-title { font-size: var(--vc-font-size-xl); line-height: 1.25; }
+.decide-title .decide-dim { vertical-align: middle; }
+.decide-meta { color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); }
+/* One column per response the Strategist proposed; accepting the factor as it is runs as a quiet row under them. */
+.options { display: grid; grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.option--accept { grid-column: 1 / -1; padding-block: 6px; background: var(--vc-bg-subtle); }
+.option--accept .option-body { grid-template-columns: auto auto minmax(0, 1fr); align-items: baseline; column-gap: 12px; }
+.option--accept .option-more { display: block; }
+.option { position: relative; display: flex; min-width: 0; padding: 12px 14px; border: 1px solid var(--vc-border); border-radius: var(--vc-radius-md); background: var(--vc-surface); cursor: pointer; }
+.option:hover { border-color: var(--vc-border-strong); }
+.option input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.option:has(input:focus-visible) { outline: var(--vc-stroke-focus) solid var(--vc-focus); outline-offset: 2px; }
+.option[data-chosen="true"] { border-color: var(--vc-accent); box-shadow: inset 0 0 0 2px var(--vc-accent); background: var(--vc-accent-soft); }
+.option-body { display: grid; gap: 4px; min-width: 0; }
+.option-body > * { margin: 0; }
+.option-kind { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--vc-text-muted); font-size: var(--vc-font-size-xs); font-weight: var(--vc-weight-semibold); letter-spacing: var(--vc-tracking-caps); text-transform: uppercase; }
+.option-kind .rec { letter-spacing: normal; text-transform: none; }
+.option-title { font-weight: var(--vc-weight-semibold); line-height: 1.3; }
+.option-step, .option-meta, .opt-effect { font-size: var(--vc-font-size-sm); line-height: 1.4; }
+.option-meta { color: var(--vc-text-muted); }
+.option-more { display: grid; gap: 2px; }
+.option-step, .option-meta, .opt-effect, .opt-watch > span { display: block; }
+.opt-watch { display: grid; gap: 1px; font-size: var(--vc-font-size-sm); line-height: 1.35; }
+
+/* ---------------------------------------------------------------- Summary */
+
+.summary { gap: 8px; }
+.summary > * { margin: 0; }
+.summary > .summary-h { margin-top: 8px; font-size: var(--vc-font-size-lg); }
+.summary-findings, .summary-responses { display: grid; gap: 6px; padding-left: 1.3em; }
+.summary-responses > li > p { margin: 0; }
+.summary-note { display: flex; gap: 8px; }
+.watch-table th[scope="row"] { font-weight: var(--vc-weight-semibold); }
+
+/* ---------------------------------------------------------------- the method */
+
+.method-body { display: grid; gap: 14px; }
+.method-section > h3 { margin: 0 0 6px; font-size: var(--vc-font-size-lg); }
+.method-lead { margin: 0; }
+.method-dims, .method-scales { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; margin: 0; }
+.method-dims dt, .method-scales dt { font-weight: var(--vc-weight-semibold); }
+.method-dims dd, .method-scales dd { margin: 0; }
+.method-rules, .method-kpis { display: grid; gap: 4px; margin: 0; padding-left: 1.2em; }
 
 /* ---------------------------------------------------------------- larger and smaller windows */
 
-/* Below 1,700 px the four figures take a row of their own, so the name, the actions and the tiles keep
-   their full text in both languages. */
-@media (max-width: 1699px) {
-  .app-header { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "brand actions" "kpis kpis"; }
+/* Below 1,900 px the four figures take a row of their own, so the name, the actions and the tiles keep
+   their full text on one line each in both languages. */
+@media (max-width: 1899px) {
+  .app-header { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "brand actions" "kpis kpis"; gap: 12px 18px; }
+  .app-header > :is(.brand, .header-actions, .kpis) { align-self: center; justify-self: stretch; }
   .header-actions { justify-content: flex-end; }
-  .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* Each figure takes the width its line needs and the row shares out what is left, so a decision's
+     before and after stays on one line wherever the row has room for it. */
+  .kpis { grid-template-columns: repeat(4, auto); }
   .kpi.vc-stat { min-width: 0; }
   .kpi .vc-stat__label { white-space: normal; text-wrap: balance; }
 }
 @media (min-width: 1700px) {
-  .stage { padding: 40px 48px 32px; gap: 32px 64px; }
-  .dim { padding: 12px 22px 12px 14px; }
-  .dim-letter.vc-cell { --_s: 3.5rem; }
-  .dim-name { font-size: var(--vc-font-size-lg); }
-  .dim-q { font-size: var(--vc-font-size-md); }
+  .stage { padding: 24px 40px 20px; gap: 24px 56px; --ring-cell: 10.5rem; }
+  .matrix .vc-risk__grid { grid-template-rows: repeat(5, minmax(3.6rem, auto)) auto; }
+  .story-title { font-size: var(--vc-font-size-4xl); }
+  .story-lead { font-size: var(--vc-font-size-lg); }
 }
 /* Laptop screens shared at 1280 × 720 or 1366 × 768: everything stays in view. */
 @media (max-height: 820px) and (min-width: 961px) {
@@ -122,24 +322,78 @@ html:not([data-ready="true"]) .app-header :is(.vc-button, .vc-icon-button, .vc-t
   .app-header { padding-block: 6px; gap: 6px 14px; }
   .kpi.vc-stat { padding: 4px 12px 5px; gap: 1px; }
   .intro { padding-block: 3px; }
-  .stage { padding: 18px 24px 14px; gap: 16px 36px; }
-  .story { gap: 12px; }
-  .story-title { font-size: var(--vc-font-size-3xl); }
-  .story-lead { font-size: var(--vc-font-size-md); }
-  .dim { padding: 5px 16px 5px 10px; gap: 14px; }
-  .dim-letter.vc-cell { --_s: 2.5rem; font-size: var(--vc-font-size-lg); }
+  .stepbar { padding-block: 3px; }
+  .stage { padding: 12px 24px 10px; gap: 12px 28px; --ring-cell: 7.4rem; }
+  .story { gap: 8px; }
+  .story-title { font-size: var(--vc-font-size-2xl); }
+  .story-lead { font-size: var(--vc-font-size-sm); }
+  .cta { --_h: 44px; }
+  .turn.vc-callout { padding: 6px 12px; }
+  .turn .vc-callout__title { font-size: var(--vc-font-size-md); }
+  .matrix .vc-risk__grid { grid-template-rows: repeat(5, minmax(2rem, auto)) auto; }
+  .matrix .vc-chart__subtitle { display: none; }
+  .assess-panel { grid-template-columns: minmax(0, 9fr) minmax(0, 4fr); gap: 12px 24px; }
+  /* The three names run on as one paragraph, which takes fewer lines than three wrapped rows. */
+  .top-three ol { display: block; font-size: var(--vc-font-size-xs); line-height: 1.55; }
+  .top-three li { display: inline; }
+  .top-three li + li::before { content: "  "; white-space: pre; }
+  .top-three .top-n { width: 1.25rem; margin-inline-end: 4px; vertical-align: -0.3em; }
+  .top-three .top-money { display: none; }
+  /* The list of the three that put most at stake says what the lead says, so the lead gives way. */
+  .stage[data-step="assess"] .story-lead { display: none; }
+  /* The key stands beside the grid rather than under it, so matrix, key and numbers fit in one view. */
+  .matrix.vc-risk { grid-template-columns: minmax(0, 1fr) auto; column-gap: 20px; }
+  .matrix.vc-risk > :not(.vc-risk__plot, .vc-risk__key) { grid-column: 1 / -1; }
+  .matrix .vc-risk__key { grid-column: 2; grid-row: 2; flex-direction: column; flex-wrap: nowrap; align-self: center; }
+  .option { padding: 8px 12px; }
+  .option-body { gap: 2px; }
+  .option-step, .option-meta, .opt-effect, .opt-watch { font-size: var(--vc-font-size-xs); }
+  .option-title { font-size: var(--vc-font-size-sm); }
+  .option-step, .option-meta, .opt-effect, .opt-watch { line-height: 1.3; }
+  .decide { grid-template-columns: minmax(14rem, 0.8fr) minmax(0, 2.6fr); gap: 12px 20px; }
+  .decide-detail { gap: 8px; }
+  .decide-title { font-size: var(--vc-font-size-lg); }
+  .decide-item { padding: 6px 10px; }
 }
 @media (max-width: 960px) {
-  .stage { grid-template-columns: minmax(0, 1fr); padding: 20px 16px; }
+  .app-shell { height: auto; }
+  /* Two figures a row, so a German value keeps its line on a tablet. */
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stage, .stage[data-layout="assess"] { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+  .panel { overflow: visible; }
+  .decide, .options { grid-template-columns: minmax(0, 1fr); }
+  /* The six steps take a row of their own under Play, Back and Next, and a long German name breaks
+     rather than running into its neighbour. */
+  .stepbar { flex-wrap: wrap; }
+  .stepbar > .vc-button:last-child { margin-inline-start: auto; }
+  .steps.vc-stepper { order: 1; flex-basis: 100%; }
+  .steps .vc-step__label { white-space: normal; hyphens: auto; overflow-wrap: anywhere; }
+  /* Assess stacks: the matrix, then when the threats arrive, then the three with most at stake. */
+  .assess-panel { grid-template-columns: minmax(0, 1fr); }
+  .assess-panel > .matrix { grid-row: auto; }
+  .assess-panel > .top-three { grid-column: auto; margin-bottom: 0; }
+  /* A dimension's state tag may break onto a second line. */
+  .dim-panel .vc-framework__state { white-space: normal; }
+  /* The company and its tag go under the title, which keeps the width of the column. */
+  .stage:is([data-layout="full"], [data-layout="assess"]) .story-head { grid-template-columns: minmax(0, 1fr); }
+  .stage:is([data-layout="full"], [data-layout="assess"]) .story-meta { grid-column: 1; grid-row: auto; justify-self: start; }
 }
-/* A phone: one column, two figures a row. The page is built for a presenter's screen; here it only has
-   to read cleanly. */
+/* A phone: one column. The page is built for a presenter's screen; here it only has to read cleanly. */
 @media (max-width: 640px) {
   .app-header { grid-template-columns: minmax(0, 1fr); grid-template-areas: "brand" "actions" "kpis"; padding: 10px 12px; }
   .header-actions { justify-content: flex-start; }
   .brand-name { font-size: var(--vc-font-size-xl); }
-  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Two figures a row are narrow here: a value may break after its amount. */
+  .kpi .vc-stat__value { white-space: normal; }
   .intro { padding: 6px 12px; }
   .intro .vc-byline { flex-wrap: wrap; white-space: normal; }
   .story-title { font-size: var(--vc-font-size-2xl); }
+  .steps .vc-step__label { font-size: var(--vc-font-size-xs); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta::after { transition: none; }
+}
+@media (forced-colors: active) {
+  .turn.vc-callout { border: 2px solid CanvasText; }
+  .option[data-chosen="true"], .decide-item[aria-pressed="true"] { outline: 3px solid Highlight; }
 }

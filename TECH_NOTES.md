@@ -5,10 +5,13 @@ the plan Victor approved on 23 November 2026; this file records what the build f
 
 ## 1. Version
 
-Version 0.1.0 (M1 Foundations): the page's frame with its header, key figures, byline and a guide in
-each language, the string files, the engine with its golden cases, the schemas and their validator, the
-sector KPI library, the security policy and the storage rule, and CI. No scenario plays yet and nothing
-calls a model; the page says so. The scenarios follow in 0.2.0, the live run in 0.3.0, the report in 0.4.0.
+Version 0.2.0 (M2 Simulation): three recorded runs on fictional companies play step by step in English
+and German without a key: the six dimensions around the company as Vici's ring, the factor lists with
+their states, the risk matrix and the horizon strip with their tables, the steps with Play and the "Your
+turn" bar, key figures that answer first, the method dialog, the guide with its talk track, and the
+scenario checker. It builds on 0.1.0 (M1 Foundations): the frame, the strings, the engine with its golden
+cases, the schemas, the KPI library, the security policy and CI. Nothing calls a model yet: the live run
+follows in 0.3.0, the report in 0.4.0.
 
 ## 2. API facts, verified at source
 
@@ -27,7 +30,8 @@ section 2 has every probe). What needs a key waits for Victor's console snippet 
 | JSON modules | `import … with { type: "json" }` is blocked by `connect-src` under the page's policy, so the schemas ship as a module | 2026-11-23, probed in Chrome 153 |
 | Print footer | Chromium prints `@page` margin boxes with page numbers; Firefox and Safari have none (MDN data, not probed), so a fixed footer takes over there | 2026-11-23, probed in Chromium |
 
-The prices are checked again before M3 relies on them, and this table gets the new date.
+The prices were read again on 24 November 2026, unchanged, before the simulation's cost estimate came to
+rest on them; they are read again before M3's cost meter does.
 
 ## 3. Decisions in use
 
@@ -50,6 +54,23 @@ recommendations with PLAN.md on 23 November 2026.
 | N1 | S3's story | Retold around the heat plan due on 31 December 2026 (from 0.2.0) |
 | N2 | Requests per run | At most ten (from 0.3.0) |
 | N3 | Upload | None |
+
+Decided while building 0.2.0, each within the brief and the plan:
+
+| What | Decision |
+|---|---|
+| The fictional company | "Fictional company, illustrative figures" stands among Start's tags and with every later step's title, beside the header's SIMULATION tag, which is the simulation's tape (AC-05) |
+| Facts from the agents' own knowledge | Each scenario's `checked` lists, per factor, the address its author read for a fact the agents state without a signal; the factor shows it as "checked at source by the scenario's author". S2, without research, also shows the note that the model's knowledge ends in June 2026 |
+| German words | A threat is a "Risiko", an opportunity a "Chance", readiness the "Vorbereitungsgrad"; the steps are Start, Scan, Prüfung, Bewertung, Antworten and Zusammenfassung |
+| Assess | The whole stage: the risk matrix, the horizon strip and the three threats that put most at stake by their numbers, so the room reads what "1" is. At 1280 × 720 the matrix's key stands beside its grid, the step's button under the strip, the three names run as one paragraph and the lead gives way to them, so all of it is in view |
+| A dimension's state | "Under pressure", "On watch" or "Addressed" ("Unter Druck", "Im Blick", "Angegangen"), so a state never reads like the response "Watch it" |
+| The header | From 1,900 px the actions stand under the name and the figures at the top right, one band of 114 px; below, the figures take a row of their own, sized to their lines. In German at 1920 the actions used to wrap onto a second row, and in both languages after a decision; the layout suite now checks one row of actions and one line per value on every step |
+| Marker sizes | Thirds of the largest expected loss: smaller below a third, larger from two thirds, with Vici's `vc-risk__marker--sm` and `--lg` (ViciDesign#29); the key names each size in euros |
+| The session cost of a simulation | An estimate on Balanced, said on the tile: each agent's request rebuilt from what it reads and answers at about four characters a token, a 1,500-token prompt, each answer counted twice for thinking, five searches of 4,000 tokens with research, the prices above and €0.894 to the dollar (`js/estimate.js`) |
+| The talk track | The brief's draft (§8): five steps in five minutes, with action labels and figures from the engine. Its last step shows the PDF from 0.4.0; until then it shows the summary and the watch list |
+| The guide's chapters | Six: the brief's four (What it does, How it works, What is real, How to present) and two a stranger needs to play it alone (The six steps, The cost estimate); each fits at 1280 × 720 |
+| Check for updates | A scenario whose facts were read more than 90 days ago says so on Start (`needsUpdate()` in `js/format.js`) |
+| Vici | The ring (ViciDesign#30), the horizon strip (#31), square radios in the segmented control (#33) and a fix that keeps the risk matrix and the horizon strip to their width once their numbers open (#34) went into Vici first; `vici/` copies its main at the commit `vici/README.md` names |
 
 ## 4. Security policy and what is kept
 
@@ -90,25 +111,31 @@ validated with those as the registry.
 
 The tests need Node 22 and, for the browser suites, Playwright with Chromium: `npm install -g playwright`
 and `npx playwright install chromium`, then `NODE_PATH="$(npm root -g)" node tests/run-all.mjs`, which
-runs all sixteen suites and ends with "ALL SUITES OK"; `node tests/run-all.mjs engine layout` runs only
-the suites named. Vici's checks need a ViciDesign checkout beside this repository at the commit
+runs all twenty suites and ends with "ALL SUITES OK"; `node tests/run-all.mjs engine layout` runs only
+the suites named. From 0.2.0 the suites `scenarios` and `audit` prove the scenario checker and the fact
+audit, `presenter` plays every scenario in both languages, `views` checks the ring, the lists, the matrix
+and the strip on every screen, and `layout`, `hexagon`, `vici` and `i18n` look at every step.
+`node tools/check-scenarios.mjs` runs the checker alone; `--frozen` prints the figures to freeze after a
+deliberate change. Vici's checks need a ViciDesign checkout beside this repository at the commit
 `vici/README.md` names; `--require-vici` makes its absence a failure, as it always is on GitHub Actions.
 Checkouts of the website (VIP), the three siblings and the prototypes `REVIEW.md` names, beside this
 repository, let the page-icon, parity and docs suites compare with them; without one, that part is skipped
 and says so. `tests/hygiene.mjs` reads its private term list from the `HYGIENE_TERMS` secret, a
 `HYGIENE_TERMS_FILE`, or `../.hygiene-terms`.
 
-The tests workflow does all of this on every push and pull request and keeps the layout suite's eight
-screenshots as the run's `test-screenshots` artefact. After each Pages build the live-site workflow runs
-`tests/live_site.mjs`: the published files equal the commit, and the page starts in both languages.
+The tests workflow does all of this on every push and pull request and keeps the layout suite's
+screenshots of every step as the run's `test-screenshots` artefact. After each Pages build the live-site
+workflow runs `tests/live_site.mjs`: the published files equal the commit, the page starts in both
+languages, and the default scenario plays to its end in each.
 
 ## 8. Deviations and open issues
 
 - **Hygiene without the private list in CI.** Victor has not set the `HYGIENE_TERMS` secret yet. CI runs
   `tests/hygiene.mjs` in its generic mode ("HYGIENE GENERIC OK"); the build session runs it with its own
   list before every push, which must print "HYGIENE OK".
-- **Not yet run against the real API.** Nothing in 0.1.0 calls a model. The probes that need a key wait
-  for Victor's console snippet.
+- **Not yet run against the real API.** Nothing in 0.2.0 calls a model. The recorded runs were written
+  in the agents' answer formats and pass the checks a live answer will pass; the probes that need a key
+  wait for Victor's console snippet before M3.
 - **Firefox and Safari print** without page numbers in the footer; checked by hand in M4.
 - **Shared parts taken from the SWOT Challenger.** This tool first built its own KPI library, money
   format and handoff schema; the SWOT Challenger merged its versions first (`617b122`), so this tool took
@@ -117,5 +144,11 @@ screenshots as the run's `test-screenshots` artefact. After each Pages build the
   standard source for the seven KPIs a standard body defines (net promoter score, CO2 per unit, CO2 per
   container-kilometre, grid outage minutes, CET1 ratio, liquidity coverage ratio, solvency ratio), and a
   range format for the factor view of 0.2.0.
-- **The guides describe the finished tool.** Their talk track walks through the scenarios of 0.2.0 and
-  says so; version 0.1.0 says on its first screen and in the guide what it holds so far.
+- **What the guide promises ahead.** The guide names the live run (0.3.0) and the report (0.4.0) as
+  coming, and Start says what this version holds. The talk track's last step shows the summary until the
+  PDF arrives.
+- **The cost estimate is an assumption** until Victor's first live runs measure what each step costs; the
+  tile and the method dialog say it is an estimate and what it rests on.
+- **Respond on mid-size windows.** Between 961 and 1,100 px wide and under 770 px high, some or all
+  options sit under the "Your turn" bar until the panel is scrolled. They scroll into view; at 1280 × 720,
+  the size the layout suite checks, every option shows in full.

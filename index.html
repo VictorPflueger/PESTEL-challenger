@@ -21,7 +21,7 @@
   <script type="module" src="js/main.js"></script>
 </head>
 <body class="app-shell">
-  <a class="vc-skip-link" href="#stage" data-i18n="p.skip">Skip to the first screen</a>
+  <a class="vc-skip-link" href="#stage" data-i18n="p.skip">Skip to the step on screen</a>
 
   <header class="app-header">
     <div class="brand">
@@ -31,8 +31,9 @@
     <div class="header-actions">
       <span class="vc-tooltip-anchor">
         <span class="vc-tag vc-tag--lg mode-tag" id="mode-tag" data-mode="simulation" tabindex="0" aria-describedby="tip-mode"><span data-i18n="p.mode.sim">SIMULATION</span></span>
-        <span class="vc-tooltip vc-tooltip--bottom" role="tooltip" id="tip-mode" data-i18n="p.mode.tip">Simulation: recorded runs of the agents, played without a key. They arrive in version 0.2.0; a live run on your own key follows in 0.3.0.</span>
+        <span class="vc-tooltip vc-tooltip--bottom" role="tooltip" id="tip-mode" data-i18n="p.mode.tip">Simulation: recorded runs of the agents, played without a key through the real checks and engine. A live run on your own key follows in version 0.3.0.</span>
       </span>
+      <button type="button" class="vc-button vc-button--secondary method-open" data-vc-open="method"><span class="vc-icon vc-icon--book" aria-hidden="true"></span><span data-i18n="p.method">Method</span></button>
       <button type="button" class="vc-button vc-button--secondary guide-open" data-vc-guide-open="guide-en" lang="en"><span class="vc-icon vc-icon--info" aria-hidden="true"></span>How it works</button>
       <button type="button" class="vc-button vc-button--secondary guide-open" data-vc-guide-open="guide-de" lang="de" hidden><span class="vc-icon vc-icon--info" aria-hidden="true"></span>So funktioniert's</button>
       <span class="vc-tooltip-anchor">
@@ -46,29 +47,28 @@
     </div>
 
     <!-- The four key figures. data-vc-kpi names each in English, data-vc-kpi-de in German; each guide
-         explains them in a row of its How it works chapter. They answer first: from version 0.2.0 a
-         scenario shows its figures before it plays. Version 0.1.0 has no run yet, so each says what it
-         waits for. -->
+         explains them in a row of its How it works chapter. They answer first: js/kpis.js fills them
+         with the scenario's figures as the page starts, before anything plays. -->
     <section class="kpis" aria-label="Key figures" data-i18n-attr="aria-label:p.kpis">
       <article class="vc-stat kpi" id="kpi-stake" data-vc-kpi="At stake a year" data-vc-kpi-de="Auf dem Spiel pro Jahr" data-state="waiting">
         <p class="vc-stat__label" data-i18n="kpi.atStake">At stake a year</p>
         <p class="vc-stat__value"><s class="vc-stat__was kpi-was" hidden></s><span class="kpi-value" data-i18n="kpi.wait">…</span></p>
-        <p class="vc-stat__note kpi-note" data-i18n="kpi.note.version">from version 0.2.0</p>
+        <p class="vc-stat__note kpi-note" data-i18n="kpi.note.start">worked out as the page starts</p>
       </article>
       <article class="vc-stat kpi" id="kpi-pressure" data-vc-kpi="Dimensions under pressure" data-vc-kpi-de="Dimensionen unter Druck" data-state="waiting">
         <p class="vc-stat__label" data-i18n="kpi.pressure">Dimensions under pressure</p>
         <p class="vc-stat__value"><s class="vc-stat__was kpi-was" hidden></s><span class="kpi-value" data-i18n="kpi.wait">…</span></p>
-        <p class="vc-stat__note kpi-note" data-i18n="kpi.note.version">from version 0.2.0</p>
+        <p class="vc-stat__note kpi-note" data-i18n="kpi.note.start">worked out as the page starts</p>
       </article>
       <article class="vc-stat kpi" id="kpi-readiness" data-vc-kpi="Readiness" data-vc-kpi-de="Vorbereitungsgrad" data-state="waiting">
         <p class="vc-stat__label" data-i18n="kpi.readiness">Readiness</p>
         <p class="vc-stat__value"><s class="vc-stat__was kpi-was" hidden></s><span class="kpi-value" data-i18n="kpi.wait">…</span></p>
-        <p class="vc-stat__note kpi-note" data-i18n="kpi.note.version">from version 0.2.0</p>
+        <p class="vc-stat__note kpi-note" data-i18n="kpi.note.start">worked out as the page starts</p>
       </article>
       <article class="vc-stat kpi" id="kpi-cost" data-vc-kpi="Session cost" data-vc-kpi-de="Sitzungskosten" data-state="waiting">
         <p class="vc-stat__label" data-i18n="kpi.cost">Session cost</p>
         <p class="vc-stat__value"><s class="vc-stat__was kpi-was" hidden></s><span class="kpi-value" data-i18n="kpi.wait">…</span></p>
-        <p class="vc-stat__note kpi-note" data-i18n="kpi.note.version">from version 0.2.0</p>
+        <p class="vc-stat__note kpi-note" data-i18n="kpi.note.start">worked out as the page starts</p>
       </article>
     </section>
   </header>
@@ -90,29 +90,30 @@
     </p>
   </div>
 
+  <!-- The steps of a run, with Play before them. js/presenter.js fills the steps and the stage; Space plays
+       or pauses, the arrow keys and a presenter's clicker move between steps. -->
+  <nav class="stepbar" aria-label="Steps of the run" data-i18n-attr="aria-label:p.steps">
+    <button type="button" class="vc-button vc-button--secondary play" id="btn-play" data-state="play"><span class="vc-icon vc-icon--play" aria-hidden="true"></span><span id="play-text">Play</span></button>
+    <button type="button" class="vc-button vc-button--ghost stepbar-back" id="btn-back"><span class="vc-icon vc-icon--chevron-left" aria-hidden="true"></span><span data-i18n="p.back">Back</span></button>
+    <ol class="vc-stepper steps" id="steps"></ol>
+    <button type="button" class="vc-button vc-button--secondary stepbar-next" id="btn-next"><span data-i18n="p.next">Next</span><span class="vc-icon vc-icon--chevron-right" aria-hidden="true"></span></button>
+  </nav>
+
   <p class="vc-visually-hidden" id="announce" aria-live="polite"></p>
 
-  <main id="stage" class="stage" tabindex="-1">
-    <section class="story" aria-labelledby="start-title">
-      <h1 class="story-title" id="start-title" data-i18n="start.title">Six outside forces, put to the test</h1>
-      <p class="story-lead" data-i18n="start.lead">PESTEL looks at a company from the outside, in six dimensions. Each asks a question; the agents answer it, rate what they find and put a figure on every threat.</p>
-      <div class="version-note">
-        <span class="vc-cell vc-cell--sm" aria-hidden="true"><span class="vc-icon vc-icon--info"></span></span>
-        <p><strong class="version-title" data-i18n="start.version.title">Version 0.1.0 holds the method and the engine that computes its figures.</strong> <span data-i18n="start.version.text">The three scenarios play without a key from version 0.2.0. A live run on your company with your own Claude API key follows in 0.3.0, and the report as a PDF in 0.4.0.</span></p>
-      </div>
-    </section>
-    <section class="dims" aria-labelledby="dims-title">
-      <h2 class="vc-visually-hidden" id="dims-title" data-i18n="start.dims">The six dimensions of PESTEL</h2>
-      <ol class="dim-list">
-        <li class="dim" data-dim="political"><span class="vc-cell dim-letter" aria-hidden="true">P</span><span class="dim-text"><span class="dim-name" data-i18n="dim.political">Political</span><span class="dim-q" data-i18n="dim.political.q">Which government decisions and political events could affect us?</span></span></li>
-        <li class="dim" data-dim="economic"><span class="vc-cell dim-letter" aria-hidden="true">E</span><span class="dim-text"><span class="dim-name" data-i18n="dim.economic">Economic</span><span class="dim-q" data-i18n="dim.economic.q">Which shifts in growth, rates, prices or currencies could affect us?</span></span></li>
-        <li class="dim" data-dim="social"><span class="vc-cell dim-letter" aria-hidden="true">S</span><span class="dim-text"><span class="dim-name" data-i18n="dim.social">Social</span><span class="dim-q" data-i18n="dim.social.q">Which changes in society, demography and attitudes could affect us?</span></span></li>
-        <li class="dim" data-dim="technological"><span class="vc-cell dim-letter" aria-hidden="true">T</span><span class="dim-text"><span class="dim-name" data-i18n="dim.technological">Technological</span><span class="dim-q" data-i18n="dim.technological.q">Which technologies could change our market or our operations?</span></span></li>
-        <li class="dim" data-dim="environmental"><span class="vc-cell dim-letter" aria-hidden="true">E</span><span class="dim-text"><span class="dim-name" data-i18n="dim.environmental">Environmental</span><span class="dim-q" data-i18n="dim.environmental.q">Which environmental changes and expectations could affect us?</span></span></li>
-        <li class="dim" data-dim="legal"><span class="vc-cell dim-letter" aria-hidden="true">L</span><span class="dim-text"><span class="dim-name" data-i18n="dim.legal">Legal</span><span class="dim-q" data-i18n="dim.legal.q">Which laws, rules and rulings could affect us?</span></span></li>
-      </ol>
-    </section>
-  </main>
+  <main id="stage" class="stage" tabindex="-1" data-step="start" data-layout="split"></main>
+
+  <div id="banners" class="banner-stack" aria-live="polite"></div>
+
+  <!-- Method: the six dimensions, the scales, the rules the engine follows and what its figures are not.
+       js/method.js writes it in the page's language each time it opens. -->
+  <dialog class="vc-dialog vc-dialog--lg method" id="method" aria-labelledby="method-title">
+    <header class="vc-dialog__header">
+      <h2 class="vc-dialog__title" id="method-title" data-i18n="method.title">The method</h2>
+      <button type="button" class="vc-icon-button" data-vc-close aria-label="Close" data-i18n-attr="aria-label:p.close"><span class="vc-icon vc-icon--close" aria-hidden="true"></span></button>
+    </header>
+    <div class="vc-dialog__body method-body" id="method-body"></div>
+  </dialog>
 
   <!-- How it works: one guide per language. js/lang.js leaves data-vc-guide-auto only on the guide in the
        page's language, so vici.js opens that one by itself once per tab. -->
@@ -125,27 +126,54 @@
       <section class="vc-guide__chapter" data-vc-chapter="what" data-vc-nav="What it does">
         <h3>Which outside forces a company isn't ready for</h3>
         <p class="vc-guide__lead">Name a company and list the outside forces you see under six headings. AI agents complete them, challenge the analysis, put a figure on each threat and propose what to do or watch.</p>
-        <p>The six headings are political, economic, social, technological, environmental and legal: PESTEL. The run ends with a management summary and a watch list, which you download as a PDF, as an HTML file and as a file for the Prototype Ideator. On your own Claude key a run takes minutes and stops at the budget cap you set.</p>
+        <p>The six headings are political, economic, social, technological, environmental and legal: PESTEL. This version plays three recorded runs on fictional companies, without a key. A live run on your own company and Claude key follows in 0.3.0, and the report as a PDF, an HTML file and a file for the Prototype Ideator in 0.4.0.</p>
       </section>
       <section class="vc-guide__chapter" data-vc-chapter="how" data-vc-nav="How it works">
         <h3>Five agents, and code that does the sums</h3>
-        <p class="vc-guide__lead">The Scanner, Red team, Analyst, Strategist and Writer each take one step. Code checks their answers and works out every key figure.</p>
+        <p class="vc-guide__lead">Code checks the five agents' answers and works out every key figure.</p>
         <div class="vc-table-wrap"><table class="vc-table vc-table--compact">
-          <caption>Key figures</caption>
+          <caption><span data-fig="company">Auental Energie</span>: key figures before and after the recorded decision</caption>
           <thead><tr><th scope="col">Figure</th><th scope="col">What it measures</th><th scope="col">Value</th></tr></thead>
           <tbody>
-            <tr><th scope="row">At stake a year</th><td>Expected loss a year: each euro range's midpoint times its likelihood</td><td>… from 0.2.0</td></tr>
-            <tr><th scope="row">Dimensions under pressure</th><td>Dimensions holding a threat of medium band or higher the company isn't ready for</td><td>… from 0.2.0</td></tr>
-            <tr><th scope="row">Readiness</th><td>0 to 100: how ready the company is for its threats; this tool's own measure</td><td>… from 0.2.0</td></tr>
-            <tr><th scope="row">Session cost</th><td>What the agents cost: measured live against your cap, estimated in the simulation</td><td>… from 0.2.0</td></tr>
+            <tr><th scope="row">At stake a year</th><td>Each priced threat's euro range at its midpoint, times its likelihood, added up</td><td><span data-fig="stake.before">€3.8m</span>, then <span data-fig="stake.after">€2.2m</span></td></tr>
+            <tr><th scope="row">Dimensions under pressure</th><td>Dimensions with a threat of medium band or higher that the company is not ready for</td><td><span data-fig="pressure.before">3 of 6</span>, then <span data-fig="pressure.after">1 of 6</span></td></tr>
+            <tr><th scope="row">Readiness</th><td>0 to 100: how much of its threats' weight the company is ready for</td><td><span data-fig="readiness.before">51</span>, then <span data-fig="readiness.after">72</span></td></tr>
+            <tr><th scope="row">Session cost</th><td>What the agents cost: measured live against your cap, estimated here</td><td><span data-fig="cost.balanced">≈ €0.05</span> on Balanced, <span data-fig="cost.thorough">≈ €0.24</span> on Thorough</td></tr>
           </tbody>
         </table></div>
+      </section>
+      <section class="vc-guide__chapter" data-vc-chapter="steps" data-vc-nav="The six steps">
+        <h3>Six steps, three of them yours</h3>
+        <p class="vc-guide__lead">Play reads each step at reading pace and stops where you act. The arrow keys and a clicker work too.</p>
+        <div class="vc-table-wrap"><table class="vc-table vc-table--compact">
+          <caption>The steps of a run</caption>
+          <thead><tr><th scope="col">Step</th><th scope="col">What happens</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Start</th><td>The team's list. Your turn: start the agents.</td></tr>
+            <tr><th scope="row">Scan</th><td>The Scanner completes all six dimensions. Your turn: challenge it.</td></tr>
+            <tr><th scope="row">Challenge</th><td>The Red team corrects the analysis; you can undo each correction.</td></tr>
+            <tr><th scope="row">Assess</th><td>The Analyst prices each threat in the sector's KPIs and euros a year.</td></tr>
+            <tr><th scope="row">Respond</th><td>The Strategist proposes responses. Your turn: adopt them.</td></tr>
+            <tr><th scope="row">Summary</th><td>The Writer's summary and the watch list; code supplies every figure.</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+      <section class="vc-guide__chapter" data-vc-chapter="cost" data-vc-nav="The cost estimate">
+        <h3>What the cost estimate assumes</h3>
+        <p class="vc-guide__lead">The simulation calls no model, so its session cost is an estimate of what the recorded run would cost on your own key.</p>
+        <ul>
+          <li>Each agent's request is rebuilt from what it reads and what it answered, at about four characters a token.</li>
+          <li>A prompt of about 1,500 tokens; each answer counted twice, to allow for thinking.</li>
+          <li>With research, five web searches at $10 per 1,000, each adding about 4,000 tokens.</li>
+          <li>Prices read on 24 November 2026, converted at €0.894 to the dollar.</li>
+          <li>Victor's first live runs replace these assumptions with measured values.</li>
+        </ul>
       </section>
       <section class="vc-guide__chapter" data-vc-chapter="real" data-vc-nav="What is real">
         <h3>Fictional companies, real facts, nothing kept</h3>
         <p class="vc-guide__lead">The scenario companies are fictional and their own figures illustrative. What a scenario says about the world, such as a law or a price, is real and shows its source and the date it was read.</p>
         <ul>
-          <li>Version 0.1.0 holds the method and the engine that computes its figures. The scenarios play from 0.2.0, a live run follows in 0.3.0 and the report in 0.4.0.</li>
+          <li>Lilac marks what the AI wrote, suggested or estimated; merlot marks your turn and your choices.</li>
           <li>A live run sends what you enter to Anthropic's API under your own key. Its controls say: You are interacting with an AI system.</li>
           <li>Your key and what you enter stay in this tab's memory and are gone when you close or reload it. You keep a result only by downloading it.</li>
           <li>Public information only: never enter confidential, personal or otherwise protected data.</li>
@@ -153,13 +181,13 @@
       </section>
       <section class="vc-guide__chapter" data-vc-chapter="present" data-vc-nav="How to present">
         <h3>Show it in five minutes</h3>
-        <p class="vc-guide__lead">Five steps for a room that has never seen the tool, from version 0.2.0.</p>
+        <p class="vc-guide__lead">Five steps on <span data-fig="company">Auental Energie</span>; Space pauses while you talk.</p>
         <ol class="vc-guide__path">
-          <li><strong>The key figures.</strong> “Before anything runs, four figures say what is at stake.” <span class="vc-guide__time">1 min</span></li>
-          <li><strong>Auental Energie.</strong> “A town utility listed two forces; the agents fill the gaps.” <span class="vc-guide__time">1 min</span></li>
-          <li><strong>The challenge.</strong> “A deadline the team thought far off turns its dimension red.” <span class="vc-guide__time">1 min</span></li>
-          <li><strong>Your decision.</strong> “A mitigation and a watch move readiness and the money at stake.” <span class="vc-guide__time">1.5 min</span></li>
-          <li><strong>The report.</strong> “The PDF ends with the watch list, the footer on every page.” <span class="vc-guide__time">0.5 min</span></li>
+          <li><strong>Point at the key figures.</strong> <span class="vc-guide__say">“The engine has done the sums: <span data-fig="stake.before">€3.8m</span> at stake a year, readiness <span data-fig="readiness.before">51</span>.”</span> <span class="vc-guide__time">1 min</span></li>
+          <li><strong>Start the agents, then open a dated signal.</strong> <span class="vc-guide__say">“The Scanner fills all six dimensions from the news, each with its source.”</span> <span class="vc-guide__time">1 min</span></li>
+          <li><strong>Challenge, then open Legal.</strong> <span class="vc-guide__say">“The Red team moves the heat plan to now: legal comes under pressure.”</span> <span class="vc-guide__time">1 min</span></li>
+          <li><strong>At Respond, change one choice.</strong> <span class="vc-guide__say">“Mitigate the heat plan, watch overdue bills; each choice moves the figures.”</span> <span class="vc-guide__time">1.5 min</span></li>
+          <li><strong>Adopt, then show the watch list.</strong> <span class="vc-guide__say">“Left at stake: <span data-fig="stake.after">€2.2m</span> a year, readiness <span data-fig="readiness.after">72</span>.”</span> <span class="vc-guide__time">0.5 min</span></li>
         </ol>
       </section>
     </div>
@@ -179,27 +207,54 @@
       <section class="vc-guide__chapter" data-vc-chapter="what" data-vc-nav="Was er tut">
         <h3>Worauf ein Unternehmen nicht vorbereitet ist</h3>
         <p class="vc-guide__lead">Nennen Sie ein Unternehmen und die äußeren Kräfte, die Sie sehen, unter sechs Überschriften. KI‑Agenten vervollständigen sie, hinterfragen die Analyse, beziffern jedes Risiko und schlagen vor, was zu tun oder zu beobachten ist.</p>
-        <p>Die sechs Überschriften sind politisch, ökonomisch, gesellschaftlich, technologisch, ökologisch und rechtlich: PESTEL. Am Ende stehen eine Management-Zusammenfassung und eine Beobachtungsliste, die Sie als PDF, als HTML-Datei und als Datei für den Prototype Ideator herunterladen. Mit Ihrem eigenen Claude-Schlüssel dauert ein Lauf Minuten und stoppt an der Kostenobergrenze, die Sie festlegen.</p>
+        <p>Die sechs Überschriften sind politisch, ökonomisch, gesellschaftlich, technologisch, ökologisch und rechtlich: PESTEL. Diese Version spielt drei aufgezeichnete Läufe mit fiktiven Unternehmen ab, ohne Schlüssel. Ein Live‑Lauf mit Ihrem Unternehmen und Ihrem Claude-Schlüssel folgt in 0.3.0, der Bericht als PDF, als HTML-Datei und als Datei für den Prototype Ideator in 0.4.0.</p>
       </section>
       <section class="vc-guide__chapter" data-vc-chapter="how" data-vc-nav="So funktioniert er">
         <h3>Fünf Agenten und Code, der rechnet</h3>
-        <p class="vc-guide__lead">Scanner, Red Team, Analyst, Stratege und Autor übernehmen je einen Schritt. Code prüft ihre Antworten und berechnet jede Kennzahl.</p>
+        <p class="vc-guide__lead">Code prüft die Antworten der fünf Agenten und berechnet jede Kennzahl.</p>
         <div class="vc-table-wrap"><table class="vc-table vc-table--compact">
-          <caption>Kennzahlen</caption>
+          <caption><span data-fig="company">Auental Energie</span>: Kennzahlen vor und nach der aufgezeichneten Entscheidung</caption>
           <thead><tr><th scope="col">Kennzahl</th><th scope="col">Was sie misst</th><th scope="col">Wert</th></tr></thead>
           <tbody>
-            <tr><th scope="row">Auf dem Spiel pro Jahr</th><td>Erwarteter Verlust pro Jahr: Mitte jeder Euro-Spanne mal ihre Wahrscheinlichkeit</td><td>… ab 0.2.0</td></tr>
-            <tr><th scope="row">Dimensionen unter Druck</th><td>Dimensionen mit einem mindestens mittleren Risiko, auf das das Unternehmen nicht vorbereitet ist</td><td>… ab 0.2.0</td></tr>
-            <tr><th scope="row">Vorbereitungsgrad</th><td>0 bis 100: wie gut das Unternehmen auf seine Risiken vorbereitet ist; ein eigenes Maß</td><td>… ab 0.2.0</td></tr>
-            <tr><th scope="row">Sitzungskosten</th><td>Was die Agenten kosten: live gemessen gegen Ihre Obergrenze, in der Simulation geschätzt</td><td>… ab 0.2.0</td></tr>
+            <tr><th scope="row">Auf dem Spiel pro Jahr</th><td>Euro-Spanne jedes bezifferten Risikos in der Mitte, mal Wahrscheinlichkeit, summiert</td><td><span data-fig="stake.before">3,8 Mio. €</span>, dann <span data-fig="stake.after">2,2 Mio. €</span></td></tr>
+            <tr><th scope="row">Dimensionen unter Druck</th><td>Dimensionen mit einem mindestens mittleren Risiko, auf das das Unternehmen nicht vorbereitet ist</td><td><span data-fig="pressure.before">3 von 6</span>, dann <span data-fig="pressure.after">1 von 6</span></td></tr>
+            <tr><th scope="row">Vorbereitungsgrad</th><td>0 bis 100: auf wie viel vom Gewicht seiner Risiken das Unternehmen vorbereitet ist</td><td><span data-fig="readiness.before">51</span>, dann <span data-fig="readiness.after">72</span></td></tr>
+            <tr><th scope="row">Sitzungskosten</th><td>Was die Agenten kosten: live gemessen gegen Ihre Obergrenze, hier geschätzt</td><td><span data-fig="cost.balanced">≈ 0,05 €</span> mit Ausgewogen, <span data-fig="cost.thorough">≈ 0,24 €</span> mit Gründlich</td></tr>
           </tbody>
         </table></div>
+      </section>
+      <section class="vc-guide__chapter" data-vc-chapter="steps" data-vc-nav="Die sechs Schritte">
+        <h3>Sechs Schritte, drei davon Ihre</h3>
+        <p class="vc-guide__lead">Abspielen geht die Schritte im Lesetempo durch und hält, wo Sie handeln. Pfeiltasten und Presenter gehen auch.</p>
+        <div class="vc-table-wrap"><table class="vc-table vc-table--compact">
+          <caption>Die Schritte eines Laufs</caption>
+          <thead><tr><th scope="col">Schritt</th><th scope="col">Was passiert</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Start</th><td>Die Liste des Teams. Sie sind dran: Agenten starten.</td></tr>
+            <tr><th scope="row">Scan</th><td>Der Scanner ergänzt alle sechs Dimensionen. Sie sind dran: prüfen lassen.</td></tr>
+            <tr><th scope="row">Prüfung</th><td>Das Red Team korrigiert die Analyse; Sie können jede Korrektur zurücknehmen.</td></tr>
+            <tr><th scope="row">Bewertung</th><td>Der Analyst beziffert jedes Risiko in Branchen-KPIs und Euro pro Jahr.</td></tr>
+            <tr><th scope="row">Antworten</th><td>Der Stratege schlägt Antworten vor. Sie sind dran: übernehmen.</td></tr>
+            <tr><th scope="row">Zusammenfassung</th><td>Zusammenfassung und Beobachtungsliste; jede Zahl kommt aus dem Code.</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+      <section class="vc-guide__chapter" data-vc-chapter="cost" data-vc-nav="Die Kostenschätzung">
+        <h3>Was die Kostenschätzung annimmt</h3>
+        <p class="vc-guide__lead">Die Simulation ruft kein Modell auf, ihre Sitzungskosten schätzen also, was der aufgezeichnete Lauf mit Ihrem eigenen Schlüssel kosten würde.</p>
+        <ul>
+          <li>Jede Anfrage eines Agenten wird aus dem nachgebaut, was er liest und antwortet, mit etwa vier Zeichen je Token.</li>
+          <li>Ein Prompt von etwa 1.500 Tokens; jede Antwort zählt doppelt, als Reserve für das Nachdenken.</li>
+          <li>Mit Recherche fünf Websuchen zu 10 $ je 1.000, jede mit etwa 4.000 Tokens mehr.</li>
+          <li>Preise vom 24. November 2026, umgerechnet zu 0,894 € je Dollar.</li>
+          <li>Victors erste Live‑Läufe ersetzen diese Annahmen durch gemessene Werte.</li>
+        </ul>
       </section>
       <section class="vc-guide__chapter" data-vc-chapter="real" data-vc-nav="Was echt ist">
         <h3>Fiktive Unternehmen, echte Fakten, nichts gespeichert</h3>
         <p class="vc-guide__lead">Die Unternehmen der Szenarien sind fiktiv, ihre eigenen Zahlen veranschaulichen nur. Was ein Szenario über die Welt sagt, etwa ein Gesetz oder ein Preis, ist echt und nennt Quelle und Lesedatum.</p>
         <ul>
-          <li>Version 0.1.0 enthält die Methode und die Rechenlogik für ihre Kennzahlen. Die Szenarien spielen ab 0.2.0, ein Live‑Lauf folgt in 0.3.0, der Bericht in 0.4.0.</li>
+          <li>Flieder markiert, was die KI geschrieben, vorgeschlagen oder geschätzt hat; Merlot markiert, wann Sie dran sind und was Sie wählen.</li>
           <li>Ein Live‑Lauf sendet Ihre Eingaben unter Ihrem eigenen Schlüssel an die API von Anthropic. Seine Bedienelemente sagen: Sie interagieren mit einem KI-System.</li>
           <li>Schlüssel und Eingaben bleiben im Speicher dieses Tabs und sind weg, wenn Sie ihn schließen oder neu laden. Ein Ergebnis behalten Sie nur als Download.</li>
           <li>Nur öffentliche Informationen: Geben Sie niemals vertrauliche, personenbezogene oder anderweitig geschützte Daten ein.</li>
@@ -207,13 +262,13 @@
       </section>
       <section class="vc-guide__chapter" data-vc-chapter="present" data-vc-nav="So präsentieren Sie">
         <h3>In fünf Minuten zeigen</h3>
-        <p class="vc-guide__lead">Fünf Schritte für ein Publikum ohne Vorwissen, ab Version 0.2.0.</p>
+        <p class="vc-guide__lead">Fünf Schritte mit <span data-fig="company">Auental Energie</span>; die Leertaste pausiert.</p>
         <ol class="vc-guide__path">
-          <li><strong>Die Kennzahlen.</strong> „Bevor etwas läuft, zeigen vier Zahlen, was auf dem Spiel steht.“ <span class="vc-guide__time">1 min</span></li>
-          <li><strong>Auental Energie.</strong> „Ein Stadtwerk nennt zwei Kräfte; die Agenten füllen die Lücken.“ <span class="vc-guide__time">1 min</span></li>
-          <li><strong>Die Prüfung.</strong> „Eine Frist, die das Team für fern hielt, färbt ihre Dimension rot.“ <span class="vc-guide__time">1 min</span></li>
-          <li><strong>Ihre Entscheidung.</strong> „Minderung und Beobachtung bewegen Vorbereitungsgrad und Betrag.“ <span class="vc-guide__time">1,5 min</span></li>
-          <li><strong>Der Bericht.</strong> „Das PDF endet mit der Beobachtungsliste, mit Fußzeile auf jeder Seite.“ <span class="vc-guide__time">0,5 min</span></li>
+          <li><strong>Auf die Kennzahlen zeigen.</strong> <span class="vc-guide__say">„Gerechnet ist schon: <span data-fig="stake.before">3,8 Mio. €</span> pro Jahr auf dem Spiel, Vorbereitungsgrad <span data-fig="readiness.before">51</span>.“</span> <span class="vc-guide__time">1 min</span></li>
+          <li><strong>Agenten starten, ein datiertes Signal öffnen.</strong> <span class="vc-guide__say">„Der Scanner füllt alle sechs Dimensionen aus den Nachrichten, jede mit Quelle.“</span> <span class="vc-guide__time">1 min</span></li>
+          <li><strong>Prüfen lassen, dann Rechtlich öffnen.</strong> <span class="vc-guide__say">„Das Red Team zieht den Wärmeplan auf jetzt vor: Rechtlich gerät unter Druck.“</span> <span class="vc-guide__time">1 min</span></li>
+          <li><strong>Bei Antworten eine Wahl ändern.</strong> <span class="vc-guide__say">„Wärmeplan angehen, Forderungen beobachten: Jede Wahl bewegt die Zahlen.“</span> <span class="vc-guide__time">1,5 min</span></li>
+          <li><strong>Übernehmen, die Beobachtungsliste zeigen.</strong> <span class="vc-guide__say">„Es bleiben <span data-fig="stake.after">2,2 Mio. €</span> pro Jahr auf dem Spiel, Vorbereitungsgrad <span data-fig="readiness.after">72</span>.“</span> <span class="vc-guide__time">0,5 min</span></li>
         </ol>
       </section>
     </div>
