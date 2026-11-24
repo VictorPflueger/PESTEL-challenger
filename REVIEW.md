@@ -5,7 +5,7 @@ from and what changed. A copied file is byte for byte the source; an adapted fil
 
 | File | Verdict | Source | What changed and why |
 |---|---|---|---|
-| `vici/**` | copy | ViciDesign `64044bd` | Vici's `dist/`, fonts, portrait, marks and licence, unchanged; `vici/README.md` names the commit, which holds the report this tool added first (ViciDesign#40) |
+| `vici/**` | copy | ViciDesign `0d37f48` | Vici's `dist/`, fonts, portrait, marks and licence, unchanged; `vici/README.md` names the commit, which holds the report this tool added first (ViciDesign#40) and its fixes for 1.0.0 (ViciDesign#42 and #44) |
 | `data/kpis.js` | copy | SWOT Challenger 0.1.0, `617b122` | Unchanged: a shared part the SWOT Challenger merged first (brief §4.1) |
 | `js/risk.js` | copy | SWOT Challenger 0.1.0, `617b122` | Unchanged: a shared part; `js/engine.js` uses its bands, expected values and money format |
 | `schemas/strategy-challenge-1.json` | copy | SWOT Challenger 0.1.0, `617b122` | Unchanged: the shared handoff schema, which keeps its parts under `$defs` |
@@ -40,6 +40,7 @@ from and what changed. A copied file is byte for byte the source; an adapted fil
 | `tests/vici-files.mjs` | adapt | Data Quality Agent 2.2.0, `831f050` | Compares `vici/` with ViciDesign at the exact commit through git, rather than by version number |
 | `tests/i18n.mjs` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | This tool's strings and guides, and the storage keys left after switching language |
 | `tests/guide-behaviour.mjs` | adapt | Duty Radar 2.1.0, `c93498e` | Runs Vici's guide check on this tool's two guides |
+| `tests/access.mjs` | adapt | Data Quality Agent 2.2.0, `831f050` | From its tests/presenter.mjs: the keyboard pass and the reduced-motion sampler, for this tool's steps, guide and dialogs; the focus comparison by pixels and the checks of names and ids are new |
 | `css/app.css` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | The header, key figures and the strip under them; the stage and the live screens are new |
 | `index.html` | adapt | Data Quality Agent 2.2.0, `831f050` | The frame: header, tiles, sentence, byline, guide and, from 0.3.0, the live-run dialog; everything inside is this tool's own |
 | `tests/tokens.mjs` | copy | Sovereignty Assessment 2.0.0, `35c0dea` | Unchanged; this tool's colour pairs are in `tests/lib/prototype.mjs` |
@@ -48,7 +49,7 @@ from and what changed. A copied file is byte for byte the source; an adapted fil
 | `tests/page-icon.mjs` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | No loading screen, since the page is drawn before any script runs; the website's card is compared once it exists |
 | `tests/run-all.mjs` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | This tool's suites; every flag goes to every suite; "ALL SUITES OK" only when all have run |
 | `tests/live_site.mjs` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | This tool's files and first screen; a scenario played to its end joins in 0.2.0 |
-| `.github/workflows/tests.yml` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | ViciDesign at `64044bd`, and the website, the siblings and the sources cloned beside the tool |
+| `.github/workflows/tests.yml` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | ViciDesign at `0d37f48`, and the website, the siblings and the sources cloned beside the tool |
 | `.github/workflows/live-site.yml` | adapt | Sovereignty Assessment 2.0.0, `35c0dea` | Only its header comment |
 
 Not taken: the sisters' `js/theme.js`. Its job, applying the theme before the first paint without an
@@ -68,6 +69,8 @@ answers in `tests/lib/turns.mjs`, the live suites' moves in `tests/lib/live.mjs`
 `estimate`, `live-dialog`, `live-requests`, `live-repair`, `live-budget`, `live-errors`, `live-research`,
 `live-scan`, `live-flow` and `storage`. From 0.4.0: the report in `js/report.js` and `css/report.css`, the
 handoff file in `js/handoff.js`, and the suites `handoff`, `report`, `report-files` and `report-figures`.
+From 1.0.0: the note a page opened from a file shows, in `index.html` and `css/app.css`, and the suite
+`from-file`.
 This tool first built its own KPI library, money format
 and handoff schema; when the SWOT Challenger merged its versions first, it took theirs, as brief §4.1
 asks, and the Business Model Canvas Challenger did the same.

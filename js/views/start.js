@@ -9,6 +9,7 @@ import { ring, factorItem } from "../hexagon.js";
 import { SCENARIOS } from "../simulation.js";
 import * as R from "../run.js";
 import { fmtDate, needsUpdate } from "../format.js";
+import { APP } from "../config.js";
 
 export function startView(ctx) {
   const { run, handlers, today } = ctx;
@@ -41,7 +42,7 @@ export function startView(ctx) {
         h("div", { class: "live-entry" },
           withNotice(h("button", { type: "button", class: "vc-button vc-button--secondary", id: "btn-run-live", on: { click: handlers.runLive } }, icon("zap"), t("start.live"))),
           h("p", { class: "live-entry-note" }, t("start.live.note"))),
-        h("p", { class: "version-note" }, icon("info"), h("span", {}, t("start.version")))),
+        h("p", { class: "version-note" }, icon("info"), h("span", {}, t("start.version", { version: APP.version })))),
       action,
     ],
     side: ring(run, 0, { selected: null }),

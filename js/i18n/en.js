@@ -185,7 +185,7 @@ export default {
   "start.team.other": "The team listed {n} outside forces",
   "start.turn": "Hand the team's list to the agents.",
   "start.cta": "Start the agents",
-  "start.version": "Version 0.3.0 plays recorded runs without a key and runs live on your own company with your own Claude key. The report as a PDF follows in 0.4.0.",
+  "start.version": "Version {version}. Every run, recorded or live, ends in a report you can save as PDF.",
   "start.live": "Run it live",
   "start.live.note": "Your own company, with your own Claude key.",
 

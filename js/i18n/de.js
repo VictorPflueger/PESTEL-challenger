@@ -184,7 +184,7 @@ export default {
   "start.team.other": "Das Team hat {n} äußere Kräfte genannt",
   "start.turn": "Übergeben Sie die Liste des Teams an die Agenten.",
   "start.cta": "Agenten starten",
-  "start.version": "Version 0.3.0 spielt aufgezeichnete Läufe ohne Schlüssel ab und läuft live mit Ihrem Unternehmen und Ihrem eigenen Claude-Schlüssel. Der Bericht als PDF folgt in 0.4.0.",
+  "start.version": "Version {version}. Jeder Lauf, aufgezeichnet oder live, endet in einem Bericht, den Sie als PDF speichern können.",
   "start.live": "Live laufen lassen",
   "start.live.note": "Ihr eigenes Unternehmen, mit Ihrem eigenen Claude-Schlüssel.",
 

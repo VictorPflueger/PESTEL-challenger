@@ -6,7 +6,7 @@
 export const APP = Object.freeze({
   id: "pestel",
   name: "PESTEL Challenger",
-  version: "0.4.0",
+  version: "1.0.0",
   url: "https://victorpflueger.github.io/PESTEL-challenger/",
 });
 

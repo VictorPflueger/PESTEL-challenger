@@ -14,6 +14,8 @@
 //   REVIEW     every file it lists exists; a copied file equals its source byte for byte at the commit
 //              named (when that prototype's checkout sits beside this repository); an adapted file names
 //              its source in its header; every file whose header names a source is listed;
+//   version    the page's strings, its static text and the documents (but TECH_NOTES and REVIEW, whose
+//              logs name each version) name no version but js/config.js's, and promise no later one;
 //   private    the build brief and the private term list are not in the tree.
 // Each rule first proves on a planted document that it can fail.
 // Usage: node tests/docs.mjs
@@ -30,7 +32,7 @@ const [major, minor] = APP.version.split(".").map(Number);
 const atLeast = (v) => { const [a, b] = v.split(".").map(Number); return major > a || (major === a && minor >= b); };
 
 const DOCS = {
-  "README.md": { max: 900, sections: ["What it will do", "What is real and what is simulated", "Running it", "Part of a set of four"], version: `Version ${APP.version}` },
+  "README.md": { max: 900, sections: [atLeast("1.0") ? "What it does" : "What it will do", "What is real and what is simulated", "Running it", "Part of a set of four"], version: `Version ${APP.version}` },
   "DESIGN.md": { max: 700, numbered: 6 },
   "TECH_NOTES.md": { numbered: 8, version: `Version ${APP.version}` },
   "DATA_SOURCES.md": { max: 1500, numbered: 3 },
@@ -79,11 +81,58 @@ function namedPaths(t) {
 /** A path that does not exist is fine only when its line says the version it arrives in, or that it is another tool's. */
 const missingPaths = (t) => namedPaths(t).filter(({ p, line }) => !fs.existsSync(path.join(APP_ROOT, p)) && !/\b(from|in|with) (version )?\d+\.\d+\.\d+|\bM[2-5]\b|\bsisters'|\bnot taken\b/i.test(line)).map(({ p }) => p);
 
+/**
+ * A version a reader would take for this one, or a promise of a later one: any x.y.z that is not
+ * js/config.js's version, and words such as "follows in 0.4.0" or "folgt in". In the page's strings and
+ * its static text, and in every document but TECH_NOTES and REVIEW, whose logs name each version as it
+ * came. A line may name another tool's version ("Data Quality Agent 2.2.0") or a standard ("ISO 14083").
+ */
+const OTHER_TOOL = /(Agent|Assessment|Radar|Challenger|Ideator|Hunter|Vici|Playwright|Chromium|Chrome|Node|ISO|EN|Haiku|Sonnet|Opus|ViciDesign|schema)\s*v?\d+\.\d+(\.\d+)?|v\d+\.\d+\.\d+ on the way|\d+\.\d+\.\d+ \(the|playwright@/i;
+function versionProblems(where, t) {
+  const out = [];
+  for (const line of t.split("\n")) {
+    const promise = line.match(/\b(follows? in|comes? with version|arrives? in|from version|folgt in|kommt mit Version)\b[^.]*\d+\.\d+(\.\d+)?/i);
+    if (promise) out.push(`${where}: "${promise[0].slice(0, 60)}"`);
+    for (const m of line.matchAll(/\b\d+\.\d+\.\d+\b/g)) {
+      if (m[0] === APP.version) continue;
+      if (promise && m.index >= promise.index && m.index < promise.index + promise[0].length) continue;
+      const around = line.slice(Math.max(0, m.index - 24), m.index + m[0].length + 12);
+      if (OTHER_TOOL.test(around)) continue;
+      out.push(`${where}: "${around.trim()}"`);
+    }
+  }
+  return out;
+}
+/** The page's own words: every string value of the two string files, and index.html without its comments and tags. */
+async function pageTexts() {
+  const strings = [];
+  for (const l of ["en", "de"]) {
+    const { default: dict } = await import(pathToFileURL(path.join(APP_ROOT, `js/i18n/${l}.js`)).href);
+    for (const [k, v] of Object.entries(dict)) strings.push([`${l}.js ${k}`, String(v)]);
+  }
+  const html = fs.readFileSync(path.join(APP_ROOT, "index.html"), "utf8").replace(/<!--[\s\S]*?-->/g, "").replace(/<[^>]+>/g, " ");
+  strings.push(["index.html", html]);
+  return strings;
+}
+
 // ---- planted documents: every rule can fail ----------------------------------------------------------
 {
   const planted = docProblems("planted.md", "# T\n\n## Something else\n\n" + "word ".repeat(950), DOCS["README.md"]);
   const ghost = missingPaths("The engine lives in `js/ghost.js`.\nThe client `js/future.js` comes in 0.3.0.");
   check(planted.length >= 3 && ghost.length === 1 && ghost[0] === "js/ghost.js", `control: a planted README that is too long, lacks its sections and its version, and a path that does not exist, are caught (${planted.length} problems; ${ghost.join(", ")})`);
+  const stale = versionProblems("planted", "Version 0.3.0 plays recorded runs. The report as a PDF follows in 0.4.0.\nBuilt on the Data Quality Agent 2.2.0.");
+  check(stale.length === 2 && !stale.some((x) => x.includes("2.2.0")), `control: a planted line with an earlier version and a promise is caught, another tool's version is not (${stale.join("; ")})`);
+}
+
+// ---- the version: the page and the documents name js/config.js's, and promise no later one ---------------
+{
+  const found = [];
+  for (const [where, t] of await pageTexts()) found.push(...versionProblems(where, t));
+  for (const name of ["README.md", "DESIGN.md", "DATA_SOURCES.md", "DEMO_SCRIPT.md", "DEMO_SCRIPT.de.md"]) {
+    const p = path.join(APP_ROOT, name);
+    if (fs.existsSync(p)) found.push(...versionProblems(name, fs.readFileSync(p, "utf8")));
+  }
+  check(!found.length, `the page's strings, its static text and the documents name no version but ${APP.version} and promise none${found.length ? `: ${found.slice(0, 4).join("; ")}` : ""}`);
 }
 
 // ---- each document --------------------------------------------------------------------------------

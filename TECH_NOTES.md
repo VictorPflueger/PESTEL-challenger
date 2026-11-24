@@ -5,14 +5,15 @@ the plan Victor approved on 23 November 2026; this file records what the build f
 
 ## 1. Version
 
-Version 0.4.0 (M4 Report): every run ends in a report. The Summary shows it page by page; "Save as PDF"
-prints it alone with the footer on every page; the HTML file is the same report as one file of its own;
-the handoff file is the JSON the Prototype Ideator reads, checked against the shared schema before it
-downloads. A run stopped early offers what is done, and its report says on every page where it stopped.
-It builds on 0.3.0 (M3 Live), which runs the agents on a person's own company with their own Claude API
-key in the tab; on 0.2.0 (M2 Simulation), three recorded runs on fictional companies that play step by step
-in English and German without a key; and on 0.1.0 (M1 Foundations): the frame, the strings, the engine
-with its golden cases, the schemas, the KPI library, the security policy and CI.
+Version 1.0.0 (M5 Release), 24 November 2026: the release of the four milestones before it, tested for
+layout at four screen sizes, the keyboard alone and reduced motion, with the note a page opened from a
+file shows, the documents complete, and the reviews of section 9 behind it. 0.4.0 (M4 Report) ended every
+run in a report: page by page in the Summary, saved as PDF with the footer on every page, as an HTML file
+of its own and as the handoff file the Prototype Ideator reads. 0.3.0 (M3 Live) runs the agents on a
+person's own company with their own Claude API key in the tab; 0.2.0 (M2 Simulation) plays three recorded
+runs on fictional companies step by step in English and German without a key; and 0.1.0 (M1 Foundations)
+laid the frame, the strings, the engine with its golden cases, the schemas, the KPI library, the security
+policy and CI.
 
 ## 2. API facts, verified at source
 
@@ -121,6 +122,18 @@ Decided while building 0.4.0, each within the brief and the plan:
 | The live-run dialog's source | This tool merged `js/live_dialog.js` first (0.3.0, 24 November 2026 at 10:17), before the Prototype Ideator and the Business Model Canvas Challenger (12:21 the same day). Brief §4.1 shares the dialog "apart from each tool's own settings", and each tool's file holds its own presets, cap and estimate, so `tests/parity.mjs` names this tool as the source and notes a sibling's different copy rather than asking for the same bytes |
 | Long tables in print | The responses, the watch list and the risk tables run on over page breaks row by row, rather than leaving half a page empty; a row stays whole. In a narrow column a short value stays whole and a long word hyphenates in the report's language (`hyphens: auto`, words of ten letters or more); only the cells that hold sentences may break inside a word, so a table keeps to its sheet in a browser without German hyphenation, such as Chromium on Linux, which the layout suite checks |
 
+Decided while building 1.0.0, each within the brief and the plan:
+
+| What | Decision |
+|---|---|
+| The version on screen | The start screen says "Version 1.0.0" and that every run ends in a report, from `APP.version` in `js/config.js`. `tests/docs.mjs` fails when the page's words, README, DESIGN, DATA_SOURCES or a demo script name another version or promise one to come |
+| Opened from a file | Chrome and Edge run no module script from a file, so the page would stay blank. `index.html` holds a note in the stage, in both languages, which a CSS animation shows after two seconds and the program removes as it starts: open the web address, or serve the folder with `python3 -m http.server 8000`. Served, the note never shows (`tests/from-file.mjs`) |
+| The keyboard and the focus | `tests/access.mjs` runs a scenario and a live run with the keyboard alone and compares every stop of the Tab order focused and not, pixel by pixel. It found two faults in Vici's dialog, fixed there first (ViciDesign#42): with reduced motion the backdrop still faded in, and a body that scrolls and holds only text, such as the method dialog's, showed only the top edge of its focus ring |
+| Window sizes | AC-14 runs from 1920 × 1080 to 1280 × 720: the layout suite checks both ends in both themes and languages, and 1600 × 900 and 1366 × 768 between them |
+| The report in the dark theme | The white sheets lie on the page's dark background. Vici's report painted the light canvas behind them, a light slab on a dark page; fixed in Vici first (ViciDesign#44) |
+| Vici | `vici/` copies Vici's main at `0d37f48`, which holds the SWOT Challenger's fit of the live-run dialog up to 1920 × 1080 (ViciDesign#41), #42 and #44 |
+| Firefox and Safari print | Victor decided on 24 November 2026 not to print the report in them by hand ("assume it works"). Only Chromium's print is tested; section 8 keeps the risk |
+
 ## 4. Security policy and what is kept
 
 `index.html` carries the brief's policy in one meta tag: everything from this site, connections only to
@@ -168,7 +181,7 @@ validated with those as the registry.
 
 The tests need Node 22 and, for the browser suites, Playwright with Chromium: `npm install -g playwright`
 and `npx playwright install chromium`, then `NODE_PATH="$(npm root -g)" node tests/run-all.mjs`, which
-runs all thirty-five suites and ends with "ALL SUITES OK"; `node tests/run-all.mjs engine layout` runs only
+runs all thirty-seven suites and ends with "ALL SUITES OK"; `node tests/run-all.mjs engine layout` runs only
 the suites named. From 0.2.0 the suites `scenarios` and `audit` prove the scenario checker and the fact
 audit, `presenter` plays every scenario in both languages, `views` checks the ring, the lists, the matrix
 and the strip on every screen, and `layout`, `hexagon`, `vici` and `i18n` look at every step. From 0.3.0 `guards` and `estimate` check
@@ -178,8 +191,10 @@ live runs against the stand-in, which answers every request to api.anthropic.com
 0.4.0 `handoff` builds the handoff file of every scenario, language and choice and has the Prototype
 Ideator read it; `report` prints every scenario's report in Chromium and reads each PDF page for the footer,
 and a capped live run's for its notice; `report-files` opens the HTML file offline and checks both files'
-names and contents; and `report-figures` holds the report and the handoff file to the tiles. No automated
-test calls the real API, and none needs a key.
+names and contents; and `report-figures` holds the report and the handoff file to the tiles. From 1.0.0
+`access` runs a scenario and a live run with the keyboard alone, looks for the focus at every stop, asks
+for reduced motion and checks names and ids, and `from-file` opens the page from a file in both languages.
+No automated test calls the real API, and none needs a key.
 `node tools/check-scenarios.mjs` runs the checker alone; `--frozen` prints the figures to freeze after a
 deliberate change. Vici's checks need a ViciDesign checkout beside this repository at the commit
 `vici/README.md` names; `--require-vici` makes its absence a failure, as it always is on GitHub Actions.
@@ -203,8 +218,8 @@ languages, and the default scenario plays to its end in each.
   summary); then each step's max_tokens is set from what it used, and the estimate quotes the measured
   figures (`MEASURED` in `js/estimate.js`). The probes of PLAN.md section 16 wait for the same session.
 - **Firefox and Safari print** the report's fixed footer, without page numbers, since neither has margin
-  boxes. Chromium's print is tested; Victor prints a report once in each by hand. An HTML file printed in
-  Chrome 131 to 147, which has no script to mark it, shows both footers.
+  boxes. Only Chromium's print is tested: Victor decided on 24 November 2026 not to print a report in them
+  by hand. An HTML file printed in Chrome 131 to 147, which has no script to mark it, shows both footers.
 - **Shared parts taken from the SWOT Challenger.** This tool first built its own KPI library, money
   format and handoff schema; the SWOT Challenger merged its versions first (`617b122`), so this tool took
   them unchanged, as brief §4.1 asks. Three things this tool's versions had are proposals for a change

@@ -1,7 +1,8 @@
 // Every step on a presenter's screen (the layout part of AC-14): at 1920 × 1080 and 1280 × 720, in the
 // light and the dark theme, in English and German, on each of the six steps of the default scenario (the
-// other two scenarios in the light theme), as it opens and again with every closed part of the stage
-// opened (factor items, signals, the tables behind the risk matrix and the horizon strip),
+// other two scenarios in the light theme), and at 1600 × 900 and 1366 × 768 between them (the default
+// scenario, light, both languages), as it opens and again with every closed part of the stage opened
+// (factor items, signals, the tables behind the risk matrix and the horizon strip),
 //   fit       no sideways scroll, and the page fits the screen without scrolling (a long list scrolls
 //             inside its panel); no panel scrolls sideways, and the risk matrix and the horizon strip keep
 //             to their own width with their numbers open;
@@ -206,6 +207,8 @@ for (const [width, height] of [[1920, 1080], [1280, 720]]) {
   for (const theme of ["light", "dark"]) for (const lang of ["en", "de"]) RUNS.push({ width, height, theme, lang, sc: "s3" });
   for (const sc of ["s1", "s2"]) for (const lang of ["en", "de"]) RUNS.push({ width, height, theme: "light", lang, sc });
 }
+// Two common laptop and office screens between the two ends.
+for (const [width, height] of [[1600, 900], [1366, 768]]) for (const lang of ["en", "de"]) RUNS.push({ width, height, theme: "light", lang, sc: "s3" });
 for (const { width, height, theme, lang, sc } of RUNS) {
   // The theme as a visitor left it, and a record of every transition that starts while the page loads.
   const init = { fn: (dark) => {

@@ -108,6 +108,14 @@ html:not([data-ready="true"]) .app-header :is(.vc-button, .vc-icon-button, .vc-t
   outline: none;
 }
 .stage[data-layout="full"] { grid-template-columns: minmax(0, 1fr); }
+/* The note for a page opened from a file (index.html): js/main.js draws the steps over it as the page
+   starts. When nothing does, it shows after two seconds, so a normal start never flashes it. */
+.from-file { grid-column: 1 / -1; align-self: start; max-width: 68ch; padding: 20px 24px; border: 1px solid var(--vc-border); background: var(--vc-surface); visibility: hidden; animation: from-file-show 0s linear 2s forwards; }
+@keyframes from-file-show { to { visibility: visible; } }
+:root:not([data-lang="de"]) .from-file-lang[data-lang-only="de"], :root[data-lang="de"] .from-file-lang[data-lang-only="en"] { display: none; }
+.from-file-title { font-size: var(--vc-font-size-2xl); }
+.from-file p { margin: 0; }
+.from-file a { display: inline-block; padding-block: 10px; margin-block: -10px; }
 .stage:is([data-layout="full"], [data-layout="assess"]) .story-lead { max-width: 120ch; }
 .stage[data-layout="assess"] { grid-template-columns: minmax(0, 1fr); }
 /* At Assess the step's button sits at the bottom right, under the horizon strip, and the matrix on the

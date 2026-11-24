@@ -68,5 +68,5 @@ English opens every first visit; German switches every word in place, and has it
 - **Direction:** Vici's report, which this tool added first: light sheets in either theme, a cover, one
   heading per page, the footer in the margins.
 - **Constraints:** the strict security policy, nothing kept, a live run's report in the run's language,
-  tables that break between rows; on screen, 1920 × 1080 and 1280 × 720 without page
+  tables that break between rows; on screen, 1920 × 1080 to 1280 × 720 without page
   scroll, no text cut, targets of at least 40 px, nothing round.

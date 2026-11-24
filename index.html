@@ -102,7 +102,21 @@
 
   <p class="vc-visually-hidden" id="announce" aria-live="polite"></p>
 
-  <main id="stage" class="stage" tabindex="-1" data-step="start" data-layout="split"></main>
+  <main id="stage" class="stage" tabindex="-1" data-step="start" data-layout="split">
+    <!-- js/main.js draws the steps over this note as the page starts. Opened from a file (file://), where
+         browsers block the page's modules, nothing replaces it, and after two seconds it says what to do,
+         in the page's language. -->
+    <section class="from-file" aria-label="Open the page from its web address">
+      <div class="from-file-lang" data-lang-only="en" lang="en-GB">
+        <h2 class="from-file-title">Open the page from its web address</h2>
+        <p>Browsers don't run this page's program from a file. Open <a href="https://victorpflueger.github.io/PESTEL-challenger/">victorpflueger.github.io/PESTEL-challenger</a>, or serve this folder with <code>python3 -m http.server 8000</code> and open <code>http://localhost:8000</code>.</p>
+      </div>
+      <div class="from-file-lang" data-lang-only="de" lang="de">
+        <h2 class="from-file-title">Öffnen Sie die Seite über ihre Webadresse</h2>
+        <p>Aus einer Datei führen Browser das Programm dieser Seite nicht aus. Öffnen Sie <a href="https://victorpflueger.github.io/PESTEL-challenger/">victorpflueger.github.io/PESTEL-challenger</a>, oder liefern Sie diesen Ordner mit <code>python3 -m http.server 8000</code> aus und öffnen Sie <code>http://localhost:8000</code>.</p>
+      </div>
+    </section>
+  </main>
 
   <div id="banners" class="banner-stack" aria-live="polite"></div>
 
