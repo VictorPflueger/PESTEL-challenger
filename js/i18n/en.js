@@ -189,7 +189,7 @@ export default {
   "start.live": "Run it live",
   "start.live.note": "Your own company, with your own Claude key.",
 
-  "scan.title": "The agents add {added} factors; {pressure} of 6 dimensions under pressure",
+  "scan.title": "The agents add {added} factors; at first sight {pressure} of 6 dimensions under pressure",
   "scan.lead.research": "The Scout found {n} recent signals, each with its date. The Scanner completed all six dimensions and rated every factor.",
   "scan.lead.none": "No research ran: the agents work from what they know, which ends in June 2026. The Scanner completed all six dimensions and rated every factor.",
   "scan.signals.one": "{n} signal from recent news",

@@ -188,7 +188,7 @@ export default {
   "start.live": "Live laufen lassen",
   "start.live.note": "Ihr eigenes Unternehmen, mit Ihrem eigenen Claude-Schlüssel.",
 
-  "scan.title": "Die Agenten ergänzen {added} Faktoren; {pressure} von 6 Dimensionen unter Druck",
+  "scan.title": "Die Agenten ergänzen {added} Faktoren; auf den ersten Blick {pressure} von 6 Dimensionen unter Druck",
   "scan.lead.research": "Der Scout hat {n} aktuelle Signale gefunden, jedes mit Datum. Der Scanner hat alle sechs Dimensionen vervollständigt und jeden Faktor bewertet.",
   "scan.lead.none": "Es lief keine Recherche: Die Agenten arbeiten mit ihrem Wissen, das im Juni 2026 endet. Der Scanner hat alle sechs Dimensionen vervollständigt und jeden Faktor bewertet.",
   "scan.signals.one": "{n} Signal aus aktuellen Nachrichten",
