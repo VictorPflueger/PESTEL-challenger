@@ -40,10 +40,14 @@
 .report-step-title { display: block; font-weight: var(--vc-weight-semibold); }
 .report-step-force { display: block; color: var(--vc-text-muted); font-size: var(--vc-font-size-sm); }
 .report-risk .vc-table tbody th { min-width: 10em; }
-/* Report tables keep to the sheet: tighter cells and headers that wrap between words. A word stays whole or
-   hyphenates in the report's language (words of ten letters or more, four letters each side), and breaks
-   only when it alone is wider than its column; figures stay whole. */
+/* Report tables keep to the sheet: tighter cells and headers that wrap between words. A short value (an
+   owner, when, a band, how often) stays whole; a long German word hyphenates in the report's language where
+   the browser can (words of ten letters or more, four letters each side). The cells that hold sentences may
+   give way inside a word, so a table never runs past its sheet in a browser without German hyphenation,
+   such as Chromium on Linux; figures stay whole. */
 .report .vc-table :is(th, td) { padding: 6px 8px; overflow-wrap: break-word; hyphens: auto; hyphenate-limit-chars: 10 4 4; }
+.report :is(.report-steps tbody :is(th, td):nth-child(-n + 2), .report-watch tbody :is(th, td):not(:last-child)),
+.report-risk .vc-table tbody th { overflow-wrap: anywhere; }
 .report .vc-table thead th { white-space: normal; }
 .report .vc-table :is(.vc-num, .num) { overflow-wrap: normal; white-space: nowrap; }
 /* The matrix as Vici lays it out, its key under the grid: the stage's laptop layout, key beside, is for Assess. */

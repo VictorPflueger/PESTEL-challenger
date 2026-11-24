@@ -14,8 +14,8 @@
 //   assess    the risk matrix, its key and the horizon strip are in view without scrolling;
 //   respond   at 1280 × 720 every option of every factor shows in full above the "Your turn" bar;
 //   guide     every chapter of the How it works guide fits its dialog without scrolling, in both languages;
-//   summary   Save as PDF, the two files and the Ideator link stand in the window, and the report's sheets
-//             stay white in either theme;
+//   summary   Save as PDF, the two files and the Ideator link stand in the window, the report's sheets
+//             stay white in either theme, and no table runs past its sheet, also with hyphenation off;
 //   live      a live run's form, its dialog (in the window, the start button and notice in view), the wait,
 //             editing at Scan and a stop meet the same checks, against the stand-in; a stop's downloads come
 //             into view without the page scrolling;
@@ -134,8 +134,19 @@ async function summaryProblems(page) {
     return { out: ["#btn-cta", "#btn-save-html", "#btn-save-json", "#link-ideator"].filter((q) => !inView(q)),
       sheets: [...new Set([...document.querySelectorAll("#report .vc-report__page")].map((p) => getComputedStyle(p).backgroundColor))] };
   });
+  // A browser without German hyphenation (Chromium on Linux, as on GitHub Actions) must not push a table past
+  // its sheet either: measured once more with hyphenation switched off.
+  const plain = await page.evaluate(() => {
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(".report, .report * { hyphens: manual !important; }");
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+    const wide = [...document.querySelectorAll("#stage .panel, #report .vc-report__page, #report .vc-risk, #report .vc-horizon")]
+      .filter((e) => e.scrollWidth > e.clientWidth + 1).map((e) => `${[...e.classList].join(".")} ${e.scrollWidth}px in ${e.clientWidth}px`);
+    document.adoptedStyleSheets = document.adoptedStyleSheets.filter((x) => x !== sheet);
+    return wide;
+  });
   return {
-    fit: s.out.length ? [`summary: out of the window: ${s.out.join(", ")}`] : [],
+    fit: [...(s.out.length ? [`summary: out of the window: ${s.out.join(", ")}`] : []), ...plain.map((w) => `summary without hyphenation: ${w}`)],
     faint: s.sheets.join() !== "rgb(255, 255, 255)" ? [`summary: the report's sheets are ${s.sheets.join(", ") || "missing"}, not white`] : [],
   };
 }
@@ -177,9 +188,14 @@ async function summaryProblems(page) {
   await page.evaluate(() => {
     document.getElementById("report").setAttribute("data-theme", "dark");
     document.getElementById("link-ideator").style.cssText = "position:fixed;left:-400px";
+    // A word no column can hold, which only hyphenation could break.
+    const cell = document.querySelector("#report .report-watch tbody td:last-child, #report .report-steps tbody td:last-child");
+    cell.textContent = "Donaudampfschifffahrtsgesellschaftskapitänsmützenabzeichenhersteller";
+    cell.style.cssText = "hyphens:auto;overflow-wrap:normal";
   });
   const planted = await summaryProblems(page);
-  check(!clean.fit.length && !clean.faint.length && planted.fit.length === 1 && planted.faint.length === 1, `control: the Summary's check passes a clean report in the dark theme and catches a dark sheet and a link out of the window (${[...planted.fit, ...planted.faint].join("; ")})`);
+  const unhyphenated = planted.fit.some((x) => x.startsWith("summary without hyphenation"));
+  check(!clean.fit.length && !clean.faint.length && planted.fit.some((x) => x.includes("out of the window")) && unhyphenated && planted.faint.length === 1, `control: the Summary's check passes a clean report in the dark theme and catches a dark sheet, a link out of the window and a word that only hyphenation would break (${[...planted.fit, ...planted.faint].join("; ").slice(0, 300)})`);
   await context.close();
 }
 

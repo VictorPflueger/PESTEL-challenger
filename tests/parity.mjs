@@ -15,8 +15,13 @@ import { APP_ROOT } from "./lib/harness.mjs";
 /**
  * The shared parts, the tools that carry them (brief §4.1) and their source: the sibling that merged each
  * first (REVIEW.md). The SWOT Challenger merged the KPI library, the risk maths and the handoff schema in
- * its 0.1.0; the Prototype Ideator merged the live client and the key held in memory in its 0.1.0.
+ * its 0.1.0; the Prototype Ideator merged the live client and the key held in memory in its 0.1.0. This
+ * tool merged the live-run dialog first (0.3.0, 24 November 2026 at 10:17); the Prototype Ideator and the
+ * Business Model Canvas Challenger merged theirs at 12:21 the same day. Brief §4.1 shares the dialog "apart
+ * from each tool's own settings", and each holds its own presets, cap and estimate, so a sibling's dialog
+ * that differs from this one is noted, not refused.
  */
+const SELF = "PESTEL-challenger";
 const PARTS = [
   { file: "data/kpis.js", in: "all four", source: "SWOT-challenger" },
   { file: "schemas/strategy-challenge-1.json", in: "all four", source: "SWOT-challenger" },
@@ -26,7 +31,7 @@ const PARTS = [
   { file: "js/sse.js", in: "all four (the live client)", source: "PrototypeIdeator" },
   { file: "js/cost.js", in: "all four (the live client)", source: "PrototypeIdeator" },
   { file: "js/keystore.js", in: "all four (the key held in memory)", source: "PrototypeIdeator" },
-  { file: "js/live_dialog.js", in: "all four (the live-run dialog)", source: null }
+  { file: "js/live_dialog.js", in: "all four, apart from each tool's own settings (the live-run dialog)", source: SELF, ownSettings: true }
 ];
 const SIBLINGS = ["BMC-challenger", "SWOT-challenger", "PrototypeIdeator"];
 
@@ -57,6 +62,15 @@ for (const part of PARTS) {
   const holders = checkouts.filter((c) => c.dir && existsSync(path.join(c.dir, part.file)));
   if (!existsSync(ours)) {
     if (holders.length) notes.push(`${part.file}: ${holders.map((c) => c.name).join(" and ")} ${holders.length > 1 ? "have" : "has"} it and this tool does not yet; copy it unchanged when this tool needs it`);
+    continue;
+  }
+  // This tool merged the part first, so its copy is the source: a sibling's copy is compared with it.
+  if (part.source === SELF) {
+    for (const other of holders) {
+      const d = compare(readFileSync(ours), readFileSync(path.join(other.dir, part.file)));
+      if (!d.equal) notes.push(`${part.file}: ${other.name}'s copy${other.head ? ` (${other.head})` : ""} differs from this tool's, the source, at line ${d.line}; ${part.ownSettings ? "each tool's dialog carries its own settings (brief §4.1)" : "aligning it is that tool's change"}`);
+    }
+    if (!holders.length) notes.push(`${part.file}: no sibling has it yet; this tool's copy is the source (${part.in})`);
     continue;
   }
   const source = holders.find((c) => c.name === part.source);
