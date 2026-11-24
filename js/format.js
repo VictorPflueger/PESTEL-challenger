@@ -4,7 +4,7 @@
 // these functions round, for display.
 // Adapted from the Sovereignty Assessment 2.0.0 (35c0dea): no shares or deltas, and money from risk.js.
 
-import { locale, getLang, t } from "./i18n/index.js";
+import { locale, getLang, t, tn } from "./i18n/index.js";
 import { money as riskMoney, fixed } from "./risk.js";
 
 const NBSP = " ";
@@ -101,4 +101,25 @@ export function fmtCost(eur, lang = getLang()) {
   if (v > 0 && v < 0.005) return lang === "de" ? `<${NBSP}0,01${NBSP}€` : `<${NBSP}€0.01`;
   const text = nf(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
   return lang === "de" ? `${text}${NBSP}€` : `€${text}`;
+}
+
+/** A cost range for the live estimate: "€0.01 to €0.02", one amount when both ends show alike. */
+export function fmtCostRange(low, high, lang = getLang()) {
+  const a = fmtCost(low, lang);
+  const b = fmtCost(high, lang);
+  return a === b ? a : `${a} ${t("fmt.to", null, lang)} ${b}`;
+}
+
+/** A span of time from seconds, in whole minutes: "1 to 3 minutes", "about 2 minutes", "under a minute". */
+export function fmtMinutes(low, high, lang = getLang()) {
+  if (!(high >= 60)) return t("fmt.underMinute", null, lang);
+  const a = Math.max(1, Math.round(low / 60));
+  const b = Math.max(a, Math.round(high / 60));
+  return a === b ? tn("fmt.minutes", a, {}, lang) : t("fmt.minutesRange", { a, b }, lang);
+}
+
+/** Elapsed time as a clock reads it: "0:07", "2:31". */
+export function fmtClock(seconds) {
+  const s = Math.max(0, Math.floor(Number(seconds) || 0));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }

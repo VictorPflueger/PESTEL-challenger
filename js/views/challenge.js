@@ -5,7 +5,7 @@
 import { h } from "../dom.js";
 import { t, tn } from "../i18n/index.js";
 import { head, cta, storyFoot, icon, sourceLink } from "./common.js";
-import { ring, dimensionPanel } from "../hexagon.js";
+import { ring, dimensionPanel, uncheckedTag } from "../hexagon.js";
 import { issueType, correctionWords, dimName, confidenceName } from "../plain.js";
 import * as R from "../run.js";
 import { fmtDate } from "../format.js";
@@ -20,7 +20,8 @@ function issueCard(issue, run, byId, handlers) {
       h("header", { class: "issue-head" },
         h("span", { class: "vc-tag vc-tag--sm issue-type" }, icon(issue.type === "missing" ? "plus" : issue.type === "outdated" ? "minus" : "warning"), issueType(issue.type)),
         h("span", { class: "issue-dims" }, issue.dimensions.map((d) => dimName(d)).join(", ")),
-        h("span", { class: "issue-conf" }, t("issue.confidence", { c: confidenceName(issue.confidence) }))),
+        h("span", { class: "issue-conf" }, t("issue.confidence", { c: confidenceName(issue.confidence) })),
+        run.unchecked?.has(issue.id) ? uncheckedTag() : null),
       h("h3", { class: "issue-title", id: `issue-${issue.id}` }, issue.title),
       h("p", { class: "issue-reason ai-text" }, issue.reason),
       h("p", { class: "issue-fix" },

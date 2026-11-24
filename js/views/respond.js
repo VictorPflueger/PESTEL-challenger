@@ -5,13 +5,14 @@
 
 import { h } from "../dom.js";
 import { t } from "../i18n/index.js";
-import { head, cta, yourTurn, icon } from "./common.js";
+import { head, cta, yourTurn, icon, withNotice } from "./common.js";
+import { uncheckedTag } from "../hexagon.js";
 import { kindName, effortName, timeName, ratingLine, estimateWords, dimName } from "../plain.js";
 import * as R from "../run.js";
 import { money, moneyRange } from "../format.js";
 import { moneyText, readinessText } from "../engine.js";
 
-function option(f, r, chosen, onChoose, expected) {
+function option(f, r, chosen, onChoose, expected, unchecked = null) {
   const id = r ? r.id : "accept";
   const lines = [];
   if (r?.kind === "mitigate") {
@@ -34,7 +35,7 @@ function option(f, r, chosen, onChoose, expected) {
   return h("label", { class: ["option", r ? "" : "option--accept"], dataset: { kind: r ? r.kind : "accept", chosen: String(chosen) } },
     h("input", { type: "radio", name: `choice-${f.id}`, value: id, checked: chosen, "aria-labelledby": `${key}-kind ${key}-title`, "aria-describedby": `${key}-body`, on: { change: () => onChoose(f.id, id) } }),
     h("span", { class: "option-body" },
-      h("span", { class: "option-kind", id: `${key}-kind` }, kindName(r ? r.kind : "accept"), r?.recommended ? h("span", { class: "vc-tag vc-tag--sm vc-tag--feature rec" }, icon("sparkle"), t("opt.recommended")) : null),
+      h("span", { class: "option-kind", id: `${key}-kind` }, kindName(r ? r.kind : "accept"), r?.recommended ? h("span", { class: "vc-tag vc-tag--sm vc-tag--feature rec" }, icon("sparkle"), t("opt.recommended")) : null, r && unchecked?.has(r.id) ? uncheckedTag() : null),
       h("span", { class: "option-title", id: `${key}-title` }, r ? r.title : t(f.direction === "threat" ? "opt.accept.title" : "opt.leave.title")),
       h("span", { class: "option-more", id: `${key}-body` },
       r ? h("span", { class: "option-step" }, h("span", { class: "item-label" }, t("opt.firstStep")), " ", r.first_step) : null,
@@ -59,7 +60,7 @@ export function respondView(ctx) {
       h("span", { class: "decide-text" }, x.text),
       h("span", { class: "decide-choice" }, r ? kindName(r.kind) : kindName("accept"))));
   }));
-  const options = f ? [...R.optionsFor(run, f.id), null].map((r) => option(f, r, R.choiceFor(run, f.id) === (r ? r.id : "accept"), handlers.choose, before.perFactor[f.id]?.expected ?? null)) : [];
+  const options = f ? [...R.optionsFor(run, f.id), null].map((r) => option(f, r, R.choiceFor(run, f.id) === (r ? r.id : "accept"), handlers.choose, before.perFactor[f.id]?.expected ?? null, run.unchecked)) : [];
   const detail = f ? h("section", { class: "decide-detail", "aria-labelledby": "decide-title" },
     h("header", { class: "decide-head" },
       h("p", { class: "decide-count" }, t("respond.count", { n: index + 1, total: factors.length }),
@@ -74,9 +75,11 @@ export function respondView(ctx) {
     readiness: readinessText(preview.after.readiness, lang),
     pressure: t("fig.pressure", { n: preview.after.pressure.length }),
   });
-  const action = run.decided
+  // In a live run, adopting sends the Writer's request, so the AI notice stands beside the button.
+  const adopt = cta(t("respond.cta"), handlers.adopt, { attention: !ctx.play.on });
+  const action = run.decided && (run.mode !== "live" || run.summary)
     ? yourTurn(t("respond.turn.done"), cta(t("next.summary"), () => handlers.go(5)))
-    : yourTurn(moved, cta(t("respond.cta"), handlers.adopt, { attention: !ctx.play.on }));
+    : yourTurn(moved, run.mode === "live" ? withNotice(adopt) : adopt);
   return {
     story: [
       head(pressing ? t("respond.title", { n: pressing }) : t("respond.title.none"), t("respond.lead")),

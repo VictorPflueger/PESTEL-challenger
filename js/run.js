@@ -1,6 +1,6 @@
 // The run, step by step: what the team entered, what each agent answered and what the person decided.
-// The simulation fills it with a scenario's recorded answers (js/simulation.js), a live run (0.3.0) with the
-// agents' answers as they arrive; both read the factors and figures from here, so a scenario tests the
+// The simulation fills it with a scenario's recorded answers (js/simulation.js), a live run (js/pipeline.js)
+// with the agents' answers as they arrive; both read the factors and figures from here, so a scenario tests the
 // live path. Every function is pure: it reads the run and returns new objects, so a step can be shown
 // again after the person goes back, and the checker can play a run without a page.
 //
@@ -77,7 +77,14 @@ export function scannedFactors(run) {
     if (!t.rated && ratings.has(t.id)) f.rated_by = "ai";
     return f;
   });
-  const ai = (run.scan.factors || []).map((f) => ({ ...factorOf({ ...f, source: "ai" }, { origin: "scan" }), evidence: sourcesOf(f.evidence, run) }));
+  // A live run's person may edit what the AI wrote before the challenge: the edit replaces its words or
+  // ratings, and the factor says so.
+  const ai = (run.scan.factors || []).map((f) => {
+    const edit = run.edits?.get(f.id);
+    const g = { ...factorOf({ ...f, ...(edit || {}), source: "ai" }, { origin: "scan" }), evidence: sourcesOf(f.evidence, run) };
+    if (edit) g.edited = true;
+    return g;
+  });
   return [...team, ...ai].filter((f) => !run.removed?.has(f.id));
 }
 

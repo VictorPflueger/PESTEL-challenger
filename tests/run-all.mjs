@@ -19,7 +19,9 @@ const SUITES = [
   { id: "tokens", what: "the colour pairs on Vici's tokens, light and dark: contrast, colour-blind separation", file: "tests/tokens.mjs", browser: false },
   { id: "page-icon", what: "the page icon: favicon and header cell, as on the website's card once it exists", file: "tests/page-icon.mjs", browser: false },
   { id: "vici-files", what: "vici/ holds exactly the files its README lists, byte for byte Vici's at the named commit", file: "tests/vici-files.mjs", browser: false },
-  { id: "parity", what: "the shared parts equal every sibling that has them", file: "tests/parity.mjs", browser: false },
+  { id: "parity", what: "the shared parts equal the sibling that merged each first", file: "tests/parity.mjs", browser: false },
+  { id: "guards", what: "each refusal of brief §6.7 with its message, the fact audit, the recorded answers pass", file: "tests/guards.mjs", browser: false },
+  { id: "estimate", what: "the estimate from the real prompts: the tile, the dialog's range, measured figures", file: "tests/estimate.mjs", browser: false },
   { id: "hygiene", what: "no client, prospect, contact or meeting named in any published file", file: "tests/hygiene.mjs", browser: false },
   { id: "docs", what: "the documents' length, sections, facts with dates, paths, and what REVIEW.md lists", file: "tests/docs.mjs", browser: false },
   { id: "vici", what: "Vici's own checks on the page, every text, every scenario and every rendered step: guide, byline, writing, AI notice, record ids, framework, risk matrix", file: "tests/vici.mjs", browser: true },
@@ -28,7 +30,16 @@ const SUITES = [
   { id: "presenter", what: "every scenario offline in both languages: key figures first, Play, Your turn, keys, links, the decision", file: "tests/presenter.mjs", browser: true },
   { id: "views", what: "the ring, the factor lists, the risk matrix and the horizon strip on every screen, with their tables", file: "tests/views.mjs", browser: true },
   { id: "hexagon", what: "nothing round: the tool's files, and the rendered page in both themes", file: "tests/hexagon.mjs", browser: true },
-  { id: "layout", what: "1920 × 1080 and 1280 × 720, both themes and languages: fit, no cut text, targets, contrast", file: "tests/layout.mjs", browser: true }
+  { id: "layout", what: "1920 × 1080 and 1280 × 720, both themes and languages: fit, no cut text, targets, contrast", file: "tests/layout.mjs", browser: true },
+  { id: "live-dialog", what: "Run it live, the form, Vici's live-run dialog, the key check, the frame, the private-data warning", file: "tests/live-dialog.mjs", browser: true },
+  { id: "live-requests", what: "every request on each setting: model, effort, thinking, headers, format or tools, max_tokens, language", file: "tests/live-requests.mjs", browser: true },
+  { id: "live-repair", what: "one repair then stop, Unchecked after the audit twice, the run's two repairs, Abort", file: "tests/live-repair.mjs", browser: true },
+  { id: "live-budget", what: "the meter to 1e-9 at 0.894, no request past the cap, max_tokens dropped, the stop", file: "tests/live-budget.mjs", browser: true },
+  { id: "live-errors", what: "401, 403, 404, 400 credit and spend limit, 429, 529, 500 and the network: messages and retries", file: "tests/live-errors.mjs", browser: true },
+  { id: "live-research", what: "addresses from the search results only, pause_turn, a missing report, search switched off, the cutoff", file: "tests/live-research.mjs", browser: true },
+  { id: "live-scan", what: "the person's factors untouched, AI factors kept, edited or removed, each correction with its reason and Undo", file: "tests/live-scan.mjs", browser: true },
+  { id: "live-flow", what: "a live run from Start to Summary: the wait, the figures, Save run as simulation, the leave-page warning, Clear everything", file: "tests/live-flow.mjs", browser: true },
+  { id: "storage", what: "after a live run: only the allowed keys, no database, cache or cookie, the key nowhere", file: "tests/storage.mjs", browser: true }
 ];
 
 const only = process.argv.slice(2).filter((a) => !a.startsWith("--"));

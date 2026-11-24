@@ -41,8 +41,9 @@ engine works out every key figure, and a fact audit refuses any figure in the ag
 **What is readiness?** This tool's own measure, 0 to 100: how much of its threats' weight the company is
 ready for. The **Method** dialog shows the rule and a worked example.
 
-**What does a run cost?** About €0.05 on the Balanced setting and €0.24 on Thorough, both estimated. A
-live run on your own company and Claude key follows in version 0.3.0, with a budget cap you set.
+**What does a run cost?** About €0.06 on the Balanced setting and €0.27 on Thorough, both estimated.
+With **Run it live**, the agents analyse your own company on your own Claude key, up to a budget cap you
+set.
 
 ## After the demo
 

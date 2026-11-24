@@ -31,7 +31,7 @@ const sameList = (a, b) => JSON.stringify([...(a || [])].sort()) === JSON.string
  * Where the prose sits in a scenario: path patterns (with * for every array item) whose value must be a
  * text in both languages, and whether a placeholder may appear there (the Writer's summary only).
  */
-const PROSE = [
+export const PROSE = [
   ["team.*.text", false],
   ["answers.scout.signals.*.title", false], ["answers.scout.signals.*.summary", false],
   ["answers.scanner.factors.*.text", false], ["answers.scanner.factors.*.basis", false],

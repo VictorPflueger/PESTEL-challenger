@@ -8,7 +8,7 @@ import { t, getLang, onLang } from "./i18n/index.js";
 import { DIMENSIONS } from "./engine.js";
 import { kpisFor } from "../data/kpis.js";
 import { dimName, sectorName } from "./plain.js";
-import { USD_TO_EUR } from "./config.js";
+import { FX_USD_EUR } from "./config.js";
 
 /** The sector of the scenario on screen, read from the address, else the default scenario's. */
 let currentSector = () => "energy_utilities";
@@ -40,7 +40,7 @@ export function renderMethod() {
     section(t("method.kpis", { sector: sectorName(sector, lang) }),
       h("p", {}, t("method.kpis.text")),
       h("ul", { class: "method-kpis" }, kpisFor(sector).filter((k) => k.sector === sector).map((k) => h("li", {}, h("strong", {}, k.name[lang === "de" ? "de" : "en"]), `: ${k.definition[lang === "de" ? "de" : "en"]}`)))),
-    section(t("method.money"), h("p", {}, t("method.money.text", { rate: USD_TO_EUR.toLocaleString(lang === "de" ? "de-DE" : "en-GB") }))),
+    section(t("method.money"), h("p", {}, t("method.money.text", { rate: FX_USD_EUR.toLocaleString(lang === "de" ? "de-DE" : "en-GB") }))),
     section(t("method.not"), h("p", {}, t("method.not.text"))));
 }
 
