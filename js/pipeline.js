@@ -86,7 +86,7 @@ export function createLiveRun({ inputs, lang, today, setting, research, cap }) {
     unchecked: new Set(),// ids whose texts failed the fact audit twice
     log: [],             // per request: agent, repair, max_tokens, tokens, searches, ms, stop reason
     spend: { usd: 0, eur: 0 },
-    unmetered: 0,        // euros held against the cap for attempts cut off mid-stream or aborted under way, which report no usage
+    unmetered: 0,        // euros held against the cap for attempts that broke off, went unanswered or were aborted under way
     requests: 0,
     repairs: 0,
     ms: 0,               // time spent waiting for the agents
@@ -181,12 +181,14 @@ export function createPipeline({ run, view = () => run, key, hooks = {}, stream 
         try {
           return await stream({ key, body, signal: controller.signal });
         } catch (e) {
-          // An attempt cut off mid-stream, or stopped by Abort while under way, may be billed for its input and
-          // what it wrote, which the shared client cannot report: its worst case is held against the cap from
-          // here on, every such attempt, the last one too. A retry goes only if it still fits (fit() stops the
-          // run otherwise), and so does any request after it. An error before the stream bills nothing.
+          // An attempt cut off mid-stream, stopped by Abort while under way, or unanswered within the client's time
+          // limit (a proxy that buffers the stream holds back an answer the API is writing) may be billed for its
+          // input and what it wrote, which the shared client cannot report: its worst case is held against the cap
+          // from here on, every such attempt, the last one too. A retry goes only if it still fits (fit() stops
+          // the run otherwise), and so does any request after it. Any other error before the stream bills nothing.
           const aborted = !e?.midStream && (e?.name === "AbortError" || controller.signal.aborted);
-          if (e?.midStream || aborted) run.unmetered = (run.unmetered || 0) + worstCaseEur(body, { searches });
+          const unanswered = !e?.midStream && e?.type === "timeout_error";
+          if (e?.midStream || aborted || unanswered) run.unmetered = (run.unmetered || 0) + worstCaseEur(body, { searches });
           if (aborted) held = true;
           if (e instanceof ApiError && e.retryable && !mayRetry(e)) throw new NoRetry(e);
           throw e;

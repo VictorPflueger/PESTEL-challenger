@@ -75,7 +75,9 @@ export async function runScout({ send, inputs, lang, today, setting, maxTokens, 
   const messages = [{ role: "user", content: prompt.user }];
   const registry = new Map();
   let requests = 0;
-  let searched = 0;
+  // max_uses counts the searches of one turn: a request after pause_turn, or one that sends only a tool_result,
+  // continues the turn; the repair's new instruction starts another, in which five searches may run again.
+  let turnSearched = 0;
   let refusedRound = false;
   let repaired = false;
   let refused = 0;
@@ -92,13 +94,13 @@ export async function runScout({ send, inputs, lang, today, setting, maxTokens, 
     };
     let message;
     try {
-      message = await send(body, { searches: Math.max(0, ANTHROPIC.webSearchTool.max_uses - searched), repair: repaired && requests > 0 });
+      message = await send(body, { searches: Math.max(0, ANTHROPIC.webSearchTool.max_uses - turnSearched), repair: repaired && requests > 0 });
     } catch (e) {
       if (isWebSearchDisabled(e)) return { signals: [], requests: requests + 1, refused, searchOff: true, missing: false };
       throw e;
     }
     requests += 1;
-    searched += searchesIn(message.content);
+    turnSearched += searchesIn(message.content);
     resultsIn(message.content, registry);
 
     if (message.stop_reason === "pause_turn") {
@@ -133,6 +135,7 @@ export async function runScout({ send, inputs, lang, today, setting, maxTokens, 
     if (!repaired && requests < MAX_SCOUT_REQUESTS && repairs.left() > 0) {
       repaired = true;
       repairs.use("scout");
+      turnSearched = 0;
       messages.push({ role: "assistant", content: message.content });
       messages.push({ role: "user", content: "Call submit_signals now, once, with the news your searches found. Use only urls from your search results." });
       continue;

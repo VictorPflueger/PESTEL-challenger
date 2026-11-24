@@ -2,8 +2,9 @@
 // and the words "confidential", "internal", "vertraulich" and "intern", and anything shaped like an API key
 // (brief §5.3), which the run also redacts before a prompt reads it. The live-run dialog lists what it
 // finds and where, and asks the person to remove it or confirm it is public. It warns; it does not block.
-// The patterns err towards silence on ordinary business text: years, dates, ranges of dates, amounts and
-// percentages never count as phone numbers, and an IBAN counts only when its check digits add up.
+// The patterns err towards silence on ordinary business text: years, dates, the usual ranges of dates (see
+// RANGE), amounts and percentages never count as phone numbers, and an IBAN counts only when its check digits
+// add up.
 
 /** The words that usually mark a document as not public, in English and German, with their endings. */
 // "internal combustion" names an engine, not a document.
@@ -18,9 +19,23 @@ const IBAN = /\b[A-Z]{2}\d{2}(?: ?[A-Z0-9]{4}){2,7}(?: ?[A-Z0-9]{1,4})?\b/g;
 // Dates, day first with dots, slashes or hyphens (01.01.2027, 1/7/26) or as ISO (2026-07-01): never a phone.
 // A date stands alone: no digit group runs on before or after it, as one does in 01.23.45.67.89.
 const DATE = /(?<![\d./-])(?:0?[1-9]|[12]\d|3[01])([./-])(?:0?[1-9]|1[0-2])\1(?:\d{4}|\d{2})(?![./-]?\d)|(?<![\d-])\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])(?![-\d])/g;
-// A range of two dates joined by a hyphen or a dash, whose digits run on (01.01.26-31.12.26, 01/01/26-31/12/26,
-// 01.01.-31.12.2027, 2026-01-01-2026-12-31): both are dates, never a phone number. It is read before DATE.
-const RANGE = /(?<![\d./-])(?:0?[1-9]|[12]\d|3[01])([./])(?:0?[1-9]|1[0-2])\1(?:\d{4}|\d{2})? ?[-\u2013] ?(?:0?[1-9]|[12]\d|3[01])([./])(?:0?[1-9]|1[0-2])\2(?:\d{4}|\d{2})(?![./-]?\d)|(?<![\d-])\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01]) ?[-\u2013/] ?\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])(?![-\d])/g;
+// Ranges of dates, whose digits run on, are dates, never a phone number. It is read before DATE. The forms:
+// day and month with dots, years optional, joined by a hyphen, a dash or a slash (01.01.26-31.12.26,
+// 01.01.-31.12.2027, 01.10.-30.04., 01.01.26/31.12.26); with slashes or hyphens and years (01/01/26-31/12/26,
+// 01-01-26-31-12-26); ISO (2026-01-01-2026-12-31); months with years (01/2026-12/2026, 06.2026-12.2026); and
+// calendar weeks (KW 01-05/2026).
+const D = "(?:0?[1-9]|[12]\\d|3[01])";
+const M = "(?:0?[1-9]|1[0-2])";
+const Y = "(?:\\d{4}|\\d{2})";
+const TO = " ?[-\\u2013] ?";
+const RANGE = new RegExp([
+  `(?<![\\d./-])${D}\\.${M}\\.(?:${Y})? ?[-\\u2013/] ?${D}\\.${M}\\.(?:${Y})?(?![./-]?\\d)`,
+  `(?<![\\d./-])${D}/${M}/${Y}${TO}${D}/${M}/${Y}(?![./-]?\\d)`,
+  `(?<![\\d./-])${D}-${M}-${Y}${TO}${D}-${M}-${Y}(?![./-]?\\d)`,
+  `(?<![\\d-])\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01]) ?[-\\u2013/] ?\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])(?![-\\d])`,
+  `(?<![\\d./-])${M}[./]\\d{4}${TO}${M}[./]\\d{4}(?![./-]?\\d)`,
+  `\\b(?:KW|CW)\\s?\\d{1,2}${TO}\\d{1,2}(?:[./]\\d{2,4})?(?!\\d)`,
+].join("|"), "gi");
 
 /** True when an IBAN's check digits are right (ISO 13616, mod 97). */
 export function ibanValid(raw) {

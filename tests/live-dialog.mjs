@@ -33,11 +33,13 @@ const PLANTED = [
   ["IBAN DE89 3704 0044 0532 0130 00", "iban"], ["This plan is confidential", "word"], ["Interne Unterlagen", "word"],
   ["vertrauliche Zahlen", "word"], ["the internal audit", "word"],
   ["Ruf (030) 1234-5678 an", "phone"], ["mobil 0171/1234567", "phone"], ["06-12-34-56-78", "phone"], ["01/23/45/67/89", "phone"],
+  ["+33 1 23 45 67 89", "phone"], ["0049 30 12345678", "phone"], ["030-123 456 78", "phone"], ["+41 44 668 18 00", "phone"], ["040/123456-78", "phone"], ["089 / 12 34 56 78", "phone"],
 ];
 const CLEAN = ["About 180 staff and €120m revenue a year", "Freight rates fell 12 % in 2025; 1,500 TEU", "Industry 4.0, CO2 at 0.45, heat plan due 31.12.2026", "international shipping and the internet", "Postcode 01067 Dresden", "IBAN DE89370400440532013001",
   "Die Pflicht gilt ab 01.01.2027", "Heat plan due 01.07.2026, report by 2026-09-30", "Diesel and internal combustion engines", "From 1/7/26 to 31.12.2026",
   // Ranges of two dates, whose digits run on: dates, not phone numbers.
-  "Laufzeit 01.01.26-31.12.26", "Förderung 01.10.26-31.12.26", "Term 01/01/26-31/12/26", "Frist 01.01.-31.12.2027", "Pilot 2026-01-01-2026-12-31"];
+  "Laufzeit 01.01.26-31.12.26", "Förderung 01.10.26-31.12.26", "Term 01/01/26-31/12/26", "Frist 01.01.-31.12.2027", "Pilot 2026-01-01-2026-12-31",
+  "Heizperiode 01.10.-30.04.", "Gültig 01.01.26/31.12.26", "Laufzeit 01-01-26-31-12-26", "Plan 01/2026-12/2026", "Plan 01/2026 - 12/2026", "Bau 06.2026-12.2026", "Umbau KW 01-05/2026"];
 check(PLANTED.every(([s, kind]) => findPrivate(s).some((f) => f.kind === kind)), "the warning finds every planted e-mail address, phone number, IBAN, keyword and key-shaped text");
 check(CLEAN.every((s) => !findPrivate(s).length), `and nothing in clean business text (${CLEAN.filter((s) => findPrivate(s).length).join(" | ") || "none found"})`);
 // What a text adds to an earlier version, occurrence by occurrence (the Scan editor's warning): a second

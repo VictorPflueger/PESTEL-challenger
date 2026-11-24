@@ -79,20 +79,22 @@ export function stopWords(run) {
   const stepName = (n) => t(`step.${STEP_KEYS[n]}`);
   const at = stepName(s.agent ? AGENT_STEP[s.agent] : 1);
   const after = s.after && s.after !== "start" ? t(`step.${s.after}`) : null;
-  // A request cut off mid-way, or aborted under way, counts against the cap at its worst case: every stop it
-  // shapes says so.
+  // A request that broke off, went unanswered or was aborted under way counts against the cap at its worst case:
+  // every stop says so while the run holds one.
   const held = run.unmetered > 0 ? t("stop.unmetered") : null;
   if (s.reason === "cap") {
-    const message = s.retry ? t("stop.cap.retry") : after ? t("stop.cap", { step: after }) : t(held ? "stop.cap.noStep" : "stop.cap.first");
+    // "Before the first request" only while none was sent; after one, no step was done yet.
+    const message = s.retry ? t("stop.cap.retry") : after ? t("stop.cap", { step: after }) : t(run.requests > 0 ? "stop.cap.noStep" : "stop.cap.first");
     return { tone: "warning", title: t("stop.cap.title"), message, next: held };
   }
-  if (s.reason === "aborted") return { tone: "warning", title: t("stop.aborted.title"), message: t("stop.aborted", { step: at }), next: s.held ? held : null };
-  if (s.reason === "checks") return { tone: "danger", title: t(s.repaired === false ? "stop.checks.noRepair.title" : "stop.checks.title"), message: t(s.repaired === false ? "stop.checks.noRepair" : "stop.checks", { agent: t(`agent.${s.agent}`), step: at }), next: t("stop.checks.next") };
-  if (s.reason === "requests") return { tone: "danger", title: t("stop.requests.title"), message: t("stop.requests", { step: at }) };
+  if (s.reason === "aborted") return { tone: "warning", title: t("stop.aborted.title"), message: t("stop.aborted", { step: at }), next: held };
+  if (s.reason === "checks") return { tone: "danger", title: t(s.repaired === false ? "stop.checks.noRepair.title" : "stop.checks.title"), message: t(s.repaired === false ? "stop.checks.noRepair" : "stop.checks", { agent: t(`agent.${s.agent}`), step: at }), next: [t("stop.checks.next"), held] };
+  if (s.reason === "requests") return { tone: "danger", title: t("stop.requests.title"), message: t("stop.requests", { step: at }), next: held };
   // A stream that broke off mid-answer reached the API: the shared client calls it a network error, which reads as
-  // if nothing had been sent.
-  const m = s.error?.midStream && s.error.type !== "overloaded_error" ? { key: "stop.error.cut", vars: null } : apiMessage(s.error || {});
-  return { tone: "danger", title: t("stop.error.title"), message: t(m.key, m.vars), next: s.error?.midStream ? held : null };
+  // if nothing had been sent, whatever the stream's own error said. An overload said inside the stream is still
+  // the busy service.
+  const m = s.error?.midStream ? { key: s.error.type === "overloaded_error" ? "api.overloaded" : "stop.error.cut", vars: null } : apiMessage(s.error || {});
+  return { tone: "danger", title: t("stop.error.title"), message: t(m.key, m.vars), next: held };
 }
 
 export function stopView(ctx) {
@@ -109,7 +111,7 @@ export function stopView(ctx) {
           icon(w.tone === "danger" ? "error" : "warning"),
           h("div", { class: "stop-body" },
             h("p", { class: "stop-message" }, w.message),
-            w.next ? h("p", {}, w.next) : null,
+            [].concat(w.next || []).filter(Boolean).map((x) => h("p", {}, x)),
             s.problems?.length ? h("details", { class: "stop-problems" },
               h("summary", {}, t("stop.problems")),
               h("ul", {}, s.problems.map((p) => h("li", {}, p)))) : null)),

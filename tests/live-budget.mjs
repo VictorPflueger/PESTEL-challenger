@@ -6,8 +6,11 @@
 //     budget cap after" the last step done, or before the first request when even that does not fit;
 //   - an attempt cut off mid-stream, which the API bills but reports nothing for, is held against the cap at
 //     its worst case, and the retry goes only if it still fits; so is every such attempt, the last one too,
-//     and a request the person aborts while it is under way; Go on after them starts no request whose worst
-//     case, with what was spent and held before it, passes the cap.
+//     and a request the person aborts while it is under way, or one left unanswered past the client's time
+//     limit; Go on after them starts no request whose worst case, with what was spent and held before it,
+//     passes the cap;
+//   - every stop says what happened: an overload inside the stream is the busy service, a cap reached after a
+//     request says no step was done rather than no request was sent, and while anything is held, the stop says so.
 // The worst case is the pipeline's own function (js/pipeline.js worstCaseEur), recomputed here for every
 // request the stand-in received, with what the run had spent before it.
 // Usage: node tests/live-budget.mjs
@@ -167,7 +170,7 @@ async function goOn(page) {
       `three Scanner attempts cut off mid-way each count at their worst case, the last one too (held €${run.unmetered.toFixed(4)} against €${held.toFixed(4)})`);
     check(/broke off while the answer was coming in/.test(await text(t.page, ".stop-alert")) && /counts against your cap at its worst case/.test(await text(t.page, ".stop-alert")), `and the stop says what happened and that it counts: "${await text(t.page, ".stop-alert")}"`);
     const estimate = await goOn(t.page);
-    check(/more counts against your cap, for requests cut off or aborted/.test(estimate), `Go on's dialog says what is held against the cap: "${estimate}"`);
+    check(/more counts against your cap, for requests that broke off, went unanswered or were aborted/.test(estimate), `Go on's dialog says what is held against the cap: "${estimate}"`);
     const rows = atStake(t.standIn, "claude-sonnet-5-5", new Set([0, 1, 2]));
     const over = rows.filter((r) => r.before + r.worst > cap + 1e-12);
     check(cap >= 3 * cutWorst && cap < 4 * cutWorst && rows.length >= 3 && !over.length,
@@ -207,6 +210,61 @@ async function goOn(page) {
     check(false, `abort under way: ${e.message.split("\n")[0]}`);
   }
   await t.context.close();
+}
+
+// ---- each stop says what happened ------------------------------------------------------------------------
+/** Start a Thorough run with the faults and usage given, and wait for its stop. */
+async function stopped(faults, { usage = USAGE, cap = 3, during = null } = {}) {
+  const t = await livePage(suite, { standIn: { faults, usage } });
+  await fillForm(t.page);
+  await startRun(t.page, { preset: "thorough", cap, waitFor: "none" });
+  if (during) await during(t);
+  await t.page.waitForFunction(() => window.__pestel?.run()?.stopped, null, { timeout: 30000 });
+  await t.page.waitForTimeout(100);
+  return { t, run: await runOf(t.page), words: await text(t.page, ".stop-alert") };
+}
+{
+  // An overload the API reports inside the stream, three times: the service is busy, and the attempts count.
+  const overload = { type: "overloaded_error", message: "Overloaded" };
+  const { t, run, words } = await stopped([1, 2, 3].map((attempt) => ({ agent: "scanner", attempt, streamError: overload })));
+  check(run.stopped?.reason === "error" && t.standIn.requests.length === 3 && run.unmetered > 0 && /service is busy/.test(words) && !/could not reach/.test(words) && /counts against your cap/.test(words),
+    `an overload inside the stream, three times, reads as the busy service and its attempts count: "${words}"`);
+  await t.context.close();
+}
+{
+  // The cap reached after a request was sent and paid for, with nothing held: no step was done, but a request was.
+  const usage = { input_tokens: 40000, output_tokens: 2000 };
+  const { t, run, words } = await stopped([{ agent: "scanner", attempt: 1, mutate: (a) => { a.factors[0].readiness = 7; return a; } }], { usage, cap: 0.1 });
+  check(run.stopped?.reason === "cap" && run.requests === 1 && !run.unmetered && /before the first step was done/.test(words) && !/before the first request/.test(words),
+    `a cap reached after the first request says no step was done, not that no request was sent: "${words}"`);
+  await t.context.close();
+}
+{
+  // An Abort in the wait before a retry of a cut attempt: the stop says the cut attempt counts.
+  const during = async (t) => {
+    await t.page.waitForFunction(() => /trying again/.test(document.getElementById("stage")?.textContent || ""), null, { timeout: 15000 });
+    await t.page.click("#btn-abort");
+  };
+  const { t, run, words } = await stopped([{ agent: "scanner", attempt: 1, cut: true }], { during });
+  check(run.stopped?.reason === "aborted" && t.standIn.requests.length === 1 && run.unmetered > 0 && /aborted/.test(words) && /counts against your cap at its worst case/.test(words),
+    `an Abort while a cut attempt waits for its retry says that the attempt counts: "${words}"`);
+  await t.context.close();
+}
+
+// ---- a request left unanswered past the client's time limit counts, in Node -----------------------------------
+// A proxy that buffers the event stream holds back an answer the API is writing; the shared client gives up after
+// 90 s with a timeout_error and tries twice more. Each attempt's worst case is held.
+{
+  const { createPipeline, createLiveRun } = await import(pathToFileURL(path.join(APP_ROOT, "js/pipeline.js")).href);
+  const { ApiError } = await import(pathToFileURL(path.join(APP_ROOT, "js/anthropic.js")).href);
+  const { formOf } = await import("./lib/turns.mjs");
+  const run = createLiveRun({ inputs: formOf("s3", "en"), lang: "en", today: "2026-11-24", setting: CONFIG.settingOf({ preset: "thorough" }), research: false, cap: 3 });
+  const bodies = [];
+  const stream = async ({ body }) => { bodies.push(structuredClone(body)); throw new ApiError({ status: 0, type: "timeout_error", message: "No response from the API within 90 s." }); };
+  await createPipeline({ run, key: "sk-ant-api03-node-test-key-0000", stream }).scan();
+  const held = bodies.reduce((a, b) => a + worstCaseEur(b), 0);
+  check(bodies.length === 3 && run.stopped?.reason === "error" && Math.abs(run.unmetered - held) < 1e-12,
+    `three attempts left unanswered past the time limit each count at their worst case (held €${run.unmetered.toFixed(4)} against €${held.toFixed(4)}, ${bodies.length} attempts)`);
 }
 
 await suite.done();
