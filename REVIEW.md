@@ -110,9 +110,15 @@ mark that followed the country rather than the name; and Your turn texts that di
 A fifth fresh agent, on the same terms, looked at `8d359a1`, after the fourth round. Its verdict line again
 read "every fix holds; no high or medium finding open". It found three new low findings, N15 to N17, and made
 two observations, O9 and O10: the narrower German mark of O7 brought back the break inside a word that O3 had
-fixed, the cap held a 504 that the documents did not name, a retry stop after a timeout said "cut off", and
-some rows here no longer matched the code. The table holds every finding of the five looks, and what became of
-it:
+fixed, the cap held a 504 that the documents did not name, a retry stop after a timeout said "cut off", the
+concern of O7 stayed for long words that are not German, and some rows here no longer matched the code.
+
+A sixth fresh agent, on the same terms, looked at `f9bf3f9`, after the fifth round. Its verdict line again
+read "every fix holds; no high or medium finding open", and it found both declines sound. It found two new low
+findings, N18 and N19, and made two observations, O11 and O12: comments and notes that still named an older set
+of held requests, a review summary in the notes that had fallen behind, this part's summary of the fifth look
+without O9, and a proxy's own 504, which the cap did not hold. The table holds every finding of the six looks,
+and what became of it:
 
 | ID | Severity | What | Where | State |
 |---|---|---|---|---|
@@ -160,6 +166,10 @@ it:
 | N17 | low | A retry the cap stopped after a request that timed out said "a request was cut off mid-way" | `js/i18n/en.js`, `js/i18n/de.js` | fixed in `93e606b`: it says the request broke off or went unanswered; `tests/live-budget.mjs` reads it |
 | O9 | observation | The concern of O7 for long words that are not German: "Infineon Technologies AG" or a French Swiss name, read by German rules | `js/hexagon.js` | declined: as O7, WCAG 3.1.2 exempts proper names, and a German break in an English word of a company's name harms less than a break inside a German word |
 | O10 | observation | Rows here no longer matched the code: the rule of R13 and O3, the unanswered check of R11, and the fourth look's summary without O8 | `REVIEW.md` | done: those rows and the summary now say what the code does |
+| N18 | low | Comments and notes still named an older set of held requests: the `retry` mark in `js/pipeline.js`, the comment in `js/live_dialog.js`, TECH_NOTES section 8, and section 2's facts without the 504 `timeout_error` | `js/pipeline.js`, `js/live_dialog.js`, `TECH_NOTES.md` | fixed in `5e70cf0`: each names requests that broke off, went unanswered or were aborted; section 2 records the errors page's 504 and 500 `timeout_error`, read on 24 November 2026 |
+| N19 | low | TECH_NOTES section 9's summary of the reviews stopped at the third confirming look and miscounted what stays | `TECH_NOTES.md` | fixed in `5e70cf0`: it summarises the looks without counts that go stale, and says what stays: R7, R14, O4, O7 and O9 |
+| O11 | observation | This part's summary of the fifth look left out O9 | `REVIEW.md` | done: the summary names it |
+| O12 | observation | A 504 that a proxy writes itself, not as the API's JSON, was not held, though the API may still be writing after it as after its own | `js/pipeline.js` | fixed in `5e70cf0`: any 504 counts at its worst case, as the API's `timeout_error` does; `tests/live-budget.mjs` checks three proxy 504s in Node |
 
 ## Part 3. Steve Jobs review and partner review
 
@@ -244,13 +254,13 @@ and nine factors; five cards; gas prices first; €2.9m and 66 on Watch; €2.2m
 Undo, the risk matrix and horizon strip with their tables, the recommended responses with the bar that
 moves, and the report with its footer on every page.
 
-Both reviews were checked again at `50871bc`, after the first round of the independent review's fixes, and
-ran again at `1cba922`, `5675acd`, `85de999` and `93e606b`, after the later rounds (part 2), along the same walk
-in Chromium at 1280 × 720 in both languages: every figure the script quotes appears as it says, the page logs
-no error, and the screens nobody demos hold as above. The fixes add a lilac AI tag to the Red team's cards,
-the Strategist's options and the Summary's title, a basis to every AI figure under the options ("AI estimate
-from the range above", "from the factor and figures above"), a live run's tiles that say after which step
-they stand, stops that say what happened and what counts against the cap, and targets of 40 px. A live run's
-Scan editor now opens with "Public information only" and the line on where the words go in view, and keeps
-its warning above the Your turn bar as it grows, in both languages. None of them moves a figure, so both
+Both reviews were checked again at `50871bc`, after the first round of the independent review's fixes, and ran
+again at `1cba922`, `5675acd`, `85de999`, `93e606b` and `5e70cf0`, after the later rounds (part 2), along the
+same walk in Chromium at 1280 × 720 in both languages: every figure the script quotes appears as it says, the
+page logs no error, and the screens nobody demos hold as above. The fixes add a lilac AI tag to the Red team's
+cards, the Strategist's options and the Summary's title, a basis to every AI figure under the options ("AI
+estimate from the range above", "from the factor and figures above"), a live run's tiles that say after which
+step they stand, stops that say what happened and what counts against the cap, and targets of 40 px. A live
+run's Scan editor now opens with "Public information only" and the line on where the words go in view, and
+keeps its warning above the Your turn bar as it grows, in both languages. None of them moves a figure, so both
 verdicts stand.
