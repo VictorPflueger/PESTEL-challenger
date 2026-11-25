@@ -208,6 +208,7 @@ documents changed. The table holds every finding of the eight looks and of the l
 | N23 | low | This part did not record the eighth look: it said a confirming look would follow, counted seven looks, and had no row for N21, O15 or O16, which TECH_NOTES cites | `REVIEW.md`, `TECH_NOTES.md` | fixed in `308163d`: the paragraph on the eighth look's two looks and the rows N21, O15 and O16 |
 | O17 | observation | The suite's anyOf rule and TECH_NOTES section 2 read the documentation as "beside type or properties", while it allows only annotations beside an anyOf, and the row left out the page's two allOf entries and an external $ref; no format was affected | `tests/schemas.mjs`, `TECH_NOTES.md` | fixed in `308163d`: only annotations may stand beside an anyOf, with a planted case beside an enum, and the row lists every entry |
 | O18 | observation | raw.githubusercontent.com serves the file with a five-minute cache, so a probe run just after a merge, or after an earlier run in the same browser, may still read the old formats from `main` | `TECH_NOTES.md` | fixed in `308163d`: section 8 says so, and that a commit's name avoids it |
+| N24 | low | TECH_NOTES section 9's list of what stays left out O15, which this file keeps, and no section of TECH_NOTES gave its reason | `TECH_NOTES.md` | fixed in `2bd23ed`: section 9 names O15 among the kept observations, and section 8 gives its reason |
 
 ## Part 3. Steve Jobs review and partner review
 
