@@ -77,19 +77,22 @@
       "description": "now (12 months), 1_3_years, later (more than 3 years)"
     },
     "readiness": {
-      "type": [
-        "integer",
-        "null"
-      ],
-      "enum": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        null
-      ],
-      "description": "For a threat: 1 unprepared, 2 aware, 3 planned, 4 under way, 5 ready. Null for an opportunity"
+      "description": "For a threat: 1 unprepared, 2 aware, 3 planned, 4 under way, 5 ready. Null for an opportunity",
+      "anyOf": [
+        {
+          "type": "integer",
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "confidence": {
       "type": "string",

@@ -18,8 +18,8 @@ policy and CI.
 ## 2. API facts, verified at source
 
 Read in the documentation on 23 November 2026, or probed from this workspace the same day (PLAN.md
-section 2 has every probe), and read again on 24 November 2026 where the row says so. What needs a key
-waits for Victor's first live runs (section 8).
+section 2 has every probe), and read again on 24 or 25 November 2026 where the row says so. What needs a
+key comes from Victor's live runs, the first on 25 November 2026 (section 8).
 
 | Topic | Fact | Read or probed |
 |---|---|---|
@@ -27,7 +27,8 @@ waits for Victor's first live runs (section 8).
 | Prices | Per million tokens, input and output: Haiku 5.5 $0.10 and $0.50 (above 100,000 prompt tokens $0.50 and $2.50), Sonnet 5.5 $2 and $10, Opus 5.5 $4 and $20. Cache writes (5 minutes) $0.125, $2.50 and $5; cache reads $0.01, $0.10 and $0.20. Web search $10 per 1,000 searches; a failed search is not billed | 2026-11-24, pricing page |
 | Browser access | A keyless call with `anthropic-dangerous-direct-browser-access: true` answers 401 with `access-control-allow-origin: *`; without the header the browser blocks it | 2026-11-23, probed |
 | Token counting | `POST /v1/messages/count_tokens` is free and reachable from a page | 2026-11-23, probed keyless |
-| Structured outputs | `output_config.format` with a JSON schema; per request at most 24 optional and 16 union-typed parameters; `minimum`, `maximum`, `minLength` and `maxLength` unsupported | 2026-11-23, structured outputs page |
+| Structured outputs | `output_config.format` with a JSON schema; per request at most 24 optional and 16 union-typed parameters, where each `anyOf` and each type list such as `["string", "null"]` counts; `minimum`, `maximum`, `minLength` and `maxLength` unsupported; a string enum may come back in another case. The page states no rule on an enum's values and its type | 2026-11-23, structured outputs page; read again 2026-11-25 |
+| Enum under a type list | The API refuses it even where every value fits: `"type": ["integer", "null"]` with `"enum": [1, 2, 3, 4, 5, null]` answers 400 `invalid_request_error`, "output_config.format.schema: Invalid schema: Enum value 1 does not match declared type '['integer', 'null']'". A nullable enum goes as an `anyOf` of the typed enum and `{ "type": "null" }` (section 6) | 2026-11-25, Victor's first live run |
 | Effort and thinking | `output_config.effort` low to max, sent on every request; Haiku 5.5 takes `thinking: disabled` at high effort or below, Sonnet 5.5 takes `between_tools` instead | 2026-11-23, effort and thinking pages |
 | Web search | `web_search_20250305` with `max_uses`; `pause_turn` is sent again unchanged; a client tool called beside a search ends the turn with `tool_use`; an organisation with search switched off gets 400 `invalid_request_error` | 2026-11-23, web search tool page |
 | Web search per turn | `max_uses` counts the searches of one turn. A turn spans several requests: one that resumes after `pause_turn`, or whose last message holds only `tool_result` blocks, continues it, and the searches before count; a new instruction starts another turn. Failed searches count against the limit but are not billed | 2026-11-24, web search tool page |
@@ -191,9 +192,12 @@ threat without a euro range counts in readiness and the money says so: "€6.4m 
 `schemas/*.json` is the source. `tools/sync-schemas.mjs` writes `js/schemas.js`, the module the page
 imports, with each agent's request format written out without `$ref` (`REQUESTS`). Request formats close
 every object and require every field, with `null` for "not applicable", so no request has an optional
-parameter; ranges, lengths and counts are checked in code. `schemas/strategy-challenge-1.json` is the
-handoff file of brief §4.3, shared by all four tools; it keeps its parts under `$defs`, so it is
-validated with those as the registry.
+parameter; ranges, lengths and counts are checked in code. A field that is null or one value of a list is
+an `anyOf` of the typed enum and `{ "type": "null" }`, since the API refuses an enum under a type list
+(section 2). `tests/schemas.mjs` checks every format the tool sends against `tests/lib/api-rules.mjs`, and
+the API's stand-in in the browser suites answers a schema those rules refuse with the API's 400, so a live
+suite stops where a live run would. `schemas/strategy-challenge-1.json` is the handoff file of brief §4.3,
+shared by all four tools; it keeps its parts under `$defs`, so it is validated with those as the registry.
 
 ## 7. Running the tests
 
@@ -231,10 +235,23 @@ languages, and the default scenario plays to its end in each.
 - **Hygiene without the private list in CI.** Victor has not set the `HYGIENE_TERMS` secret yet. CI runs
   `tests/hygiene.mjs` in its generic mode ("HYGIENE GENERIC OK"); the build session runs it with its own
   list before every push, which must print "HYGIENE OK".
-- **Not yet run with a real key.** Every live suite runs against the stand-in. Victor's first runs on
-  Fast, Balanced and Thorough measure each step's tokens, cost and time ("What this run used" on the
-  summary); then each step's max_tokens is set from what it used, and the estimate quotes the measured
-  figures (`MEASURED` in `js/estimate.js`). The probes of PLAN.md section 16 wait for the same session.
+- **Runs with a real key.** Every live suite runs against the stand-in. Victor's first live run, on 25
+  November 2026, stopped at the Scanner: the API refused the Scan format, which gave a factor's readiness
+  as an enum under a type list (section 2), and the Red team's format did so in three places. No suite
+  caught it, since the stand-in took any schema the tool sent. The formats now use the form the API takes,
+  and the stand-in refuses what the API refused (REVIEW.md part 2, L1). A probe sends each agent's format
+  to the API once, for well under one cent: open a tab at about:blank, open the browser's console, paste
+  the line below (Chrome asks you to type "allow pasting" first), and give a key when asked. It keeps the
+  key in that tab only and prints, for each agent, "accepted" or the API's reason.
+
+  ```js
+  (async()=>{const k=prompt("Claude API key, kept in this tab only");if(!k)return;const t=await(await fetch("https://raw.githubusercontent.com/VictorPflueger/PESTEL-challenger/main/js/schemas.js")).text();const R=JSON.parse(t.slice(t.indexOf("export const REQUESTS = ")+24).trim().replace(/;$/,""));const ask=async(a,x)=>{const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"x-api-key":k,"anthropic-version":"2023-06-01","content-type":"application/json","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-haiku-5-5",max_tokens:64,messages:[{role:"user",content:"Answer in the format."}],...x})});const j=await r.json().catch(()=>({}));console.log(a.padEnd(11),r.ok?"accepted":`refused (${r.status}): ${j.error?.message}`)};for(const[n,a]of[["Scan","Scanner"],["Issues","Red team"],["Impacts","Analyst"],["Responses","Strategist"],["SummaryRequest","Writer"]])await ask(a,{output_config:{effort:"medium",format:{type:"json_schema",schema:R[n]}}});await ask("Scout",{tools:[{name:"submit_signals",description:"Report the signals you found.",strict:true,input_schema:R.Signals}],output_config:{effort:"medium"}})})()
+  ```
+
+  Victor's runs on Fast, Balanced and Thorough then measure each step's tokens, cost and time ("What this
+  run used" on the summary); each step's max_tokens is set from what it used, and the estimate quotes the
+  measured figures (`MEASURED` in `js/estimate.js`). The probes of PLAN.md section 16 wait for the same
+  session.
 - **Firefox and Safari print** the report's fixed footer, without page numbers, since neither has margin
   boxes. Only Chromium's print is tested: Victor decided on 24 November 2026 not to print a report in them
   by hand. An HTML file printed in Chrome 131 to 147, which has no script to mark it, shows both footers.

@@ -81,15 +81,18 @@
       ]
     },
     "confidence": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "enum": [
-        "low",
-        "medium",
-        "high",
-        null
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        {
+          "type": "null"
+        }
       ]
     },
     "basis": {
