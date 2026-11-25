@@ -320,6 +320,13 @@ What was checked for 1.0.0, on 24 November 2026.
   medium fix and found only low findings and observations, which the following rounds fixed, kept or declined.
   Every high and medium finding is fixed. Three low findings stay, R7, R14 and N20, and four observations, O4
   and O14 kept and O7 and O9 declined, each with its reason in sections 3 and 8 and in REVIEW.md. REVIEW.md
-  part 2 names the commit each look read and what it found.
-- **Not checked.** Printing in Firefox and Safari, by Victor's decision, and a run with a real key, which
-  is Victor's (section 8).
+  part 2 names the commit each look read and what it found. Victor's first live run found one more high
+  finding, L1 (section 8), fixed in `b5f5f47`; a confirming look at the fix follows.
+- **After the first live run, 25 November 2026.** `tests/schemas.mjs` fails on the formats that run sent and
+  passes on the new ones; `tests/live-flow.mjs`, run on the old formats, stops at the Scanner with the API's
+  message and passes on the new. All thirty-seven suites pass again in one run with Vici's checks required.
+  The console probe of section 8 ran in Chromium on about:blank against a scripted API that applies the same
+  rule: six requests, the key in its header only, the new formats accepted and the old Scanner's and Red
+  team's refused in the API's words.
+- **Not checked.** Printing in Firefox and Safari, by Victor's decision; the probe against the real API and
+  a complete run with a real key, which need a key and are Victor's (section 8).

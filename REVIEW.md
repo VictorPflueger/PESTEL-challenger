@@ -121,11 +121,17 @@ without O9, and a proxy's own 504, which the cap did not hold.
 
 A seventh fresh agent, on the same terms, looked at `fc7a06a`, after the sixth round, and confirmed it: its
 verdict line read "every fix holds; no high or medium finding open", it found nothing the round broke, and it
-found both declines and every kept item's reason sound. So every fix is confirmed at `fc7a06a`. It found one
-low finding, N20, there since the live-run dialog of 0.3.0, and made two observations, O13 and O14: rows that
-still named fewer held requests than the code holds, and a proxy's 504 without CORS headers, which the page
-cannot read. After `fc7a06a` only documents and comments changed. The table holds every finding of the seven
-looks, and what became of it:
+found both declines and every kept item's reason sound, so every fix of the six rounds held at `fc7a06a`. It
+found one low finding, N20, there since the live-run dialog of 0.3.0, and made two observations, O13 and O14:
+rows that still named fewer held requests than the code holds, and a proxy's 504 without CORS headers, which
+the page cannot read.
+
+Victor's first live run, on 25 November 2026, then stopped at the Scanner with the API's 400: the Scanner's and
+the Red team's formats gave a nullable value as an enum under a type list, which the API refuses (L1, high). No
+look saw it: each ran its live runs against the tests' stand-in, which took any schema, and none
+had a key for the real API. `b5f5f47` fixes the formats, and the stand-in now refuses what the API refused. A
+confirming look at the fix follows. The table holds every finding of the seven looks and of the live run, and
+what became of it:
 
 | ID | Severity | What | Where | State |
 |---|---|---|---|---|
@@ -180,6 +186,7 @@ looks, and what became of it:
 | N20 | low | Go on's dialog runs its estimate, and the amount held with it, past the edge of the dialog's body at 1280 × 720, so its last sentence shows only after scrolling; there since the live-run dialog of 0.3.0 | `js/live_dialog.js`, `tests/layout.mjs` | kept: the first dialog fits as Vici's rule asks, and the stop screen already says that an amount is held; fitting a continuing run's estimate means a shorter estimate and a layout test of the continuing dialog, proposed for 1.0.1 (TECH_NOTES section 8) |
 | O13 | observation | The R11 row and the budget suite's header still named fewer held requests than the code holds | `REVIEW.md`, `tests/live-budget.mjs` | done: both name the requests that timed out, any 504 the page can read included |
 | O14 | observation | A proxy's 504 without CORS headers reaches the page only as a failed connection, so it is not held, though the reasoning of O12 applies to it | `js/anthropic.js`, `TECH_NOTES.md` | kept: the page cannot tell it from a network failure, which bills nothing, and holding every failed connection would stop runs at the cap on any dropped connection; TECH_NOTES sections 3 and 8 now say so |
+| L1 | high | The Scanner's and the Red team's formats gave a nullable value as an enum under a type list (a factor's and a rating's readiness, a correction's new factor, ratings and dimension); the API refuses that with 400, so every live run stopped at the Scanner. The stand-in took any schema, so no suite saw it | `schemas/factor.json`, `schemas/factor-new.json`, `schemas/correction.json`, `schemas/issue.json`, `schemas/requests/scan.json`, `tests/lib/fake-claude.mjs` | fixed in `b5f5f47`: each nullable enum is an anyOf of the typed enum and null; `tests/schemas.mjs` audits every format the tool sends against `tests/lib/api-rules.mjs` and fails on the old formats; the stand-in answers a refused schema with the API's 400, so `tests/live-flow.mjs` on the old formats stops at the Scanner with the run's message (TECH_NOTES section 8) |
 
 ## Part 3. Steve Jobs review and partner review
 
