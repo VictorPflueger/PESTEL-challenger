@@ -197,10 +197,11 @@ every object and require every field, with `null` for "not applicable", so no re
 parameter; ranges, lengths and counts are checked in code. A field that is null or one value of a list is
 an `anyOf` of the typed enum and `{ "type": "null" }`, since the API refuses an enum under a type list
 (section 2). `tests/schemas.mjs` checks every format the tool sends against what the documentation does not
-support (section 2) and against `tests/lib/api-rules.mjs`, and the API's stand-in in the browser suites
-answers a schema those rules refuse with the API's 400, so a live suite stops where a live run would.
-`schemas/strategy-challenge-1.json` is the handoff file of brief §4.3, shared by all four tools; it keeps its
-parts under `$defs`, so it is validated with those as the registry.
+support (section 2; of the array constraints, `minItems`, `maxItems` and `uniqueItems`) and against
+`tests/lib/api-rules.mjs`, and the API's stand-in in the browser suites answers a schema those rules refuse
+with the API's 400, so a live suite stops where a live run would. `schemas/strategy-challenge-1.json` is the
+handoff file of brief §4.3, shared by all four tools; it keeps its parts under `$defs`, so it is validated
+with those as the registry.
 
 ## 7. Running the tests
 
