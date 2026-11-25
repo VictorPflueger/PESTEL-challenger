@@ -4,11 +4,13 @@
 // request against what a live run must send (AC-08, AC-12): both headers, a key, stream on, the setting's
 // model, effort and thinking, each agent's format or the Scout's tools, max_tokens, ten requests at most,
 // a paused turn sent again unchanged, every assistant block passed back as it came, a refused report
-// answered with is_error, and nothing but tool results after a turn that called the client tool.
+// answered with is_error, and nothing but tool results after a turn that called the client tool. A schema
+// the API refuses (tests/lib/api-rules.mjs) gets the API's 400 and counts as a violation, as in a live run.
 // Adapted from the Sovereignty Assessment 2.0.0 (35c0dea) tests/lib/fake-claude.mjs: one request per agent
 // with a structured answer, instead of a research loop of fifteen tools.
 import { isDeepStrictEqual } from "node:util";
 import { answersOf, searchResultsOf, agentOf } from "./turns.mjs";
+import { schemaRefusal } from "./api-rules.mjs";
 
 export const MOCK_KEY = "sk-ant-api03-standin-0000000000000000000000000000";
 export const CORS = { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-expose-headers": "*" };
@@ -145,6 +147,8 @@ export function createStandIn({ id = "s3", lang = "en", sector = true, expect = 
       const agent = agentOf(req);
       requests.push({ req, headers, agent, at: Date.now() });
       validate(req, headers, agent);
+      const refused = schemaRefusal(req);
+      if (refused) { check(false, `the API refuses this schema: ${refused}`); return error(400, "invalid_request_error", refused); }
       const n = attempts[agent] = (attempts[agent] || 0) + 1;
       const fault = faults.find((f) => f.agent === agent && (f.attempt ?? 1) === n) || (agent === "scout" ? faults.find((f) => f.agent === "scout" && f.scout) : null);
       if (fault?.network) return { network: true };

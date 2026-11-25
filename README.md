@@ -4,7 +4,7 @@ AI agents complete a PESTEL analysis, challenge it, put a figure on each outside
 
 <https://victorpflueger.github.io/PESTEL-challenger/>
 
-Version 1.0.0 runs the agents live on your own company with your own Claude API key; without a key it
+Version 1.0.1 runs the agents live on your own company with your own Claude API key; without a key it
 plays three recorded runs on fictional companies, in English and German: a shipping line, a maker of
 industrial drives and a municipal utility. The key figures show what is at stake before anything plays,
 and every run ends in a report: saved as PDF with the footer on every page, as an HTML file that opens

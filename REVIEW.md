@@ -121,11 +121,31 @@ without O9, and a proxy's own 504, which the cap did not hold.
 
 A seventh fresh agent, on the same terms, looked at `fc7a06a`, after the sixth round, and confirmed it: its
 verdict line read "every fix holds; no high or medium finding open", it found nothing the round broke, and it
-found both declines and every kept item's reason sound. So every fix is confirmed at `fc7a06a`. It found one
-low finding, N20, there since the live-run dialog of 0.3.0, and made two observations, O13 and O14: rows that
-still named fewer held requests than the code holds, and a proxy's 504 without CORS headers, which the page
-cannot read. After `fc7a06a` only documents and comments changed. The table holds every finding of the seven
-looks, and what became of it:
+found both declines and every kept item's reason sound, so every fix of the six rounds held at `fc7a06a`. It
+found one low finding, N20, there since the live-run dialog of 0.3.0, and made two observations, O13 and O14:
+rows that still named fewer held requests than the code holds, and a proxy's 504 without CORS headers, which
+the page cannot read.
+
+Victor's first live run, on 25 November 2026, then stopped at the Scanner with the API's 400: the Scanner's and
+the Red team's formats gave a nullable value as an enum under a type list, which the API refuses (L1, high). No
+look saw it: each ran its live runs against the tests' stand-in, which took any schema, and none
+had a key for the real API. `b5f5f47` fixes the formats, and the stand-in now refuses what the API refused. Pull request
+#5 had been merged before the live run, so the fix goes to `main` as 1.0.1, through pull request #6.
+
+An eighth fresh agent, on the same terms, looked at `1990bd6`. Its verdict line read "every fix holds; no high
+or medium finding open": no request the tool builds puts an enum under a type list, every changed field takes
+the same values as before, each request has at most 8 union-typed and no optional parameters, and all
+thirty-seven suites pass. It found one low finding, N21, and made two observations, O15 and O16: the probe in
+TECH_NOTES read `main` before the fix was there, a repair line for a nullable value now reads in the
+validator's anyOf wording, and the fix sat on its branch with no pull request open. The same agent looked
+again at `2cf021c`, after version 1.0.1, N21's fix and the documented anyOf rule in the schema suite, and gave
+the same verdict. It found two low findings, N22 and N23, both in this file, and made two observations, O17
+and O18: the suite's anyOf rule read the documentation more narrowly than it is written, and a probe run just
+after a merge can read a cached file. `308163d` fixes those four. The same agent looked a third time at
+`f5930ed`, which records them here, and its verdict line again read "every fix holds; no high or medium finding
+open". So every fix is confirmed at `f5930ed`. That look found one low finding, N24, a list in TECH_NOTES section
+9 that left out O15, and made no observation; N24 is fixed after it, in documents only, and after `f5930ed` only
+documents changed. The table holds every finding of the eight looks and of the live run, and what became of it:
 
 | ID | Severity | What | Where | State |
 |---|---|---|---|---|
@@ -177,9 +197,18 @@ looks, and what became of it:
 | N19 | low | TECH_NOTES section 9's summary of the reviews stopped at the third confirming look and miscounted what stays | `TECH_NOTES.md` | fixed in `5e70cf0`: it summarises the looks without counts that go stale, and says what stays: R7, R14, O4, O7 and O9 |
 | O11 | observation | This part's summary of the fifth look left out O9 | `REVIEW.md` | done: the summary names it |
 | O12 | observation | A 504 that a proxy writes itself, not as the API's JSON, was not held, though the API may still be writing after it as after its own | `js/pipeline.js` | fixed in `5e70cf0`: any 504 counts at its worst case, as the API's `timeout_error` does; `tests/live-budget.mjs` checks three proxy 504s in Node |
-| N20 | low | Go on's dialog runs its estimate, and the amount held with it, past the edge of the dialog's body at 1280 × 720, so its last sentence shows only after scrolling; there since the live-run dialog of 0.3.0 | `js/live_dialog.js`, `tests/layout.mjs` | kept: the first dialog fits as Vici's rule asks, and the stop screen already says that an amount is held; fitting a continuing run's estimate means a shorter estimate and a layout test of the continuing dialog, proposed for 1.0.1 (TECH_NOTES section 8) |
+| N20 | low | Go on's dialog runs its estimate, and the amount held with it, past the edge of the dialog's body at 1280 × 720, so its last sentence shows only after scrolling; there since the live-run dialog of 0.3.0 | `js/live_dialog.js`, `tests/layout.mjs` | kept: the first dialog fits as Vici's rule asks, and the stop screen already says that an amount is held; fitting a continuing run's estimate means a shorter estimate and a layout test of the continuing dialog, proposed for a later release (TECH_NOTES section 8) |
 | O13 | observation | The R11 row and the budget suite's header still named fewer held requests than the code holds | `REVIEW.md`, `tests/live-budget.mjs` | done: both name the requests that timed out, any 504 the page can read included |
 | O14 | observation | A proxy's 504 without CORS headers reaches the page only as a failed connection, so it is not held, though the reasoning of O12 applies to it | `js/anthropic.js`, `TECH_NOTES.md` | kept: the page cannot tell it from a network failure, which bills nothing, and holding every failed connection would stop runs at the cap on any dropped connection; TECH_NOTES sections 3 and 8 now say so |
+| L1 | high | The Scanner's and the Red team's formats gave a nullable value as an enum under a type list (a factor's and a rating's readiness, a correction's new factor, ratings and dimension); the API refuses that with 400, so every live run stopped at the Scanner. The stand-in took any schema, so no suite saw it | `schemas/factor.json`, `schemas/factor-new.json`, `schemas/correction.json`, `schemas/issue.json`, `schemas/requests/scan.json`, `tests/lib/fake-claude.mjs` | fixed in `b5f5f47`: each nullable enum is an anyOf of the typed enum and null; `tests/schemas.mjs` audits every format the tool sends against `tests/lib/api-rules.mjs` and fails on the old formats; the stand-in answers a refused schema with the API's 400, so `tests/live-flow.mjs` on the old formats stops at the Scanner with the run's message (TECH_NOTES section 8) |
+| N21 | low | The probe in TECH_NOTES section 8 read the formats from `main`, which still held the formats the API refused, so run before the merge it would have reported the Scanner and the Red team refused | `TECH_NOTES.md` | fixed in `85ec193`: section 8 says the probe reads `main`, the branch the live site is built from, and to put a branch or a commit in its place to check one before a merge |
+| O15 | observation | A repair line for a nullable value now reads in the validator's anyOf wording rather than "must be one of ..., null"; the Scan and Issues formats grew by 28 and 42 characters in the estimate and the cap's worst case | `js/schema.js`, `js/estimate.js` | kept: the line still names every allowed value and null, structured outputs keep the answer inside its format so the line is rare, and no verdict changed |
+| O16 | observation | The fix sat on `m5-release` with no pull request open, while `main` and the live site still sent the formats the API refused | GitHub, pull request #6 | done: pull request #6 brings the fix to `main` as 1.0.1 |
+| N22 | low | The N20 row still said "proposed for 1.0.1", though 1.0.1 ships the fix alone and TECH_NOTES section 8 says a later release; the docs suite leaves this file out of its version rule | `REVIEW.md` | fixed in `308163d`: the row proposes a later release |
+| N23 | low | This part did not record the eighth look: it said a confirming look would follow, counted seven looks, and had no row for N21, O15 or O16, which TECH_NOTES cites | `REVIEW.md`, `TECH_NOTES.md` | fixed in `308163d`: the paragraph on the eighth look's two looks and the rows N21, O15 and O16 |
+| O17 | observation | The suite's anyOf rule and TECH_NOTES section 2 read the documentation as "beside type or properties", while it allows only annotations beside an anyOf, and the row left out the page's two allOf entries and an external $ref; no format was affected | `tests/schemas.mjs`, `TECH_NOTES.md` | fixed in `308163d`: only annotations may stand beside an anyOf, with a planted case beside an enum, and the row lists every entry |
+| O18 | observation | raw.githubusercontent.com serves the file with a five-minute cache, so a probe run just after a merge, or after an earlier run in the same browser, may still read the old formats from `main` | `TECH_NOTES.md` | fixed in `308163d`: section 8 says so, and that a commit's name avoids it |
+| N24 | low | TECH_NOTES section 9's list of what stays left out O15, which this file keeps, and no section of TECH_NOTES gave its reason | `TECH_NOTES.md` | fixed in `2bd23ed`: section 9 names O15 among the kept observations, and section 8 gives its reason |
 
 ## Part 3. Steve Jobs review and partner review
 

@@ -1,12 +1,16 @@
 // The data contracts (brief §10): every schema accepts a well-formed sample and refuses a broken one; each
-// agent's request format keeps to what structured outputs accept (no unsupported keyword, every object
-// closed and every field required, at most 24 optional and 16 union-typed parameters per request, PLAN.md
-// P5); js/schemas.js equals the JSON; and the handoff example of brief §4.3 validates while a broken copy
-// of it does not. Usage: node tests/schemas.mjs
+// agent's request format keeps to what structured outputs accept (no unsupported keyword, nothing but
+// annotations beside an anyOf, every object closed and every field required, at most 24 optional and 16
+// union-typed parameters per request, PLAN.md P5, and every enum under one type its values all have,
+// tests/lib/api-rules.mjs: the API refused an enum under a type list in a live run, so a nullable enum is an
+// anyOf of the typed enum and null); every schema the tool sends is one of those formats; js/schemas.js
+// equals the JSON; and the handoff example of brief §4.3 validates while a broken copy of it does not.
+// Usage: node tests/schemas.mjs
 import { readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { APP_ROOT, report } from "./lib/harness.mjs";
+import { enumProblems, schemaRefusal } from "./lib/api-rules.mjs";
 import { validate, describeErrors } from "../js/schema.js";
 import { SCHEMAS, REQUESTS } from "../js/schemas.js";
 
@@ -24,14 +28,19 @@ try {
 }
 
 // ---- request formats: what structured outputs accept -------------------------------------------------
+/** What may stand beside an anyOf: annotations only, as the structured outputs page says. */
+const ANNOTATIONS = new Set(["title", "description", "$comment", "examples", "default", "deprecated", "readOnly", "writeOnly"]);
 const UNSUPPORTED = ["minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf", "minLength", "maxLength", "pattern", "format",
   "minItems", "maxItems", "uniqueItems", "$ref", "$defs", "definitions", "if", "then", "else", "not", "allOf", "oneOf", "patternProperties", "const"];
 function audit(schema) {
-  const found = { unsupported: [], open: [], optional: 0, unions: 0 };
+  const found = { unsupported: [], open: [], optional: 0, unions: 0, enums: enumProblems(schema).map((p) => p.message) };
   const walk = (node, where) => {
     if (Array.isArray(node)) { node.forEach((n, i) => walk(n, `${where}[${i}]`)); return; }
     if (!node || typeof node !== "object") return;
     for (const k of Object.keys(node)) if (UNSUPPORTED.includes(k)) found.unsupported.push(`${where}.${k}`);
+    // anyOf stands alone: the API refuses it in the same object as keywords such as type or properties; annotations are fine.
+    const beside = node.anyOf ? Object.keys(node).filter((k) => k !== "anyOf" && !ANNOTATIONS.has(k)) : [];
+    if (beside.length) found.unsupported.push(`${where}.anyOf beside ${beside.join(", ")}`);
     if (Array.isArray(node.type) && node.type.length > 1) found.unions++;
     if (node.anyOf) found.unions++;
     if (node.type === "object" || node.properties) {
@@ -48,6 +57,7 @@ for (const [name, schema] of Object.entries(REQUESTS)) {
   const a = audit(schema);
   check(!a.unsupported.length, `${name}: no keyword structured outputs refuse${a.unsupported.length ? `: ${a.unsupported.join(", ")}` : ""}`);
   check(!a.open.length, `${name}: every object is closed (additionalProperties false)${a.open.length ? `; open: ${a.open.join(", ")}` : ""}`);
+  check(!a.enums.length, `${name}: every enum sits under one type that all its values have${a.enums.length ? `; not: ${a.enums.join(", ")}` : ""}`);
   check(a.optional <= 24 && a.unions <= 16, `${name}: ${a.optional} optional and ${a.unions} union-typed parameters (limits 24 and 16)`);
   check(a.optional === 0, `${name}: every field is required, with null for "not applicable"`);
 }
@@ -57,6 +67,41 @@ for (const [name, schema] of Object.entries(REQUESTS)) {
   bad.properties.n = { type: "integer", minimum: 1 };
   const a = audit(bad);
   check(a.unsupported.length === 1 && a.open.length === 1 && a.unions === 17 && a.optional === 18, "control: the audit catches an unsupported keyword, an open object, 17 unions and optional fields");
+  // The enum rule can fail: the readiness the Scanner sent from 0.3.0 to 1.0.0, a value of another type, and an object.
+  const enums = audit({ type: "object", additionalProperties: false, required: ["a", "b", "c", "d"], properties: {
+    a: { type: ["integer", "null"], enum: [1, 2, 3, 4, 5, null] },
+    b: { type: "integer", enum: [1, "2"] },
+    c: { enum: [{ x: 1 }] },
+    d: { anyOf: [{ type: "integer", enum: [1, 2, 3, 4, 5] }, { type: "null" }] },
+  } });
+  check(enums.enums.length === 3 && !enums.enums.some((e) => e.startsWith("$.d")), `control: the audit catches an enum under a type list, a value of another type and an object, and passes a typed enum beside null (${enums.enums.join("; ")})`);
+  // The anyOf rule can fail too, and passes the form the formats use.
+  const placed = audit({ type: "object", additionalProperties: false, required: ["a", "b", "c", "d"], properties: {
+    a: { type: "integer", anyOf: [{ enum: [1, 2] }, { type: "null" }] },
+    b: { properties: {}, anyOf: [{ type: "object" }, { type: "null" }] },
+    c: { enum: [1, null], anyOf: [{ type: "integer" }, { type: "null" }] },
+    d: { title: "Readiness", description: "Null for an opportunity", anyOf: [{ type: "integer", enum: [1, 2, 3, 4, 5] }, { type: "null" }] },
+  } });
+  const expected = ["$.a.anyOf beside type", "$.b.anyOf beside properties", "$.c.anyOf beside enum"];
+  check(JSON.stringify(placed.unsupported) === JSON.stringify(expected), `control: the audit catches an anyOf beside type, properties or enum and passes one beside annotations (${placed.unsupported.join("; ")})`);
+  // The stand-in answers such a request as the live run read it, for a format and for a strict tool alike.
+  const planted = { type: "object", additionalProperties: false, required: ["r"], properties: { r: { type: ["integer", "null"], enum: [1, 2, null] } } };
+  const said = schemaRefusal({ output_config: { format: { type: "json_schema", schema: planted } } });
+  check(said === "output_config.format.schema: Invalid schema: Enum value 1 does not match declared type '['integer', 'null']'", `control: the stand-in refuses the format in the API's words (${said})`);
+  check(/^tools\.1\.input_schema: Invalid schema: Enum value 1 /.test(schemaRefusal({ tools: [{ type: "web_search_20250305", name: "web_search" }, { name: "t", strict: true, input_schema: planted }] }) || ""), "control: the stand-in refuses a strict tool's schema too");
+  check(Object.values(REQUESTS).every((schema) => schemaRefusal({ output_config: { format: { type: "json_schema", schema } } }) === null), "the stand-in takes every request format the tool sends");
+}
+
+// ---- what reaches the API: every schema the tool sends is one of the formats audited above ----------
+{
+  const { SUBMIT_SIGNALS } = await import("../js/agents/scout.js");
+  check(SUBMIT_SIGNALS.strict === true && SUBMIT_SIGNALS.input_schema === REQUESTS.Signals, "the Scout's strict tool sends the Signals format the audit covers");
+  const pipeline = readFileSync(path.join(APP_ROOT, "js/pipeline.js"), "utf8");
+  const wrapped = [...pipeline.matchAll(/format: \{ type: "json_schema", schema: (\w+) \}/g)].map((m) => m[1]);
+  const passed = [...pipeline.matchAll(/^\s+format: ([^,\n]+),$/gm)].map((m) => m[1]);
+  const named = passed.map((v) => /^REQUESTS\.(\w+)$/.exec(v)?.[1]);
+  check(wrapped.length === 1 && wrapped[0] === "format" && named.length === 5 && named.every((n) => n && REQUESTS[n]) && new Set(named).size === 5,
+    `the pipeline sends as output format only the request formats the audit covers (${passed.join(", ")})`);
 }
 
 // ---- samples: each request accepts a good answer and refuses a broken one ----------------------------
@@ -88,6 +133,13 @@ for (const [name, sample] of Object.entries(samples)) {
   check(!ok(bad, REQUESTS[name]).valid, `${name}: a broken answer is refused (${describeErrors(ok(bad, REQUESTS[name]).errors).split("\n")[0]})`);
 }
 check(Object.keys(samples).every((n) => REQUESTS[n]) && Object.keys(REQUESTS).every((n) => samples[n]), `every request format has its samples (${Object.keys(REQUESTS).join(", ")})`);
+// The nullable enums keep their meaning in the anyOf form: null and a listed value pass, any other value fails.
+{
+  const scan = (readiness) => { const s = clone(samples.Scan); s.ratings[0].readiness = readiness; return ok(s, REQUESTS.Scan).valid; };
+  const move = (dimension) => { const s = clone(samples.Issues); Object.assign(s.issues[0].correction, { kind: "move", dimension }); return ok(s, REQUESTS.Issues).valid; };
+  check(scan(null) && scan(5) && !scan(6) && !scan(2.5) && !scan("2"), "Scan: a readiness of null or 1 to 5 passes, 6, 2.5 and \"2\" fail");
+  check(move(null) && move("social") && !move("fiscal"), "Issues: a correction's dimension of null or a PESTEL dimension passes, another word fails");
+}
 
 // ---- the run's own records ---------------------------------------------------------------------------
 const records = {

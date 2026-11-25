@@ -162,19 +162,22 @@ export const SCHEMAS = {
                 "description": "now (12 months), 1_3_years, later (more than 3 years)"
               },
               "readiness": {
-                "type": [
-                  "integer",
-                  "null"
-                ],
-                "enum": [
-                  1,
-                  2,
-                  3,
-                  4,
-                  5,
-                  null
-                ],
-                "description": "For a threat: 1 unprepared, 2 aware, 3 planned, 4 under way, 5 ready. Null for an opportunity"
+                "description": "For a threat: 1 unprepared, 2 aware, 3 planned, 4 under way, 5 ready. Null for an opportunity",
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "enum": [
+                      1,
+                      2,
+                      3,
+                      4,
+                      5
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "confidence": {
                 "type": "string",
@@ -245,17 +248,20 @@ export const SCHEMAS = {
                 ]
               },
               "readiness": {
-                "type": [
-                  "integer",
-                  "null"
-                ],
-                "enum": [
-                  1,
-                  2,
-                  3,
-                  4,
-                  5,
-                  null
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "enum": [
+                      1,
+                      2,
+                      3,
+                      4,
+                      5
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
                 ]
               }
             }
@@ -266,20 +272,23 @@ export const SCHEMAS = {
         ]
       },
       "dimension": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "enum": [
-          "political",
-          "economic",
-          "social",
-          "technological",
-          "environmental",
-          "legal",
-          null
-        ],
-        "description": "For move: the dimension the factor belongs under"
+        "description": "For move: the dimension the factor belongs under",
+        "anyOf": [
+          {
+            "type": "string",
+            "enum": [
+              "political",
+              "economic",
+              "social",
+              "technological",
+              "environmental",
+              "legal"
+            ]
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
       "outdated_reason": {
         "type": [
@@ -427,19 +436,22 @@ export const SCHEMAS = {
         "description": "now (12 months), 1_3_years, later (more than 3 years)"
       },
       "readiness": {
-        "type": [
-          "integer",
-          "null"
-        ],
-        "enum": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          null
-        ],
-        "description": "For a threat: 1 unprepared, 2 aware, 3 planned, 4 under way, 5 ready. Null for an opportunity"
+        "description": "For a threat: 1 unprepared, 2 aware, 3 planned, 4 under way, 5 ready. Null for an opportunity",
+        "anyOf": [
+          {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
       "confidence": {
         "type": "string",
@@ -545,15 +557,18 @@ export const SCHEMAS = {
         ]
       },
       "confidence": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "enum": [
-          "low",
-          "medium",
-          "high",
-          null
+        "anyOf": [
+          {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          {
+            "type": "null"
+          }
         ]
       },
       "basis": {
@@ -977,19 +992,22 @@ export const SCHEMAS = {
                     "description": "now (12 months), 1_3_years, later (more than 3 years)"
                   },
                   "readiness": {
-                    "type": [
-                      "integer",
-                      "null"
-                    ],
-                    "enum": [
-                      1,
-                      2,
-                      3,
-                      4,
-                      5,
-                      null
-                    ],
-                    "description": "For a threat: 1 unprepared, 2 aware, 3 planned, 4 under way, 5 ready. Null for an opportunity"
+                    "description": "For a threat: 1 unprepared, 2 aware, 3 planned, 4 under way, 5 ready. Null for an opportunity",
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "enum": [
+                          1,
+                          2,
+                          3,
+                          4,
+                          5
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "confidence": {
                     "type": "string",
@@ -1060,17 +1078,20 @@ export const SCHEMAS = {
                     ]
                   },
                   "readiness": {
-                    "type": [
-                      "integer",
-                      "null"
-                    ],
-                    "enum": [
-                      1,
-                      2,
-                      3,
-                      4,
-                      5,
-                      null
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "enum": [
+                          1,
+                          2,
+                          3,
+                          4,
+                          5
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
                     ]
                   }
                 }
@@ -1081,20 +1102,23 @@ export const SCHEMAS = {
             ]
           },
           "dimension": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "enum": [
-              "political",
-              "economic",
-              "social",
-              "technological",
-              "environmental",
-              "legal",
-              null
-            ],
-            "description": "For move: the dimension the factor belongs under"
+            "description": "For move: the dimension the factor belongs under",
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "political",
+                  "economic",
+                  "social",
+                  "technological",
+                  "environmental",
+                  "legal"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "outdated_reason": {
             "type": [
@@ -2848,19 +2872,22 @@ export const REQUESTS = {
                           "description": "now (12 months), 1_3_years, later (more than 3 years)"
                         },
                         "readiness": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
-                          "enum": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            null
-                          ],
-                          "description": "For a threat: 1 unprepared, 2 aware, 3 planned, 4 under way, 5 ready. Null for an opportunity"
+                          "description": "For a threat: 1 unprepared, 2 aware, 3 planned, 4 under way, 5 ready. Null for an opportunity",
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "enum": [
+                                1,
+                                2,
+                                3,
+                                4,
+                                5
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
                         "confidence": {
                           "type": "string",
@@ -2931,17 +2958,20 @@ export const REQUESTS = {
                           ]
                         },
                         "readiness": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
-                          "enum": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            null
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "enum": [
+                                1,
+                                2,
+                                3,
+                                4,
+                                5
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
                           ]
                         }
                       }
@@ -2952,20 +2982,23 @@ export const REQUESTS = {
                   ]
                 },
                 "dimension": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "enum": [
-                    "political",
-                    "economic",
-                    "social",
-                    "technological",
-                    "environmental",
-                    "legal",
-                    null
-                  ],
-                  "description": "For move: the dimension the factor belongs under"
+                  "description": "For move: the dimension the factor belongs under",
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "political",
+                        "economic",
+                        "social",
+                        "technological",
+                        "environmental",
+                        "legal"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "outdated_reason": {
                   "type": [
@@ -3298,19 +3331,22 @@ export const REQUESTS = {
               "description": "now (12 months), 1_3_years, later (more than 3 years)"
             },
             "readiness": {
-              "type": [
-                "integer",
-                "null"
-              ],
-              "enum": [
-                1,
-                2,
-                3,
-                4,
-                5,
-                null
-              ],
-              "description": "For a threat: 1 unprepared, 2 aware, 3 planned, 4 under way, 5 ready. Null for an opportunity"
+              "description": "For a threat: 1 unprepared, 2 aware, 3 planned, 4 under way, 5 ready. Null for an opportunity",
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "enum": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "confidence": {
               "type": "string",
@@ -3391,17 +3427,20 @@ export const REQUESTS = {
               ]
             },
             "readiness": {
-              "type": [
-                "integer",
-                "null"
-              ],
-              "enum": [
-                1,
-                2,
-                3,
-                4,
-                5,
-                null
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "enum": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                  ]
+                },
+                {
+                  "type": "null"
+                }
               ]
             },
             "confidence": {

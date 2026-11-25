@@ -5,7 +5,9 @@ the plan Victor approved on 23 November 2026; this file records what the build f
 
 ## 1. Version
 
-Version 1.0.0 (M5 Release), 24 November 2026: the release of the four milestones before it, tested for
+Version 1.0.1, 25 November 2026: the fix for the first live run, which stopped at the Scanner on an answer
+format the API refuses (section 8); nothing else changed. Version 1.0.0 (M5 Release), 24 November 2026: the
+release of the four milestones before it, tested for
 layout at four screen sizes, the keyboard alone and reduced motion, with the note a page opened from a
 file shows, the documents complete, and the reviews of section 9 behind it. 0.4.0 (M4 Report) ended every
 run in a report: page by page in the Summary, saved as PDF with the footer on every page, as an HTML file
@@ -18,8 +20,8 @@ policy and CI.
 ## 2. API facts, verified at source
 
 Read in the documentation on 23 November 2026, or probed from this workspace the same day (PLAN.md
-section 2 has every probe), and read again on 24 November 2026 where the row says so. What needs a key
-waits for Victor's first live runs (section 8).
+section 2 has every probe), and read again on 24 or 25 November 2026 where the row says so. What needs a
+key comes from Victor's live runs, the first on 25 November 2026 (section 8).
 
 | Topic | Fact | Read or probed |
 |---|---|---|
@@ -27,7 +29,8 @@ waits for Victor's first live runs (section 8).
 | Prices | Per million tokens, input and output: Haiku 5.5 $0.10 and $0.50 (above 100,000 prompt tokens $0.50 and $2.50), Sonnet 5.5 $2 and $10, Opus 5.5 $4 and $20. Cache writes (5 minutes) $0.125, $2.50 and $5; cache reads $0.01, $0.10 and $0.20. Web search $10 per 1,000 searches; a failed search is not billed | 2026-11-24, pricing page |
 | Browser access | A keyless call with `anthropic-dangerous-direct-browser-access: true` answers 401 with `access-control-allow-origin: *`; without the header the browser blocks it | 2026-11-23, probed |
 | Token counting | `POST /v1/messages/count_tokens` is free and reachable from a page | 2026-11-23, probed keyless |
-| Structured outputs | `output_config.format` with a JSON schema; per request at most 24 optional and 16 union-typed parameters; `minimum`, `maximum`, `minLength` and `maxLength` unsupported | 2026-11-23, structured outputs page |
+| Structured outputs | `output_config.format` with a JSON schema; per request at most 24 optional and 16 union-typed parameters, where each `anyOf` and each type list such as `["string", "null"]` counts. Not supported: recursive schemas, `oneOf`, `not`, an `anyOf` in the same object as keywords such as `type` or `properties` (annotations such as a description are fine), `allOf` with schemas that conflict or of two or more schemas when one holds `$ref`, `anyOf` or `allOf`, complex values in an enum, an external `$ref`, numeric, string and array constraints beyond `minItems` 0 or 1, and `additionalProperties` other than `false`. A string enum may come back in another case. The page states no rule on an enum's values and its type | 2026-11-23, structured outputs page; read again 2026-11-25, its Markdown version |
+| Enum under a type list | The API refuses it even where every value fits: `"type": ["integer", "null"]` with `"enum": [1, 2, 3, 4, 5, null]` answers 400 `invalid_request_error`, "output_config.format.schema: Invalid schema: Enum value 1 does not match declared type '['integer', 'null']'". A nullable enum goes as an `anyOf` of the typed enum and `{ "type": "null" }` (section 6) | 2026-11-25, Victor's first live run |
 | Effort and thinking | `output_config.effort` low to max, sent on every request; Haiku 5.5 takes `thinking: disabled` at high effort or below, Sonnet 5.5 takes `between_tools` instead | 2026-11-23, effort and thinking pages |
 | Web search | `web_search_20250305` with `max_uses`; `pause_turn` is sent again unchanged; a client tool called beside a search ends the turn with `tool_use`; an organisation with search switched off gets 400 `invalid_request_error` | 2026-11-23, web search tool page |
 | Web search per turn | `max_uses` counts the searches of one turn. A turn spans several requests: one that resumes after `pause_turn`, or whose last message holds only `tool_result` blocks, continues it, and the searches before count; a new instruction starts another turn. Failed searches count against the limit but are not billed | 2026-11-24, web search tool page |
@@ -128,7 +131,7 @@ Decided while building 1.0.0, each within the brief and the plan:
 
 | What | Decision |
 |---|---|
-| The version on screen | The start screen says "Version 1.0.0" and that every run ends in a report, from `APP.version` in `js/config.js`. `tests/docs.mjs` fails when the page's words, README, DESIGN, DATA_SOURCES or a demo script name another version or promise one to come |
+| The version on screen | The start screen names the version ("Version 1.0.1") and says that every run ends in a report, from `APP.version` in `js/config.js`. `tests/docs.mjs` fails when the page's words, README, DESIGN, DATA_SOURCES or a demo script name another version or promise one to come |
 | Opened from a file | Chrome and Edge run no module script from a file, so the page would stay blank. `index.html` holds a note in the stage, in both languages, which a CSS animation shows after two seconds and the program removes as it starts: open the web address, or serve the folder with `python3 -m http.server 8000`. Served, the note never shows (`tests/from-file.mjs`) |
 | The keyboard and the focus | `tests/access.mjs` runs a scenario and a live run with the keyboard alone and compares every stop of the Tab order focused and not, pixel by pixel. It found two faults in Vici's dialog, fixed there first (ViciDesign#42): with reduced motion the backdrop still faded in, and a body that scrolls and holds only text, such as the method dialog's, showed only the top edge of its focus ring |
 | Window sizes | AC-14 runs from 1920 × 1080 to 1280 × 720: the layout suite checks both ends in both themes and languages, and 1600 × 900 and 1366 × 768 between them |
@@ -191,9 +194,14 @@ threat without a euro range counts in readiness and the money says so: "€6.4m 
 `schemas/*.json` is the source. `tools/sync-schemas.mjs` writes `js/schemas.js`, the module the page
 imports, with each agent's request format written out without `$ref` (`REQUESTS`). Request formats close
 every object and require every field, with `null` for "not applicable", so no request has an optional
-parameter; ranges, lengths and counts are checked in code. `schemas/strategy-challenge-1.json` is the
-handoff file of brief §4.3, shared by all four tools; it keeps its parts under `$defs`, so it is
-validated with those as the registry.
+parameter; ranges, lengths and counts are checked in code. A field that is null or one value of a list is
+an `anyOf` of the typed enum and `{ "type": "null" }`, since the API refuses an enum under a type list
+(section 2). `tests/schemas.mjs` checks every format the tool sends against what the documentation does not
+support (section 2; of the array constraints, `minItems`, `maxItems` and `uniqueItems`) and against
+`tests/lib/api-rules.mjs`, and the API's stand-in in the browser suites answers a schema those rules refuse
+with the API's 400, so a live suite stops where a live run would. `schemas/strategy-challenge-1.json` is the
+handoff file of brief §4.3, shared by all four tools; it keeps its parts under `$defs`, so it is validated
+with those as the registry.
 
 ## 7. Running the tests
 
@@ -231,10 +239,27 @@ languages, and the default scenario plays to its end in each.
 - **Hygiene without the private list in CI.** Victor has not set the `HYGIENE_TERMS` secret yet. CI runs
   `tests/hygiene.mjs` in its generic mode ("HYGIENE GENERIC OK"); the build session runs it with its own
   list before every push, which must print "HYGIENE OK".
-- **Not yet run with a real key.** Every live suite runs against the stand-in. Victor's first runs on
-  Fast, Balanced and Thorough measure each step's tokens, cost and time ("What this run used" on the
-  summary); then each step's max_tokens is set from what it used, and the estimate quotes the measured
-  figures (`MEASURED` in `js/estimate.js`). The probes of PLAN.md section 16 wait for the same session.
+- **Runs with a real key.** Every live suite runs against the stand-in. Victor's first live run, on 25
+  November 2026, stopped at the Scanner: the API refused the Scan format, which gave a factor's readiness
+  as an enum under a type list (section 2), and the Red team's format did so in three places. No suite
+  caught it, since the stand-in took any schema the tool sent. The formats now use the form the API takes,
+  and the stand-in refuses what the API refused (REVIEW.md part 2, L1); 1.0.1 ships the fix. A probe sends
+  each agent's format to the API once, for well under one cent: open a tab at about:blank, open the
+  browser's console, paste the line below (Chrome asks you to type "allow pasting" first), and give a key
+  when asked. It keeps the key in that tab only and prints, for each agent, "accepted" or the API's reason.
+  It reads the formats from `main`, the branch the live site is built from; to check a branch or a commit
+  before it is merged, put its name in place of `main` (independent review N21). raw.githubusercontent.com
+  may serve a file up to five minutes old, so just after a merge, or after an earlier run in the same
+  browser, `main` can still give the old formats; a commit's name avoids that (O18).
+
+  ```js
+  (async()=>{const k=prompt("Claude API key, kept in this tab only");if(!k)return;const t=await(await fetch("https://raw.githubusercontent.com/VictorPflueger/PESTEL-challenger/main/js/schemas.js")).text();const R=JSON.parse(t.slice(t.indexOf("export const REQUESTS = ")+24).trim().replace(/;$/,""));const ask=async(a,x)=>{const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"x-api-key":k,"anthropic-version":"2023-06-01","content-type":"application/json","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-haiku-5-5",max_tokens:64,messages:[{role:"user",content:"Answer in the format."}],...x})});const j=await r.json().catch(()=>({}));console.log(a.padEnd(11),r.ok?"accepted":`refused (${r.status}): ${j.error?.message}`)};for(const[n,a]of[["Scan","Scanner"],["Issues","Red team"],["Impacts","Analyst"],["Responses","Strategist"],["SummaryRequest","Writer"]])await ask(a,{output_config:{effort:"medium",format:{type:"json_schema",schema:R[n]}}});await ask("Scout",{tools:[{name:"submit_signals",description:"Report the signals you found.",strict:true,input_schema:R.Signals}],output_config:{effort:"medium"}})})()
+  ```
+
+  Victor's runs on Fast, Balanced and Thorough then measure each step's tokens, cost and time ("What this
+  run used" on the summary); each step's max_tokens is set from what it used, and the estimate quotes the
+  measured figures (`MEASURED` in `js/estimate.js`). The probes of PLAN.md section 16 wait for the same
+  session.
 - **Firefox and Safari print** the report's fixed footer, without page numbers, since neither has margin
   boxes. Only Chromium's print is tested: Victor decided on 24 November 2026 not to print a report in them
   by hand. An HTML file printed in Chrome 131 to 147, which has no script to mark it, shows both footers.
@@ -266,13 +291,18 @@ languages, and the default scenario plays to its end in each.
   run has spent and what it holds, and runs past the dialog body's edge, so its last sentence shows only after
   scrolling the body; the first dialog fits, as Vici's rule asks. The stop screen already says that an amount
   is held. Fitting it means a shorter estimate for a continuing run, Vici's live-run dialog or the tool's,
-  with the layout suite measuring the continuing dialog too: proposed for 1.0.1 (independent review N20).
+  with the layout suite measuring the continuing dialog too: proposed for a later release (independent review
+  N20).
 - **Run it live on smaller screens.** Brief §7 puts "Run it live" after the steps. On the Start panel it
   shows without scrolling from 1920 × 1080; at smaller sizes the panel scrolls to it, and the guide's first
   chapter names it. Moving it into the first view changes the brief's layout, which is Victor's call (R7).
 - **The German footer.** A German report prints "Erstellt mit …" and "Erstellt von Victor Pflüger · Seite x
   von y" (section 3, 0.4.0); standing requirement 8 quotes the English words, which every English report
   carries. Victor confirms (R14).
+- **A repair line for a nullable value** reads in the validator's anyOf wording ("matches none of the allowed
+  shapes", then each shape) rather than "must be one of ..., null". It still names every allowed value and
+  null, and structured outputs keep an answer inside its format, so the line seldom goes out; no verdict
+  changed (independent review O15).
 - **Respond on mid-size windows.** Between 961 and 1,100 px wide and under 770 px high, some or all
   options sit under the "Your turn" bar until the panel is scrolled. They scroll into view; at 1280 × 720,
   the size the layout suite checks, every option shows in full.
@@ -301,8 +331,16 @@ What was checked for 1.0.0, on 24 November 2026.
   fresh agents followed, each at a later commit after a round of fixes. The first did not confirm: two fixes
   were incomplete, and it found five new findings, one of them medium. The later ones confirmed every high and
   medium fix and found only low findings and observations, which the following rounds fixed, kept or declined.
-  Every high and medium finding is fixed. Three low findings stay, R7, R14 and N20, and four observations, O4
-  and O14 kept and O7 and O9 declined, each with its reason in sections 3 and 8 and in REVIEW.md. REVIEW.md
-  part 2 names the commit each look read and what it found.
-- **Not checked.** Printing in Firefox and Safari, by Victor's decision, and a run with a real key, which
-  is Victor's (section 8).
+  Every high and medium finding is fixed. Three low findings stay, R7, R14 and N20, and five observations, O4,
+  O14 and O15 kept and O7 and O9 declined, each with its reason in sections 3 and 8 and in REVIEW.md. REVIEW.md
+  part 2 names the commit each look read and what it found. Victor's first live run found one more high
+  finding, L1 (section 8), fixed in `b5f5f47`; an eighth fresh agent confirmed the fix at `1990bd6` and again
+  after each follow-up (REVIEW.md part 2).
+- **For 1.0.1, after the first live run, 25 November 2026.** `tests/schemas.mjs` fails on the formats that
+  run sent and passes on the new ones; `tests/live-flow.mjs`, run on the old formats, stops at the Scanner
+  with the API's message and passes on the new. All thirty-seven suites pass again in one run with Vici's
+  checks required. The console probe of section 8 ran in Chromium on about:blank against a scripted API that
+  applies the same rule: six requests, the key in its header only, the new formats accepted and the old
+  Scanner's and Red team's refused in the API's words.
+- **Not checked.** Printing in Firefox and Safari, by Victor's decision; the probe against the real API and
+  a complete run with a real key, which need a key and are Victor's (section 8).
