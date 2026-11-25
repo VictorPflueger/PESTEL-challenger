@@ -5,7 +5,9 @@ the plan Victor approved on 23 November 2026; this file records what the build f
 
 ## 1. Version
 
-Version 1.0.0 (M5 Release), 24 November 2026: the release of the four milestones before it, tested for
+Version 1.0.1, 25 November 2026: the fix for the first live run, which stopped at the Scanner on an answer
+format the API refuses (section 8); nothing else changed. Version 1.0.0 (M5 Release), 24 November 2026: the
+release of the four milestones before it, tested for
 layout at four screen sizes, the keyboard alone and reduced motion, with the note a page opened from a
 file shows, the documents complete, and the reviews of section 9 behind it. 0.4.0 (M4 Report) ended every
 run in a report: page by page in the Summary, saved as PDF with the footer on every page, as an HTML file
@@ -129,7 +131,7 @@ Decided while building 1.0.0, each within the brief and the plan:
 
 | What | Decision |
 |---|---|
-| The version on screen | The start screen says "Version 1.0.0" and that every run ends in a report, from `APP.version` in `js/config.js`. `tests/docs.mjs` fails when the page's words, README, DESIGN, DATA_SOURCES or a demo script name another version or promise one to come |
+| The version on screen | The start screen names the version ("Version 1.0.1") and says that every run ends in a report, from `APP.version` in `js/config.js`. `tests/docs.mjs` fails when the page's words, README, DESIGN, DATA_SOURCES or a demo script name another version or promise one to come |
 | Opened from a file | Chrome and Edge run no module script from a file, so the page would stay blank. `index.html` holds a note in the stage, in both languages, which a CSS animation shows after two seconds and the program removes as it starts: open the web address, or serve the folder with `python3 -m http.server 8000`. Served, the note never shows (`tests/from-file.mjs`) |
 | The keyboard and the focus | `tests/access.mjs` runs a scenario and a live run with the keyboard alone and compares every stop of the Tab order focused and not, pixel by pixel. It found two faults in Vici's dialog, fixed there first (ViciDesign#42): with reduced motion the backdrop still faded in, and a body that scrolls and holds only text, such as the method dialog's, showed only the top edge of its focus ring |
 | Window sizes | AC-14 runs from 1920 × 1080 to 1280 × 720: the layout suite checks both ends in both themes and languages, and 1600 × 900 and 1366 × 768 between them |
@@ -239,10 +241,12 @@ languages, and the default scenario plays to its end in each.
   November 2026, stopped at the Scanner: the API refused the Scan format, which gave a factor's readiness
   as an enum under a type list (section 2), and the Red team's format did so in three places. No suite
   caught it, since the stand-in took any schema the tool sent. The formats now use the form the API takes,
-  and the stand-in refuses what the API refused (REVIEW.md part 2, L1). A probe sends each agent's format
-  to the API once, for well under one cent: open a tab at about:blank, open the browser's console, paste
-  the line below (Chrome asks you to type "allow pasting" first), and give a key when asked. It keeps the
-  key in that tab only and prints, for each agent, "accepted" or the API's reason.
+  and the stand-in refuses what the API refused (REVIEW.md part 2, L1); 1.0.1 ships the fix. A probe sends
+  each agent's format to the API once, for well under one cent: open a tab at about:blank, open the
+  browser's console, paste the line below (Chrome asks you to type "allow pasting" first), and give a key
+  when asked. It keeps the key in that tab only and prints, for each agent, "accepted" or the API's reason.
+  It reads the formats from `main`, the branch the live site is built from; to check a branch or a commit
+  before it is merged, put its name in place of `main` (independent review N21).
 
   ```js
   (async()=>{const k=prompt("Claude API key, kept in this tab only");if(!k)return;const t=await(await fetch("https://raw.githubusercontent.com/VictorPflueger/PESTEL-challenger/main/js/schemas.js")).text();const R=JSON.parse(t.slice(t.indexOf("export const REQUESTS = ")+24).trim().replace(/;$/,""));const ask=async(a,x)=>{const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"x-api-key":k,"anthropic-version":"2023-06-01","content-type":"application/json","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-haiku-5-5",max_tokens:64,messages:[{role:"user",content:"Answer in the format."}],...x})});const j=await r.json().catch(()=>({}));console.log(a.padEnd(11),r.ok?"accepted":`refused (${r.status}): ${j.error?.message}`)};for(const[n,a]of[["Scan","Scanner"],["Issues","Red team"],["Impacts","Analyst"],["Responses","Strategist"],["SummaryRequest","Writer"]])await ask(a,{output_config:{effort:"medium",format:{type:"json_schema",schema:R[n]}}});await ask("Scout",{tools:[{name:"submit_signals",description:"Report the signals you found.",strict:true,input_schema:R.Signals}],output_config:{effort:"medium"}})})()
@@ -283,7 +287,8 @@ languages, and the default scenario plays to its end in each.
   run has spent and what it holds, and runs past the dialog body's edge, so its last sentence shows only after
   scrolling the body; the first dialog fits, as Vici's rule asks. The stop screen already says that an amount
   is held. Fitting it means a shorter estimate for a continuing run, Vici's live-run dialog or the tool's,
-  with the layout suite measuring the continuing dialog too: proposed for 1.0.1 (independent review N20).
+  with the layout suite measuring the continuing dialog too: proposed for a later release (independent review
+  N20).
 - **Run it live on smaller screens.** Brief §7 puts "Run it live" after the steps. On the Start panel it
   shows without scrolling from 1920 × 1080; at smaller sizes the panel scrolls to it, and the guide's first
   chapter names it. Moving it into the first view changes the brief's layout, which is Victor's call (R7).
@@ -321,12 +326,12 @@ What was checked for 1.0.0, on 24 November 2026.
   Every high and medium finding is fixed. Three low findings stay, R7, R14 and N20, and four observations, O4
   and O14 kept and O7 and O9 declined, each with its reason in sections 3 and 8 and in REVIEW.md. REVIEW.md
   part 2 names the commit each look read and what it found. Victor's first live run found one more high
-  finding, L1 (section 8), fixed in `b5f5f47`; a confirming look at the fix follows.
-- **After the first live run, 25 November 2026.** `tests/schemas.mjs` fails on the formats that run sent and
-  passes on the new ones; `tests/live-flow.mjs`, run on the old formats, stops at the Scanner with the API's
-  message and passes on the new. All thirty-seven suites pass again in one run with Vici's checks required.
-  The console probe of section 8 ran in Chromium on about:blank against a scripted API that applies the same
-  rule: six requests, the key in its header only, the new formats accepted and the old Scanner's and Red
-  team's refused in the API's words.
+  finding, L1 (section 8), fixed in `b5f5f47`; an eighth fresh agent confirmed the fix at `1990bd6`.
+- **For 1.0.1, after the first live run, 25 November 2026.** `tests/schemas.mjs` fails on the formats that
+  run sent and passes on the new ones; `tests/live-flow.mjs`, run on the old formats, stops at the Scanner
+  with the API's message and passes on the new. All thirty-seven suites pass again in one run with Vici's
+  checks required. The console probe of section 8 ran in Chromium on about:blank against a scripted API that
+  applies the same rule: six requests, the key in its header only, the new formats accepted and the old
+  Scanner's and Red team's refused in the API's words.
 - **Not checked.** Printing in Firefox and Safari, by Victor's decision; the probe against the real API and
   a complete run with a real key, which need a key and are Victor's (section 8).
