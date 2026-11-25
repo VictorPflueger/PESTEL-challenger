@@ -1,7 +1,8 @@
 // The data contracts (brief §10): every schema accepts a well-formed sample and refuses a broken one; each
-// agent's request format keeps to what structured outputs accept (no unsupported keyword, every object
-// closed and every field required, at most 24 optional and 16 union-typed parameters per request, PLAN.md
-// P5, and every enum under one type its values all have, tests/lib/api-rules.mjs: the API refused an enum
+// agent's request format keeps to what structured outputs accept (no unsupported keyword, no anyOf beside
+// type or properties, every object closed and every field required, at most 24 optional and 16 union-typed
+// parameters per request, PLAN.md P5, and every enum under one type its values all have,
+// tests/lib/api-rules.mjs: the API refused an enum
 // under a type list in a live run, so a nullable enum is an anyOf of the typed enum and null); every schema
 // the tool sends is one of those formats; js/schemas.js equals the JSON; and the handoff example of brief
 // §4.3 validates while a broken copy of it does not. Usage: node tests/schemas.mjs
@@ -35,6 +36,8 @@ function audit(schema) {
     if (Array.isArray(node)) { node.forEach((n, i) => walk(n, `${where}[${i}]`)); return; }
     if (!node || typeof node !== "object") return;
     for (const k of Object.keys(node)) if (UNSUPPORTED.includes(k)) found.unsupported.push(`${where}.${k}`);
+    // anyOf stands alone: the API refuses it in the same object as type or properties; a description is fine.
+    if (node.anyOf && ("type" in node || "properties" in node)) found.unsupported.push(`${where}.anyOf beside ${"type" in node ? "type" : "properties"}`);
     if (Array.isArray(node.type) && node.type.length > 1) found.unions++;
     if (node.anyOf) found.unions++;
     if (node.type === "object" || node.properties) {
@@ -61,7 +64,7 @@ for (const [name, schema] of Object.entries(REQUESTS)) {
   bad.properties.n = { type: "integer", minimum: 1 };
   const a = audit(bad);
   check(a.unsupported.length === 1 && a.open.length === 1 && a.unions === 17 && a.optional === 18, "control: the audit catches an unsupported keyword, an open object, 17 unions and optional fields");
-  // The enum rule can fail: the readiness the Scanner sent in 0.4.0, a value of another type, and an object.
+  // The enum rule can fail: the readiness the Scanner sent from 0.3.0 to 1.0.0, a value of another type, and an object.
   const enums = audit({ type: "object", additionalProperties: false, required: ["a", "b", "c", "d"], properties: {
     a: { type: ["integer", "null"], enum: [1, 2, 3, 4, 5, null] },
     b: { type: "integer", enum: [1, "2"] },
@@ -69,6 +72,13 @@ for (const [name, schema] of Object.entries(REQUESTS)) {
     d: { anyOf: [{ type: "integer", enum: [1, 2, 3, 4, 5] }, { type: "null" }] },
   } });
   check(enums.enums.length === 3 && !enums.enums.some((e) => e.startsWith("$.d")), `control: the audit catches an enum under a type list, a value of another type and an object, and passes a typed enum beside null (${enums.enums.join("; ")})`);
+  // The anyOf rule can fail too, and passes the form the formats use.
+  const placed = audit({ type: "object", additionalProperties: false, required: ["a", "b", "c"], properties: {
+    a: { type: "integer", anyOf: [{ enum: [1, 2] }, { type: "null" }] },
+    b: { additionalProperties: false, required: [], properties: {}, anyOf: [{ type: "object" }, { type: "null" }] },
+    c: { description: "Null for an opportunity", anyOf: [{ type: "integer", enum: [1, 2, 3, 4, 5] }, { type: "null" }] },
+  } });
+  check(placed.unsupported.length === 2 && placed.unsupported[0] === "$.a.anyOf beside type" && placed.unsupported[1] === "$.b.anyOf beside properties", `control: the audit catches an anyOf beside type or properties and passes one beside a description (${placed.unsupported.join("; ")})`);
   // The stand-in answers such a request as the live run read it, for a format and for a strict tool alike.
   const planted = { type: "object", additionalProperties: false, required: ["r"], properties: { r: { type: ["integer", "null"], enum: [1, 2, null] } } };
   const said = schemaRefusal({ output_config: { format: { type: "json_schema", schema: planted } } });

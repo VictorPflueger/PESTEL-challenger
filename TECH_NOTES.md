@@ -29,7 +29,7 @@ key comes from Victor's live runs, the first on 25 November 2026 (section 8).
 | Prices | Per million tokens, input and output: Haiku 5.5 $0.10 and $0.50 (above 100,000 prompt tokens $0.50 and $2.50), Sonnet 5.5 $2 and $10, Opus 5.5 $4 and $20. Cache writes (5 minutes) $0.125, $2.50 and $5; cache reads $0.01, $0.10 and $0.20. Web search $10 per 1,000 searches; a failed search is not billed | 2026-11-24, pricing page |
 | Browser access | A keyless call with `anthropic-dangerous-direct-browser-access: true` answers 401 with `access-control-allow-origin: *`; without the header the browser blocks it | 2026-11-23, probed |
 | Token counting | `POST /v1/messages/count_tokens` is free and reachable from a page | 2026-11-23, probed keyless |
-| Structured outputs | `output_config.format` with a JSON schema; per request at most 24 optional and 16 union-typed parameters, where each `anyOf` and each type list such as `["string", "null"]` counts; `minimum`, `maximum`, `minLength` and `maxLength` unsupported; a string enum may come back in another case. The page states no rule on an enum's values and its type | 2026-11-23, structured outputs page; read again 2026-11-25 |
+| Structured outputs | `output_config.format` with a JSON schema; per request at most 24 optional and 16 union-typed parameters, where each `anyOf` and each type list such as `["string", "null"]` counts. Not supported: recursive schemas, `oneOf`, `not`, an `anyOf` in the same object as `type` or `properties` (a description beside it is fine), complex values in an enum, numeric, string and array constraints beyond `minItems` 0 or 1, and `additionalProperties` other than `false`. A string enum may come back in another case. The page states no rule on an enum's values and its type | 2026-11-23, structured outputs page; read again 2026-11-25, its Markdown version |
 | Enum under a type list | The API refuses it even where every value fits: `"type": ["integer", "null"]` with `"enum": [1, 2, 3, 4, 5, null]` answers 400 `invalid_request_error`, "output_config.format.schema: Invalid schema: Enum value 1 does not match declared type '['integer', 'null']'". A nullable enum goes as an `anyOf` of the typed enum and `{ "type": "null" }` (section 6) | 2026-11-25, Victor's first live run |
 | Effort and thinking | `output_config.effort` low to max, sent on every request; Haiku 5.5 takes `thinking: disabled` at high effort or below, Sonnet 5.5 takes `between_tools` instead | 2026-11-23, effort and thinking pages |
 | Web search | `web_search_20250305` with `max_uses`; `pause_turn` is sent again unchanged; a client tool called beside a search ends the turn with `tool_use`; an organisation with search switched off gets 400 `invalid_request_error` | 2026-11-23, web search tool page |
@@ -196,10 +196,11 @@ imports, with each agent's request format written out without `$ref` (`REQUESTS`
 every object and require every field, with `null` for "not applicable", so no request has an optional
 parameter; ranges, lengths and counts are checked in code. A field that is null or one value of a list is
 an `anyOf` of the typed enum and `{ "type": "null" }`, since the API refuses an enum under a type list
-(section 2). `tests/schemas.mjs` checks every format the tool sends against `tests/lib/api-rules.mjs`, and
-the API's stand-in in the browser suites answers a schema those rules refuse with the API's 400, so a live
-suite stops where a live run would. `schemas/strategy-challenge-1.json` is the handoff file of brief §4.3,
-shared by all four tools; it keeps its parts under `$defs`, so it is validated with those as the registry.
+(section 2). `tests/schemas.mjs` checks every format the tool sends against what the documentation does not
+support (section 2) and against `tests/lib/api-rules.mjs`, and the API's stand-in in the browser suites
+answers a schema those rules refuse with the API's 400, so a live suite stops where a live run would.
+`schemas/strategy-challenge-1.json` is the handoff file of brief §4.3, shared by all four tools; it keeps its
+parts under `$defs`, so it is validated with those as the registry.
 
 ## 7. Running the tests
 
