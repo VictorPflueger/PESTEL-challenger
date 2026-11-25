@@ -141,9 +141,11 @@ validator's anyOf wording, and the fix sat on its branch with no pull request op
 again at `2cf021c`, after version 1.0.1, N21's fix and the documented anyOf rule in the schema suite, and gave
 the same verdict. It found two low findings, N22 and N23, both in this file, and made two observations, O17
 and O18: the suite's anyOf rule read the documentation more narrowly than it is written, and a probe run just
-after a merge can read a cached file. `308163d` fixes those four, and the same agent looks a third time at the
-commit that records them here. The table holds every finding of the eight looks and of the live run, and what
-became of it:
+after a merge can read a cached file. `308163d` fixes those four. The same agent looked a third time at
+`f5930ed`, which records them here, and its verdict line again read "every fix holds; no high or medium finding
+open". So every fix is confirmed at `f5930ed`. That look found one low finding, N24, a list in TECH_NOTES section
+9 that left out O15, and made no observation; N24 is fixed after it, in documents only, and after `f5930ed` only
+documents changed. The table holds every finding of the eight looks and of the live run, and what became of it:
 
 | ID | Severity | What | Where | State |
 |---|---|---|---|---|

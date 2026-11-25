@@ -298,6 +298,10 @@ languages, and the default scenario plays to its end in each.
 - **The German footer.** A German report prints "Erstellt mit …" and "Erstellt von Victor Pflüger · Seite x
   von y" (section 3, 0.4.0); standing requirement 8 quotes the English words, which every English report
   carries. Victor confirms (R14).
+- **A repair line for a nullable value** reads in the validator's anyOf wording ("matches none of the allowed
+  shapes", then each shape) rather than "must be one of ..., null". It still names every allowed value and
+  null, and structured outputs keep an answer inside its format, so the line seldom goes out; no verdict
+  changed (independent review O15).
 - **Respond on mid-size windows.** Between 961 and 1,100 px wide and under 770 px high, some or all
   options sit under the "Your turn" bar until the panel is scrolled. They scroll into view; at 1280 × 720,
   the size the layout suite checks, every option shows in full.
@@ -326,8 +330,8 @@ What was checked for 1.0.0, on 24 November 2026.
   fresh agents followed, each at a later commit after a round of fixes. The first did not confirm: two fixes
   were incomplete, and it found five new findings, one of them medium. The later ones confirmed every high and
   medium fix and found only low findings and observations, which the following rounds fixed, kept or declined.
-  Every high and medium finding is fixed. Three low findings stay, R7, R14 and N20, and four observations, O4
-  and O14 kept and O7 and O9 declined, each with its reason in sections 3 and 8 and in REVIEW.md. REVIEW.md
+  Every high and medium finding is fixed. Three low findings stay, R7, R14 and N20, and five observations, O4,
+  O14 and O15 kept and O7 and O9 declined, each with its reason in sections 3 and 8 and in REVIEW.md. REVIEW.md
   part 2 names the commit each look read and what it found. Victor's first live run found one more high
   finding, L1 (section 8), fixed in `b5f5f47`; an eighth fresh agent confirmed the fix at `1990bd6` and again
   after each follow-up (REVIEW.md part 2).
