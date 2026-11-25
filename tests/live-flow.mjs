@@ -38,6 +38,9 @@ try {
   check(top === 0 && notice, `the form opens at its top with the notice in view (scrolled ${top} px)`);
 
   await fillForm(p);
+  // A key pasted into the form by mistake: the dialog names it, and no prompt or file carries it.
+  const keyLike = ["sk", "ant", "api03", "Zq7xPlanted0000000000000"].join("-");
+  await p.fill("#live-what", `${await p.inputValue("#live-what")} Our key: ${keyLike}`);
   const stake = await tile(p, "stake");
   const pressure = await tile(p, "pressure");
   const cost = await tile(p, "cost");
@@ -50,6 +53,7 @@ try {
   await p.click("#btn-cta");
   await p.waitForSelector("#live-dialog[open]");
   await p.fill("#live-key", (await import("./lib/live.mjs")).MOCK_KEY);
+  check(/API key in what it does/.test(await text(p, "#live-warning")) && await p.$eval("#live-warning", (el) => !el.hidden), `the dialog warns of the key-shaped text in the form (${await text(p, "#live-warning")})`);
   await p.check("#live-ack");
   await p.click("#live-start");
   await t.net.held(0);
@@ -86,7 +90,10 @@ try {
   check(/Save run as simulation/.test(await text(p, "#btn-save-run")), "after a live run, Save run as simulation is offered");
   const [download] = await Promise.all([p.waitForEvent("download"), p.click("#btn-save-run")]);
   const name = download.suggestedFilename();
-  const sc = JSON.parse(await readFile(await download.path(), "utf8"));
+  const saved = await readFile(await download.path(), "utf8");
+  const sc = JSON.parse(saved);
+  check(!saved.includes(keyLike) && !JSON.stringify(t.standIn.requests).includes(keyLike) && JSON.stringify(t.standIn.requests).includes("sk-ant-[REDACTED]"),
+    "no request and no saved run carries the key-shaped text: the prompts read it redacted");
   check(/^pestel-challenger-auental-energie-\d{4}-\d{2}-\d{2}-en-run\.json$/.test(name), `the file is named for the company, the date and the language (${name})`);
   const problems = checkScenario(sc).problems;
   // The German texts are left empty, so their placeholders differ from the English ones until curated.

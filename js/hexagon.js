@@ -11,6 +11,7 @@ import * as R from "./run.js";
 import { dimName, ratingLine, issueType, estimateWords, kpiEffect, confidenceName, kindName, sectorName } from "./plain.js";
 import { money, fmtDate } from "./format.js";
 import { sourceLink } from "./views/common.js";
+import { findAdded } from "./privacy.js";
 
 const icon = (name) => h("span", { class: `vc-icon vc-icon--${name}`, "aria-hidden": "true" });
 const STATE_ICON = { pressure: "warning", watch: "eye", addressed: "check" };
@@ -40,8 +41,13 @@ export function ring(run, step, { selected = null, onSelect = null, lang = getLa
   const legend = ["pressure", "watch", "addressed"].filter((s) => s !== "addressed" || statuses.has("addressed"));
   return h("figure", { class: "vc-ring ring", "aria-labelledby": titleId },
     h("ol", { class: "vc-ring__cells" },
-      h("li", {}, h("p", { class: "vc-ring__centre" },
-        h("span", { class: "vc-ring__name" }, run.company.name),
+      // A long name steps down a size or two and takes the sector's place, so it stays inside the cell.
+      h("li", {}, h("p", { class: "vc-ring__centre", dataset: { name: ["", "long", "longer", "longest"][[16, 40, 64].filter((n) => run.company.name.length > n).length] } },
+        // A name from a German-speaking country is marked German, so the browser breaks a word too long for the
+        // cell at a syllable with a hyphen rather than anywhere, on an English page too. Which words that is
+        // depends on the size, the font and the browser, so the mark goes on every such name. A company's name is a
+        // proper name, which WCAG 3.1.2 leaves unmarked or marked alike.
+        h("span", { class: "vc-ring__name", lang: GERMAN_SPEAKING.test(String(run.company.country || "").trim()) ? "de" : null }, run.company.name),
         h("span", { class: "vc-ring__note" }, sectorName(run.company.sector, lang)))),
       DIMENSIONS.map(cell)),
     h("figcaption", {},
@@ -134,6 +140,11 @@ export function factorItem(f, run, step, { number = null, dimLabel = false, edit
 }
 
 const RATINGS = [1, 2, 3, 4, 5];
+/**
+ * Countries whose company names are German, as the form's free text may name them: a code alone (DE, AT,
+ * CH, LI and their three-letter forms), or a name in a longer text ("Bundesrepublik Deutschland").
+ */
+const GERMAN_SPEAKING = /^(?:de|deu|at|aut|ch|che|li|lie|brd)$|(?<!\p{L})(?:germany|deutschland|austria|österreich|oesterreich|switzerland|schweiz|schweizerische|swiss|liechtenstein)(?!\p{L})/iu;
 
 /**
  * Keep, edit or remove what the AI added, in a live run before the challenge (AC-18): the item's own
@@ -150,29 +161,68 @@ function editControls(f, edit) {
   const select = (k, options, value, disabled = false) => h("select", { class: "vc-select", id: id(k), disabled, dataset: { key: k } },
     options.map(([v, label]) => h("option", { value: String(v), selected: String(v) === String(value) }, label)));
   const text = h("input", { class: "vc-input", type: "text", id: id("text"), value: f.text, maxlength: "90", autocomplete: "off", dataset: { key: "text" } });
+  // Where a person types, the page says what may go in (standing requirement 7) and where it goes (brief
+  // §5.10), and warns, as the live-run dialog does, when the words hold what is usually private; it does not block.
+  const notice = h("p", { class: "item-editor-public", id: id("public") }, icon("shield"), h("span", {}, t("live.public"), " ", t("edit.where")));
+  const warning = h("div", { class: "vc-alert vc-alert--warning item-editor-warning", id: id("warning"), role: "status", hidden: true });
+  const error = h("p", { class: "vc-help vc-help--error item-editor-error", id: id("error"), hidden: true });
+  const describe = () => text.setAttribute("aria-describedby", [id("public"), warning.hidden ? null : id("warning"), error.hidden ? null : id("error")].filter(Boolean).join(" "));
+  // Only what the person brings in counts, occurrence by occurrence: the AI's own words were never the
+  // person's to keep private, but a second "internal" or another phone number is theirs.
+  const said = edit.said ?? f.text;
+  const drawWarning = () => {
+    const found = findAdded(text.value, said);
+    while (warning.firstChild) warning.removeChild(warning.firstChild);
+    if (found.length) {
+      warning.append(icon("warning"), h("p", {}, t("edit.warning"), " ",
+        found.map((x) => t(`edit.privacy.${x.kind}`, { word: x.word ?? "" })).join("; "), ". ", t("edit.warning.next")));
+    }
+    warning.hidden = !found.length;
+    describe();
+    // The warning comes into view as it appears and as it grows, with the field it is about.
+    if (found.length) showBelow(warning, text);
+  };
+  text.addEventListener("input", drawWarning);
   const direction = select("direction", [["threat", t("dir.threat")], ["opportunity", t("dir.opportunity")]], f.direction);
   const readiness = select("readiness", RATINGS.map((n) => [n, String(n)]), f.readiness ?? 2, f.direction === "opportunity");
   direction.addEventListener("change", () => { readiness.disabled = direction.value === "opportunity"; });
   const box = h("div", { class: "item-editor", role: "group", "aria-label": t("edit.group", { text: f.text }) },
-    h("div", { class: "vc-field" }, h("label", { class: "vc-label", for: id("text") }, t("edit.text")), text),
+    h("div", { class: "vc-field" }, h("label", { class: "vc-label", for: id("text") }, t("edit.text")), text, notice, warning),
     h("div", { class: "item-editor-row" },
       h("div", { class: "vc-field" }, h("label", { class: "vc-label", for: id("direction") }, t("edit.direction")), direction),
       h("div", { class: "vc-field" }, h("label", { class: "vc-label", for: id("likelihood") }, t("method.likelihood")), select("likelihood", RATINGS.map((n) => [n, String(n)]), f.likelihood)),
       h("div", { class: "vc-field" }, h("label", { class: "vc-label", for: id("impact") }, t("method.impact")), select("impact", RATINGS.map((n) => [n, String(n)]), f.impact)),
       h("div", { class: "vc-field" }, h("label", { class: "vc-label", for: id("horizon") }, t("method.horizon")), select("horizon", ["now", "1_3_years", "later"].map((x) => [x, t(`h.${x}`)]), f.horizon)),
       h("div", { class: "vc-field" }, h("label", { class: "vc-label", for: id("readiness") }, t("method.readiness")), readiness)),
-    h("p", { class: "vc-help vc-help--error item-editor-error", id: id("error"), hidden: true }),
+    error,
     h("p", { class: "item-edit-actions" },
       h("button", { type: "button", class: "vc-button vc-button--sm item-save", on: { click: () => {
         const value = (k) => box.querySelector(`[data-key="${k}"]`).value;
         const words = value("text").replace(/\s+/g, " ").trim();
         const err = box.querySelector(".item-editor-error");
-        if (!words) { err.textContent = t("edit.empty"); err.hidden = false; text.setAttribute("aria-invalid", "true"); text.setAttribute("aria-describedby", id("error")); text.focus(); return; }
+        if (!words) { err.textContent = t("edit.empty"); err.hidden = false; text.setAttribute("aria-invalid", "true"); describe(); text.focus(); return; }
         const dir = value("direction");
         edit.onSave({ text: words, direction: dir, likelihood: Number(value("likelihood")), impact: Number(value("impact")), horizon: value("horizon"), readiness: dir === "opportunity" ? null : Number(value("readiness")) });
       } } }, icon("check"), t("edit.save")),
       h("button", { type: "button", class: "vc-button vc-button--ghost vc-button--sm item-cancel", on: { click: edit.onCancel } }, t("edit.cancel"))));
+  drawWarning();
   return box;
+}
+
+/**
+ * Scrolls the list an editor sits in until `el` shows above its lower edge and the Your turn bar, but never
+ * so far that `field`, where the person types, leaves the view at the top.
+ */
+function showBelow(el, field) {
+  let box = el.parentElement;
+  while (box && box !== document.body && !(/(auto|scroll)/.test(getComputedStyle(box).overflowY) && box.scrollHeight > box.clientHeight)) box = box.parentElement;
+  if (!box || box === document.body) { el.scrollIntoView({ block: "nearest" }); return; }
+  const area = box.getBoundingClientRect();
+  const bar = document.querySelector(".turn-bar")?.getBoundingClientRect();
+  const bottom = Math.min(area.bottom, bar && bar.top > area.top ? bar.top : Infinity, window.innerHeight);
+  const below = el.getBoundingClientRect().bottom - bottom;
+  const room = field.getBoundingClientRect().top - area.top;
+  if (below > 0 && room > 0) box.scrollTop += Math.min(below, room);
 }
 
 /** The AI factors the person removed at Scan, each with Put back, under its dimension's list. */
@@ -206,6 +256,8 @@ export function dimensionPanel(run, step, dimension, live = null) {
       factors.length
         ? h("ul", { class: "vc-framework__items" }, factors.map((f) => factorItem(f, run, step, { edit: live && f.origin === "scan" ? {
           editing: live.editing === f.id,
+          // The AI's own words, which the editor's warning leaves out, however the person has edited them since.
+          said: run.scan?.factors?.find((x) => x.id === f.id)?.text ?? f.text,
           onEdit: () => live.handlers.editFactor(f.id),
           onRemove: () => live.handlers.removeFactor(f.id),
           onSave: (values) => live.handlers.saveFactor(f.id, values),

@@ -15,6 +15,7 @@ import { handoffOf, handoffProblems, countryCode, canHandOff } from "../js/hando
 import { reportName, slugOf } from "../js/live_save.js";
 import * as R from "../js/run.js";
 import { APP } from "../js/config.js";
+import { expected } from "../js/risk.js";
 
 const results = [];
 const check = (ok, what) => results.push([!!ok, what]);
@@ -37,6 +38,49 @@ function walk(v, visit, key = "") {
   if (Array.isArray(v)) v.forEach((x) => walk(x, visit, key));
   else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) { visit(k, null); walk(x, visit, k); }
   else visit(key, v);
+}
+
+// A threat the Analyst could not price, mitigated as recommended: it counts in readiness, not in money, so
+// what is left stays within what is at stake and the file gives its mitigation no residual range.
+{
+  const sc = clone(SCENARIOS.find((x) => x.id === "s3"));
+  const rec = new Map(sc.choices.map((c) => [c.factor, c.choice]));
+  const mit = sc.answers.strategist.responses.find((r) => r.kind === "mitigate" && rec.get(r.factor) === r.id);
+  const imp = sc.answers.analyst.impacts.find((i) => i.factor === mit.factor);
+  Object.assign(imp, { eur_year_low: null, eur_year_high: null, not_monetisable: { en: "No euro figure: planted by the test.", de: "Keine Euro-Zahl: vom Test gesetzt." } });
+  const run = runWith(sc, "en", "recorded");
+  const figs = R.figures(run);
+  const file = handoffOf(run, { lang: "en", now: NOW });
+  const issue = file.issues.find((i) => i.items.includes(mit.factor));
+  const response = file.responses.find((r) => r.issue === issue.id && r.kind === "mitigate" && r.title === (mit.title.en || mit.title));
+  check(issue.eur_year_low === null && response && response.residual === null && figs.after.monetised === figs.before.monetised && figs.after.atStake <= figs.before.atStake + 1e-9 && !handoffProblems(file).length,
+    `a mitigated threat without a euro figure adds nothing to what is left (${figs.before.monetised} of ${figs.before.threats} priced before and after) and has no residual range in the file`);
+}
+
+// After an Undo a threat may stand lower than the Strategist saw it: no response leaves it worse, in the
+// engine's figures, in what the screens say and in the file.
+{
+  const worse = [];
+  let tried = 0;
+  for (const sc of SCENARIOS) {
+    for (const issue of sc.answers.red_team.issues) {
+      const person = freshState();
+      person.undone.add(issue.id);
+      person.decided = true;
+      const run = runFromScenario(sc, "en", person);
+      const byId = new Map(R.decisionFactors(run).map((f) => [f.id, f]));
+      for (const d of R.engineDecisions(run).filter((x) => x.kind === "mitigate")) {
+        tried += 1;
+        const f = byId.get(d.factor);
+        const own = f.eur_year_low === null || f.eur_year_low === undefined ? null : expected(f.eur_year_low, f.eur_year_high, f.likelihood);
+        const left = own === null ? null : expected(d.residual.eur_year_low, d.residual.eur_year_high, d.residual.likelihood);
+        if (d.residual.likelihood > f.likelihood || d.readiness < f.readiness || (own !== null && left > own + 1e-9)) worse.push(`${sc.id} undo ${issue.id}: ${f.id} likelihood ${f.likelihood} → ${d.residual.likelihood}, readiness ${f.readiness} → ${d.readiness}`);
+      }
+      const figs = R.figures(run);
+      if (figs.after.atStake > figs.before.atStake + 1e-9) worse.push(`${sc.id} undo ${issue.id}: left ${figs.after.atStake} above at stake ${figs.before.atStake}`);
+    }
+  }
+  check(tried > 0 && !worse.length, `after any single Undo, no mitigation leaves a threat worse than it stands (${tried} mitigations tried)${worse.length ? `; not: ${worse.slice(0, 3).join("; ")}` : ""}`);
 }
 
 // The Prototype Ideator's reader, when its checkout sits beside this repository.
@@ -85,7 +129,13 @@ for (const sc of SCENARIOS) {
       check(watched.length === watchList.length && watched.every((r) => r.changes.length === 1 && r.changes[0].action === "watch" && watchList.some((w) => w.factor === r.changes[0].item && w.signal === r.changes[0].signal && w.trigger === r.changes[0].trigger)),
         `${where}: each of the ${watchList.length} chosen watch responses carries its signal and trigger as a watch entry, as the watch list has them`);
       check(file.responses.filter((r) => r.kind !== "monitor").every((r) => !r.changes.length), `${where}: only watch responses carry changes`);
-      check(file.responses.filter((r) => r.kind === "mitigate").every((r) => r.residual && r.residual.eur_year_expected <= (file.issues.find((i) => i.id === r.issue).eur_year_expected ?? Infinity) + 1e-9), `${where}: every mitigation's residual is no more than what the force put at stake`);
+      const issueOf = (r) => file.issues.find((i) => i.id === r.issue);
+      const mitigations = file.responses.filter((r) => r.kind === "mitigate");
+      check(mitigations.every((r) => (issueOf(r).eur_year_low === null ? r.residual === null : r.residual && r.residual.eur_year_expected <= issueOf(r).eur_year_expected + 1e-9)),
+        `${where}: every mitigation's residual is no more than what the force put at stake, and a force without a euro figure has none (${mitigations.filter((r) => issueOf(r).eur_year_low === null).length} such)`);
+      // As js/risk.js reads an issue: its expected value is its range at its own likelihood.
+      const off = file.issues.filter((i) => i.eur_year_low !== null && Math.abs(i.eur_year_expected - Math.round(expected(i.eur_year_low, i.eur_year_high, i.likelihood))) > 1);
+      check(!off.length, `${where}: every issue's expected value is its range at its own likelihood${off.length ? `; not: ${off.map((i) => `${i.id} likelihood ${i.likelihood}, ${i.eur_year_expected}`).join(", ")}` : ""}`);
 
       // Nothing secret, internal or unfilled leaves.
       const bad = [];

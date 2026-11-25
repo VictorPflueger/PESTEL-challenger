@@ -37,6 +37,7 @@ import { challengeView } from "./views/challenge.js";
 import { assessView } from "./views/assess.js";
 import { respondView } from "./views/respond.js";
 import { summaryView } from "./views/summary.js";
+import { aiMark } from "./views/common.js";
 import { fillGuides } from "./guide_figures.js";
 
 const VIEWS = [startView, scanView, challengeView, assessView, respondView, summaryView];
@@ -241,9 +242,19 @@ export function initPresenter() {
       }
       dialog.open();
     },
-    editFactor: (id) => { state.ui.editing = id; render(); if (id) document.getElementById(`edit-${id}-text`)?.focus(); },
+    editFactor: (id) => {
+      state.ui.editing = id;
+      render();
+      if (!id) return;
+      // The field takes the focus, and its notice ("Public information only") comes into view with it: in a
+      // short list the browser would scroll the field alone to the list's edge and leave the notice below.
+      const field = document.getElementById(`edit-${id}-text`);
+      field?.focus({ preventScroll: true });
+      field?.closest(".vc-field")?.scrollIntoView({ block: "nearest" });
+    },
     saveFactor: (id, values) => {
-      session().person.edits.set(id, values);
+      // Anything shaped like an API key is redacted here too, as the editor's warning says (brief §5.3).
+      session().person.edits.set(id, { ...values, text: redactSecrets(values.text) });
       state.ui.editing = null;
       markResult();
       announce.textContent = t("p.announce.edited");
@@ -270,7 +281,7 @@ export function initPresenter() {
     clear: () => confirmClear(),
     saveRun: () => {
       const v = liveView();
-      downloadText(saveName(v), `${JSON.stringify(scenarioOf(v), null, 2)}\n`);
+      downloadText(saveName(v), redactSecrets(`${JSON.stringify(scenarioOf(v), null, 2)}\n`));
       markDownloaded();
       announce.textContent = t("p.announce.saved");
     },
@@ -354,7 +365,9 @@ export function initPresenter() {
     if (state.step > 0) story.querySelector(".story-title")?.after(h("p", { class: "story-meta" },
       h("span", { class: "story-company" }, r.company.name),
       r.mode === "simulation" ? h("span", { class: "vc-tag vc-tag--sm fictional" }, h("span", { class: "vc-icon vc-icon--info", "aria-hidden": "true" }), t("start.fictional")) : null,
-      r.mode === "live" ? h("span", { class: "vc-tag vc-tag--sm vc-tag--feature run-lang", title: t(`live.written.${r.lang}`) }, r.lang.toUpperCase()) : null));
+      r.mode === "live" ? h("span", { class: "vc-tag vc-tag--sm vc-tag--feature run-lang", title: t(`live.written.${r.lang}`) }, r.lang.toUpperCase()) : null,
+      // The Summary's title is the Writer's headline, its figures from the engine.
+      R.STEPS[state.step] === "summary" && r.summary ? aiMark(t("summary.ai")) : null));
     stage.append(story);
     if (view.side) stage.append(h("aside", { class: "side", "aria-label": t("ring.aside") }, view.side));
     for (const d of stage.querySelectorAll("details")) if (open.has(detailsKey(d))) d.open = true;

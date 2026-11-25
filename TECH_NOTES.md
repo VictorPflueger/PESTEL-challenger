@@ -5,14 +5,15 @@ the plan Victor approved on 23 November 2026; this file records what the build f
 
 ## 1. Version
 
-Version 0.4.0 (M4 Report): every run ends in a report. The Summary shows it page by page; "Save as PDF"
-prints it alone with the footer on every page; the HTML file is the same report as one file of its own;
-the handoff file is the JSON the Prototype Ideator reads, checked against the shared schema before it
-downloads. A run stopped early offers what is done, and its report says on every page where it stopped.
-It builds on 0.3.0 (M3 Live), which runs the agents on a person's own company with their own Claude API
-key in the tab; on 0.2.0 (M2 Simulation), three recorded runs on fictional companies that play step by step
-in English and German without a key; and on 0.1.0 (M1 Foundations): the frame, the strings, the engine
-with its golden cases, the schemas, the KPI library, the security policy and CI.
+Version 1.0.0 (M5 Release), 24 November 2026: the release of the four milestones before it, tested for
+layout at four screen sizes, the keyboard alone and reduced motion, with the note a page opened from a
+file shows, the documents complete, and the reviews of section 9 behind it. 0.4.0 (M4 Report) ended every
+run in a report: page by page in the Summary, saved as PDF with the footer on every page, as an HTML file
+of its own and as the handoff file the Prototype Ideator reads. 0.3.0 (M3 Live) runs the agents on a
+person's own company with their own Claude API key in the tab; 0.2.0 (M2 Simulation) plays three recorded
+runs on fictional companies step by step in English and German without a key; and 0.1.0 (M1 Foundations)
+laid the frame, the strings, the engine with its golden cases, the schemas, the KPI library, the security
+policy and CI.
 
 ## 2. API facts, verified at source
 
@@ -29,7 +30,9 @@ waits for Victor's first live runs (section 8).
 | Structured outputs | `output_config.format` with a JSON schema; per request at most 24 optional and 16 union-typed parameters; `minimum`, `maximum`, `minLength` and `maxLength` unsupported | 2026-11-23, structured outputs page |
 | Effort and thinking | `output_config.effort` low to max, sent on every request; Haiku 5.5 takes `thinking: disabled` at high effort or below, Sonnet 5.5 takes `between_tools` instead | 2026-11-23, effort and thinking pages |
 | Web search | `web_search_20250305` with `max_uses`; `pause_turn` is sent again unchanged; a client tool called beside a search ends the turn with `tool_use`; an organisation with search switched off gets 400 `invalid_request_error` | 2026-11-23, web search tool page |
+| Web search per turn | `max_uses` counts the searches of one turn. A turn spans several requests: one that resumes after `pause_turn`, or whose last message holds only `tool_result` blocks, continues it, and the searches before count; a new instruction starts another turn. Failed searches count against the limit but are not billed | 2026-11-24, web search tool page |
 | Errors | A spend limit you set returns 400 `invalid_request_error`, "You have reached your specified API usage limits"; no credit returns "Your credit balance is too low to access the Anthropic API"; 529 is overload | 2026-11-23, rate limits and API credits pages |
+| Timeouts | 504 `timeout_error`: "The request timed out while processing". The API also returns `timeout_error` with other status codes, such as a 500 when a request reaches the server's time limit before the response starts | 2026-11-24, errors page |
 | API version | `anthropic-version: 2023-06-01`, as the sister prototypes send it; `2026-10-21` is the newest | 2026-11-23, migration page |
 | Claude plans | A Claude plan does not pay for API use by itself: Max, Ultra and Team plans include monthly API credits once a Console organisation is linked; Free, Pro and Enterprise plans do not | 2026-11-24, support.claude.com article 17154008 |
 | JSON modules | `import … with { type: "json" }` is blocked by `connect-src` under the page's policy, so the schemas ship as a module | 2026-11-23, probed in Chrome 153 |
@@ -121,6 +124,34 @@ Decided while building 0.4.0, each within the brief and the plan:
 | The live-run dialog's source | This tool merged `js/live_dialog.js` first (0.3.0, 24 November 2026 at 10:17), before the Prototype Ideator and the Business Model Canvas Challenger (12:21 the same day). Brief §4.1 shares the dialog "apart from each tool's own settings", and each tool's file holds its own presets, cap and estimate, so `tests/parity.mjs` names this tool as the source and notes a sibling's different copy rather than asking for the same bytes |
 | Long tables in print | The responses, the watch list and the risk tables run on over page breaks row by row, rather than leaving half a page empty; a row stays whole. In a narrow column a short value stays whole and a long word hyphenates in the report's language (`hyphens: auto`, words of ten letters or more); only the cells that hold sentences may break inside a word, so a table keeps to its sheet in a browser without German hyphenation, such as Chromium on Linux, which the layout suite checks |
 
+Decided while building 1.0.0, each within the brief and the plan:
+
+| What | Decision |
+|---|---|
+| The version on screen | The start screen says "Version 1.0.0" and that every run ends in a report, from `APP.version` in `js/config.js`. `tests/docs.mjs` fails when the page's words, README, DESIGN, DATA_SOURCES or a demo script name another version or promise one to come |
+| Opened from a file | Chrome and Edge run no module script from a file, so the page would stay blank. `index.html` holds a note in the stage, in both languages, which a CSS animation shows after two seconds and the program removes as it starts: open the web address, or serve the folder with `python3 -m http.server 8000`. Served, the note never shows (`tests/from-file.mjs`) |
+| The keyboard and the focus | `tests/access.mjs` runs a scenario and a live run with the keyboard alone and compares every stop of the Tab order focused and not, pixel by pixel. It found two faults in Vici's dialog, fixed there first (ViciDesign#42): with reduced motion the backdrop still faded in, and a body that scrolls and holds only text, such as the method dialog's, showed only the top edge of its focus ring |
+| Window sizes | AC-14 runs from 1920 × 1080 to 1280 × 720: the layout suite checks both ends in both themes and languages, and 1600 × 900 and 1366 × 768 between them |
+| The report in the dark theme | The white sheets lie on the page's dark background. Vici's report painted the light canvas behind them, a light slab on a dark page; fixed in Vici first (ViciDesign#44) |
+| Vici | `vici/` copies Vici's main at `3b58694`, which holds the SWOT Challenger's fit of the live-run dialog up to 1920 × 1080 (ViciDesign#41) and its report that prints in the light scheme (#46), the Prototype Ideator's honeycomb fix (#45), and this tool's #42, #44 and #47 |
+| Firefox and Safari print | Victor decided on 24 November 2026 not to print the report in them by hand ("assume it works"). Only Chromium's print is tested; section 8 keeps the risk |
+| Euro figures from the agents | The Analyst's and the Strategist's checks refuse a euro figure below zero, and a residual that leaves more at stake than the threat's own range at its likelihood, each message naming the one case that applies. The format cannot forbid them, and the engine refuses such a range, so the answer goes back once and the run stops at that step if the repair keeps it (independent review R1, N5) |
+| What a mitigation leaves | Never more than the threat as it stands now: after an Undo the threat may stand lower than the Strategist saw it, so `residualOf()` in `js/run.js` keeps the response's readiness at least the threat's, its likelihood at most the threat's, and its euros at most what the threat puts at stake, as `js/risk.js` reads what is left. The engine, the options, the report and the handoff file all read it (O1) |
+| A threat without a euro figure | It stays without one after a mitigation: it counts in readiness, not in money, whatever residual range the Strategist gives. Its option shows no money left, the report says it counts in readiness, and the handoff file gives it no residual range (R5) |
+| The handoff file's opportunities and score | An opportunity's euro range is the Analyst's upside, so the issue carries the likelihood that goes with it, and its expected value is its range at that likelihood, as js/risk.js reads an issue. With no threat at all the page says so where readiness would stand; the schema needs a number, and the file writes 100, since there is nothing to be unready for (R12) |
+| Typing at Scan | The editor of an AI factor opens with its wording and, under it, "Public information only" and the line on where the words go (brief §5.10), in view. It warns, as the live-run dialog does, of what the person brings in that looks private, occurrence by occurrence: the AI's own words never count, a second "internal" does. The warning stays in view as it grows, with the field, at 1280 × 720 in both languages, and does not block. Text shaped like an API key is redacted as the edit is saved (R2, N1, N3, N6, N7, N11) |
+| The private-data warning | A date that stands alone (01.01.2027, 1/7/26, 2026-09-30) never counts as a phone number, nor does a range of dates in the usual forms: 01.01.26-31.12.26, 01.01.-31.12.2027, 01.10.-30.04., 01.01.26/31.12.26, 01/01/26-31/12/26, 01-01-26-31-12-26, 2026-01-01-2026-12-31, 01/2026-12/2026, 06.2026-12.2026 and KW 01-05/2026; other forms may still raise the warning, which does not block. Digits in dotted pairs (01.23.45.67.89) still count, and "internal combustion" is no keyword. Text shaped like an API key counts: the dialog names it, the run redacts it before a prompt reads it, and "Save run as simulation" redacts it as the other files do (R8, R9, N2, N10, N14) |
+| The key in memory | The live-run dialog keeps no copy of a checked key: a key typed now is checked, and the key in js/keystore.js passed that check when it was set, so "Clear everything" leaves none behind (R10) |
+| A live run's tiles | A live run cannot answer first: until the Analyst is done, the pressure and readiness tiles say after which step their figures stand ("after the scan", "after the challenge"). After Adopt, a stop or a wait shows the ring after the decision, as the tiles do (R3, N4) |
+| A request that broke off, went unanswered or was aborted | The API may bill a request cut off after its stream began, aborted while under way, or that timed out: left unanswered past the shared client's 90 s (a proxy that buffers the event stream holds back an answer the API is writing), answered with the API's `timeout_error` (a 504, or a 500 at the server's time limit, section 2), or answered with any other 504 the page can read, a proxy's own included, after which the API may still be writing. The shared client reports no usage for any of them. A proxy's 504 sent without CORS headers reaches the page only as a failed connection, which it cannot tell from a network failure, so it is not held (section 8). The run holds each such attempt's worst case against the cap (`run.unmetered`), the last of the shared client's three attempts too, and a retry, or any request after them with Go on, goes only if it still fits. Every stop says so while the run holds an amount, and Go on's dialog says how much; a stream that broke off says so, an overload inside it reads as the busy service, and a retry the cap stops says the request broke off or went unanswered. The meter shows what the API reported (R11, N8, N12, N16, N17, N18, O5, O6, O12, O14) |
+| The Scout's searches and the cap | Each Scout request's worst case counts the searches still open in its turn (section 2): five for a new turn, fewer after a pause, five again for the repair's new instruction |
+| A run out of requests | Once a run has used its ten requests, its stop offers no "Go on", which could not work, and says to take what is done or start again with Clear everything (R6) |
+| Stopped at the cap | The stop says "before the first request" only while none was sent; after one it says no step was done yet, and after a step, which one (N13) |
+| Long company names | The ring's centre steps a long name down in three sizes and leaves out the sector, so up to the form's 80 characters stay inside the cell at 1280 × 720. A name from a German-speaking country, however the form names it ("DE", "Bundesrepublik Deutschland", "Schweiz"), is marked German, so a browser with German hyphenation breaks a word too long for the cell at a syllable, on an English page too: "Commerz- / bank AG", not "Commerzb / ank AG". Which words are too long depends on the size, the font and the browser, so every such name carries the mark. A company's name is a proper name, which WCAG 3.1.2 exempts from marking its language either way (W3C, Understanding SC 3.1.2, read 2026-11-24); a French name with "Suisse" stays unmarked (R13, O3, O7, N15) |
+| Targets of 40 px | Every target takes 40 px each way, measured by the layout suite on buttons, links, disclosures and controls: Vici's segmented options, switches, sliders and the numbers' summary first fell short, fixed in Vici first (ViciDesign#47), and the tool's own disclosures and the Accept option reach 40 px the same way (R4) |
+| AI marks | A lilac AI tag stands on each of the Red team's cards, on each option the Strategist wrote (the recommended one carries "Recommended" in lilac) and beside the Summary's title, the Writer's headline; each says in its title what the agent wrote. Every AI figure says what it rests on: what a mitigation leaves reads "AI estimate from the range above", the Analyst's range over the options, and an advantage's upside "AI estimate from the factor and figures above"; the report says "from the Analyst's range" and "from the factor and the Analyst's figures" (R17, N9) |
+| The mode tag | The header's SIMULATION or LIVE tag takes focus only so the keyboard reaches its tooltip, which screen readers also read through `aria-describedby`. It starts nothing, so the 40 px rule for targets does not bind it; at 125 × 30 px it is above the 24 px of WCAG 2.5.8, and it keeps Vici's large tag (O4) |
+
 ## 4. Security policy and what is kept
 
 `index.html` carries the brief's policy in one meta tag: everything from this site, connections only to
@@ -168,7 +199,7 @@ validated with those as the registry.
 
 The tests need Node 22 and, for the browser suites, Playwright with Chromium: `npm install -g playwright`
 and `npx playwright install chromium`, then `NODE_PATH="$(npm root -g)" node tests/run-all.mjs`, which
-runs all thirty-five suites and ends with "ALL SUITES OK"; `node tests/run-all.mjs engine layout` runs only
+runs all thirty-seven suites and ends with "ALL SUITES OK"; `node tests/run-all.mjs engine layout` runs only
 the suites named. From 0.2.0 the suites `scenarios` and `audit` prove the scenario checker and the fact
 audit, `presenter` plays every scenario in both languages, `views` checks the ring, the lists, the matrix
 and the strip on every screen, and `layout`, `hexagon`, `vici` and `i18n` look at every step. From 0.3.0 `guards` and `estimate` check
@@ -178,8 +209,10 @@ live runs against the stand-in, which answers every request to api.anthropic.com
 0.4.0 `handoff` builds the handoff file of every scenario, language and choice and has the Prototype
 Ideator read it; `report` prints every scenario's report in Chromium and reads each PDF page for the footer,
 and a capped live run's for its notice; `report-files` opens the HTML file offline and checks both files'
-names and contents; and `report-figures` holds the report and the handoff file to the tiles. No automated
-test calls the real API, and none needs a key.
+names and contents; and `report-figures` holds the report and the handoff file to the tiles. From 1.0.0
+`access` runs a scenario and a live run with the keyboard alone, looks for the focus at every stop, asks
+for reduced motion and checks names and ids, and `from-file` opens the page from a file in both languages.
+No automated test calls the real API, and none needs a key.
 `node tools/check-scenarios.mjs` runs the checker alone; `--frozen` prints the figures to freeze after a
 deliberate change. Vici's checks need a ViciDesign checkout beside this repository at the commit
 `vici/README.md` names; `--require-vici` makes its absence a failure, as it always is on GitHub Actions.
@@ -203,8 +236,8 @@ languages, and the default scenario plays to its end in each.
   summary); then each step's max_tokens is set from what it used, and the estimate quotes the measured
   figures (`MEASURED` in `js/estimate.js`). The probes of PLAN.md section 16 wait for the same session.
 - **Firefox and Safari print** the report's fixed footer, without page numbers, since neither has margin
-  boxes. Chromium's print is tested; Victor prints a report once in each by hand. An HTML file printed in
-  Chrome 131 to 147, which has no script to mark it, shows both footers.
+  boxes. Only Chromium's print is tested: Victor decided on 24 November 2026 not to print a report in them
+  by hand. An HTML file printed in Chrome 131 to 147, which has no script to mark it, shows both footers.
 - **Shared parts taken from the SWOT Challenger.** This tool first built its own KPI library, money
   format and handoff schema; the SWOT Challenger merged its versions first (`617b122`), so this tool took
   them unchanged, as brief §4.1 asks. Three things this tool's versions had are proposals for a change
@@ -216,6 +249,60 @@ languages, and the default scenario plays to its end in each.
   tile, the dialog and the guide say it is an estimate and what it rests on. Its three characters a token
   follows the model pages' 30 percent and has not been counted on this tool's own prompts, since the free
   token count needs a key.
+- **Streams cut off and the meter.** A stream cut off after it started, a request aborted while under way, and
+  one that timed out (no answer within the client's 90 s, the API's `timeout_error`, or any 504) may be billed
+  for its input and what it wrote, but the shared client (`js/anthropic.js`, unchanged from the Prototype
+  Ideator) returns no usage then. The cap holds against them, since the run counts every such attempt at its
+  worst case, the last one too (section 3), but the meter shows only what the API reported. Reporting their
+  usage needs a change to the shared client, for all four tools. The Scout's worst case assumes 6,000 input
+  tokens a search; were a search's results larger, a Scout request could pass the cap by the difference.
+  Victor's first research run on Thorough measures it (independent review R11, N8, N18).
+- **A proxy's 504 without CORS headers.** The browser hands the page no status for it, only a failed
+  connection, which the shared client calls a network error. A network failure bills nothing as far as the
+  page can tell, so the cap does not hold it; were such a 504 to follow a request the API went on writing
+  behind a proxy, the cap would miss that request. Holding every failed connection would stop runs at the cap
+  on any dropped connection instead (independent review O14).
+- **Go on's dialog at 1280 × 720.** When the person goes on after a stop, the dialog's estimate adds what the
+  run has spent and what it holds, and runs past the dialog body's edge, so its last sentence shows only after
+  scrolling the body; the first dialog fits, as Vici's rule asks. The stop screen already says that an amount
+  is held. Fitting it means a shorter estimate for a continuing run, Vici's live-run dialog or the tool's,
+  with the layout suite measuring the continuing dialog too: proposed for 1.0.1 (independent review N20).
+- **Run it live on smaller screens.** Brief §7 puts "Run it live" after the steps. On the Start panel it
+  shows without scrolling from 1920 × 1080; at smaller sizes the panel scrolls to it, and the guide's first
+  chapter names it. Moving it into the first view changes the brief's layout, which is Victor's call (R7).
+- **The German footer.** A German report prints "Erstellt mit …" and "Erstellt von Victor Pflüger · Seite x
+  von y" (section 3, 0.4.0); standing requirement 8 quotes the English words, which every English report
+  carries. Victor confirms (R14).
 - **Respond on mid-size windows.** Between 961 and 1,100 px wide and under 770 px high, some or all
   options sit under the "Your turn" bar until the panel is scrolled. They scroll into view; at 1280 × 720,
   the size the layout suite checks, every option shows in full.
+
+## 9. Verification log
+
+What was checked for 1.0.0, on 24 November 2026.
+
+- **The suites.** All thirty-seven pass in one run with Vici's checks required, here in Chromium 157 and
+  on GitHub Actions in Chromium 141 (Playwright 1.56).
+- **Screens, by eye.** Every step of Auental Energie at 1920 × 1080, 1600 × 900, 1366 × 768 and
+  1280 × 720 in both languages, and both themes at the two ends; the guide, the Method dialog, the empty
+  live form, the live-run dialog, a live run that stops on a rejected key and on a busy service (against
+  the stand-in), and the page opened from a file.
+- **The PDF.** Auental Energie's report saved as PDF in English (17 pages) and German (18 pages), every
+  page read: the footer with "page x of n" on each, "Public information only" on the cover and in About
+  this report, "Created with PESTEL Challenger 1.0.0", and no table past its sheet.
+- **Design passes.** Impeccable's critique of what 1.0.0 adds (the version line, the note for a page
+  opened from a file, the focus ring in dialogs); ux-heuristics on the keyboard paths, where the focus
+  moves to the step's title after each step, to the first field with an error and to the key field when
+  the live-run dialog opens, with no finding of severity 3 or 4; humanizer on every new string and the
+  documents. They changed three things: the file note said all browsers refuse a file, now this browser;
+  its region label stayed English on a German page, now gone; Scan's count reads as a first look.
+- **Reviews.** The independent review, the Steve Jobs review and Vici's partner review are in REVIEW.md, parts
+  2 and 3. The independent review found two high, three medium and twelve low findings. Confirming looks by
+  fresh agents followed, each at a later commit after a round of fixes. The first did not confirm: two fixes
+  were incomplete, and it found five new findings, one of them medium. The later ones confirmed every high and
+  medium fix and found only low findings and observations, which the following rounds fixed, kept or declined.
+  Every high and medium finding is fixed. Three low findings stay, R7, R14 and N20, and four observations, O4
+  and O14 kept and O7 and O9 declined, each with its reason in sections 3 and 8 and in REVIEW.md. REVIEW.md
+  part 2 names the commit each look read and what it found.
+- **Not checked.** Printing in Firefox and Safari, by Victor's decision, and a run with a real key, which
+  is Victor's (section 8).

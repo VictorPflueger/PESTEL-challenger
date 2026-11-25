@@ -47,7 +47,7 @@ export function kpiValues(run, { estimate = null, live = false, lang = getLang()
   const waiting = (note) => ({ value: t("kpi.wait", null, lang), tail: "", was: null, note: note ? t(note, null, lang) : "", state: "waiting" });
   if (live) out.cost = { value: fmtCost(run.spend?.eur ?? 0, lang), tail: "", was: null, note: t("kpi.note.live.cost", { cap: fmtCost(run.cap, lang) }, lang), state: "live" };
   else out.cost = estimate
-    ? { value: `≈ ${fmtCost(estimate.eur, lang)}`, tail: "", was: null, note: t("kpi.note.estimate", null, lang), state: "estimate" }
+    ? { value: `≈\u00a0${fmtCost(estimate.eur, lang)}`, tail: "", was: null, note: t("kpi.note.estimate", null, lang), state: "estimate" }
     : waiting("");
   if (live && !run.scan) {
     out.stake = waiting("kpi.note.afterAssess");
@@ -60,16 +60,19 @@ export function kpiValues(run, { estimate = null, live = false, lang = getLang()
   const pressure = (x) => t("fig.pressure", { n: x.pressure.length }, lang);
   const tail = (x) => (x.monetised < x.threats ? t("fig.moneyTail", { n: x.monetised, total: x.threats }, lang) : "");
   const ready = (x) => ({ tail: "", state: "ready", ...x });
+  // A live run cannot answer first: until the Analyst is done its figures stand as of the last step done,
+  // and the note says which. A recorded run shows the analysis before the decision from the start.
+  const asOf = live && !run.issues ? "kpi.note.afterScan" : live && !run.impacts ? "kpi.note.afterChallenge" : "kpi.note.before";
   if (live && !run.impacts) out.stake = waiting("kpi.note.afterAssess");
   else out.stake = ready(decided
-    ? { value: money(r.after.atStake, lang), tail: tail(r.after), was: money(r.before.atStake, lang), note: r.upside > 0 ? t("kpi.note.left.upside", { money: money(r.upside, lang) }, lang) : t("kpi.note.left", null, lang) }
+    ? { value: money(r.after.atStake, lang), tail: tail(r.after), was: money(r.before.atStake, lang), wasTail: tail(r.before), note: r.upside > 0 ? t("kpi.note.left.upside", { money: money(r.upside, lang) }, lang) : t("kpi.note.left", null, lang) }
     : { value: money(r.before.atStake, lang), tail: tail(r.before), was: null, note: t("kpi.note.before", null, lang) });
   out.pressure = ready(decided
     ? { value: pressure(r.after), was: pressure(r.before), note: t("kpi.note.after", null, lang) }
-    : { value: pressure(r.before), was: null, note: t("kpi.note.before", null, lang) });
+    : { value: pressure(r.before), was: null, note: t(asOf, null, lang) });
   out.readiness = ready(decided
     ? { value: readinessText(r.after.readiness, lang), was: readinessText(r.before.readiness, lang), note: t("kpi.note.readiness", null, lang) }
-    : { value: readinessText(r.before.readiness, lang), was: null, note: t("kpi.note.readiness", null, lang) });
+    : { value: readinessText(r.before.readiness, lang), was: null, note: t(asOf === "kpi.note.before" ? "kpi.note.readiness" : asOf, null, lang) });
   return out;
 }
 

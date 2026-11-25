@@ -10,8 +10,9 @@
 //   at stake      Σ midpoint × probability over the threats not out of date that have a euro range
 //
 // After the decision a mitigated threat counts with its new readiness level, its residual range and its
-// residual likelihood; its impact stays the original, since the Strategist estimates none. An advantage
-// adds its upside to the note; a watched or accepted threat stays as it is.
+// residual likelihood; its impact stays the original, since the Strategist estimates none. A threat without
+// a euro figure stays without one: it counts in readiness, not in money, whatever residual range the
+// Strategist gives. An advantage adds its upside to the note; a watched or accepted threat stays as it is.
 
 import { BANDS, riskScore, band, expected, round9, roundHalfAway, money } from "./risk.js";
 import { t } from "./i18n/index.js";
@@ -33,6 +34,8 @@ export function gap(readiness) {
 
 const isThreat = (f) => f.direction === "threat";
 const counts = (f) => !f.outdated;
+/** Whether a factor has a euro range: a threat without one counts in readiness, not in money. */
+export const priced = (f) => !f.not_monetisable && Number.isFinite(f.eur_year_low) && Number.isFinite(f.eur_year_high);
 
 /**
  * The figures of one state of the analysis. Each factor: { id, dimension, direction ("threat" or
@@ -61,7 +64,7 @@ export function assess(factors) {
         if (bandAtLeast(entry.band, "medium") && f.readiness <= 3) dims[f.dimension].pressing++;
       }
     }
-    if (!f.not_monetisable && Number.isFinite(f.eur_year_low) && Number.isFinite(f.eur_year_high)) {
+    if (priced(f)) {
       entry.expected = round9(expected(f.eur_year_low, f.eur_year_high, f.likelihood));
       if (isThreat(f) && counts(f)) {
         atStake += entry.expected;
@@ -92,13 +95,13 @@ export function applyDecisions(factors, decisions = []) {
     const d = chosen.get(f.id);
     if (!d || d.kind !== "mitigate" || !isThreat(f)) return { ...f };
     const r = d.residual || {};
+    const money = priced(f);
     return {
       ...f,
       readiness: d.readiness,
       likelihood: r.likelihood,
-      eur_year_low: r.eur_year_low,
-      eur_year_high: r.eur_year_high,
-      not_monetisable: f.not_monetisable && !Number.isFinite(r.eur_year_low),
+      eur_year_low: money ? r.eur_year_low : f.eur_year_low,
+      eur_year_high: money ? r.eur_year_high : f.eur_year_high,
     };
   });
 }

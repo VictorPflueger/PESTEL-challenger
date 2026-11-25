@@ -97,7 +97,7 @@ for (const sc of SCENARIOS) {
       const t0 = await tiles(page);
       check(t0.stake.value === want.before.stake && t0.pressure.value === want.before.pressure && t0.readiness.value === want.before.readiness && t0.stake.state === "ready",
         `first (${where}): before anything runs the tiles show the engine's analysis: ${t0.stake.value} ${t0.stake.tail}, ${t0.pressure.value}, readiness ${t0.readiness.value}`);
-      check(t0.cost.state === "estimate" && /^≈ /.test(t0.cost.value), `first (${where}): the session cost is an estimate: ${t0.cost.value}`);
+      check(t0.cost.state === "estimate" && /^≈\s/.test(t0.cost.value), `first (${where}): the session cost is an estimate: ${t0.cost.value}`);
       const seen = [];
       const honest = [];
       const visit = async () => { const s = await stepOf(page); seen.push(s); const l = await labels(page); if (!l.sim || !l.fictional) honest.push(`${s}${l.sim ? "" : " without SIMULATION"}${l.fictional ? "" : " without the fictional label"}`); };

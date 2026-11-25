@@ -108,6 +108,14 @@ html:not([data-ready="true"]) .app-header :is(.vc-button, .vc-icon-button, .vc-t
   outline: none;
 }
 .stage[data-layout="full"] { grid-template-columns: minmax(0, 1fr); }
+/* The note for a page opened from a file (index.html): js/main.js draws the steps over it as the page
+   starts. When nothing does, it shows after two seconds, so a normal start never flashes it. */
+.from-file { grid-column: 1 / -1; align-self: start; max-width: 68ch; padding: 20px 24px; border: 1px solid var(--vc-border); background: var(--vc-surface); visibility: hidden; animation: from-file-show 0s linear 2s forwards; }
+@keyframes from-file-show { to { visibility: visible; } }
+:root:not([data-lang="de"]) .from-file-lang[data-lang-only="de"], :root[data-lang="de"] .from-file-lang[data-lang-only="en"] { display: none; }
+.from-file-title { font-size: var(--vc-font-size-2xl); }
+.from-file p { margin: 0; }
+.from-file a { display: inline-block; padding-block: 10px; margin-block: -10px; }
 .stage:is([data-layout="full"], [data-layout="assess"]) .story-lead { max-width: 120ch; }
 .stage[data-layout="assess"] { grid-template-columns: minmax(0, 1fr); }
 /* At Assess the step's button sits at the bottom right, under the horizon strip, and the matrix on the
@@ -511,3 +519,20 @@ html:not([data-ready="true"]) .app-header :is(.vc-button, .vc-icon-button, .vc-t
   .turn.vc-callout { border: 2px solid CanvasText; }
   .option[data-chosen="true"], .decide-item[aria-pressed="true"] { outline: 3px solid Highlight; }
 }
+/* The factor editor at a live run's Scan says what may go in, and warns when the words look private. */
+.item-editor-public { display: flex; gap: 6px; align-items: flex-start; margin: 2px 0 0; font-size: var(--vc-font-size-sm); color: var(--vc-text-muted); }
+.item-editor-public .vc-icon { flex: none; margin-top: 2px; }
+.item-editor-warning { margin-top: 4px; }
+.item-editor-warning[hidden] { display: none; }
+.item-editor-warning p { margin: 0; }
+/* The ring's centre: a long company name steps down and takes the sector's place, so it stays inside its
+   cell (hexagon.js marks the length). */
+.ring .vc-ring__centre[data-name="long"] .vc-ring__name { font-size: var(--vc-font-size-sm); }
+.ring .vc-ring__centre[data-name="longer"] .vc-ring__name { font-size: var(--vc-font-size-xs); line-height: 1.05; }
+.ring .vc-ring__centre[data-name="longest"] .vc-ring__name { font-size: calc(var(--vc-font-size-xs) * 0.92); line-height: 1; }
+.ring .vc-ring__centre:is([data-name="long"], [data-name="longer"], [data-name="longest"]) .vc-ring__note { display: none; }
+/* Targets of at least 40 px (AC-14): a disclosure's line reaches above and below and gives the space back,
+   as Vici's numbers summary does; the Accept option keeps the height of a control. */
+.stage details:is(.signals, .dim-details, .stop-problems) > summary { padding-block: 0.5rem; margin-block: -0.5rem; line-height: 1.5rem; }
+.stage details:is(.signals, .dim-details, .stop-problems)[open] > summary { margin-block-end: 0; }
+.option--accept { min-block-size: 40px; }

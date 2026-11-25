@@ -5,7 +5,9 @@
 //   - pause_turn is sent again unchanged (the stand-in checks every assistant turn comes back as sent);
 //   - a turn that ends without the report gets one repair;
 //   - an organisation with web search switched off goes on without research and is told so;
-//   - without research, Scan and Summary say once that the models know the world only up to June 2026.
+//   - without research, Scan and Summary say once that the models know the world only up to June 2026;
+//   - the cap counts the searches a Scout request may still run: max_uses counts per turn, which a pause_turn
+//     continues and the repair's new instruction starts again (web search tool page, read 24 November 2026).
 // Usage: node tests/live-research.mjs
 import { report } from "./lib/harness.mjs";
 import { liveSuite, livePage, fillForm, startRun, challenge, adopt, runOf, pageProblems } from "./lib/live.mjs";
@@ -80,6 +82,27 @@ await scenario("no research", {}, async (t) => {
   await adopt(t.page);
   check(/only up to June 2026/.test(await text(t.page, ".summary .cutoff-note")), "and the summary says it once, by its sources");
 }, { research: false });
+
+// ---- the searches each Scout request may run, for the cap's worst case, in Node ------------------------------
+{
+  const { runScout, SUBMIT_SIGNALS } = await import("../js/agents/scout.js");
+  const { settingOf, ANTHROPIC } = await import("../js/config.js");
+  const { formOf } = await import("./lib/turns.mjs");
+  const search = (n) => ({ type: "server_tool_use", id: `srvtoolu_${n}`, name: "web_search", input: { query: `q${n}` } });
+  const found = (n) => ({ type: "web_search_tool_result", tool_use_id: `srvtoolu_${n}`, content: [{ type: "web_search_result", url: `https://example.org/${n}`, title: `t${n}`, page_age: null }] });
+  const answers = [
+    { stop_reason: "pause_turn", content: [search(1), found(1), search(2), found(2)] },
+    { stop_reason: "end_turn", content: [{ type: "text", text: "I searched." }] },
+    { stop_reason: "tool_use", content: [{ type: "tool_use", id: "toolu_1", name: SUBMIT_SIGNALS.name, input: { signals: [] } }] },
+  ];
+  const asked = [];
+  const send = async (body, o) => { asked.push(o.searches); return answers[asked.length - 1]; };
+  const inputs = formOf("s3", "en");
+  await runScout({ send, inputs: { company: inputs.company, factors: inputs.factors.map((f, i) => ({ id: `u${i + 1}`, ...f })) }, lang: "en", today: "2026-11-24", setting: settingOf({ preset: "balanced" }), maxTokens: 8000, repairs: { left: () => 1, use: () => {} } });
+  const max = ANTHROPIC.webSearchTool.max_uses;
+  check(JSON.stringify(asked) === JSON.stringify([max, max - 2, max]),
+    `the cap counts the searches each Scout request may run: ${max}, then ${max - 2} after two in the paused turn, then ${max} again for the repair's new turn (${asked.join(", ")})`);
+}
 
 await suite.done();
 report(results, "LIVE RESEARCH OK");

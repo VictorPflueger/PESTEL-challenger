@@ -60,6 +60,8 @@ let r = clone(x.a.strategist); r.responses.find((y) => y.kind === "mitigate").mi
 planted.push(["residual", "a residual likelihood above the original", G.checkResponses(r, { factors: x.challenged, impacts: x.a.analyst.impacts, evidence: x.evidence })]);
 r = clone(x.a.strategist); { const m = r.responses.find((y) => y.kind === "mitigate"); const imp = x.a.analyst.impacts.find((y) => y.factor === m.factor); m.mitigate.residual_eur_year_high = imp.eur_year_high + 1; }
 planted.push(["residual", "a residual euro range above the original", G.checkResponses(r, { factors: x.challenged, impacts: x.a.analyst.impacts, evidence: x.evidence })]);
+r = clone(x.a.strategist); { const m = r.responses.find((y) => y.kind === "mitigate" && x.a.analyst.impacts.find((z) => z.factor === y.factor)?.eur_year_high !== null); const imp = x.a.analyst.impacts.find((y) => y.factor === m.factor); const f = x.challenged.find((y) => y.id === m.factor); m.mitigate.residual_likelihood = f.likelihood; m.mitigate.residual_eur_year_low = imp.eur_year_high; m.mitigate.residual_eur_year_high = imp.eur_year_high; }
+planted.push(["residual", "a residual that leaves more at stake than the threat's own range and likelihood", G.checkResponses(r, { factors: x.challenged, impacts: x.a.analyst.impacts, evidence: x.evidence })]);
 r = clone(x.a.strategist); r.responses.find((y) => y.kind === "monitor").monitor.trigger = " ";
 planted.push(["monitor", "a monitor response without a trigger", G.checkResponses(r, { factors: x.challenged, impacts: x.a.analyst.impacts, evidence: x.evidence })]);
 a = clone(x.a.scanner); for (let k = 0; k < 5; k += 1) a.factors.push({ ...clone(a.factors.find((f) => f.dimension === "legal") || a.factors[0]), dimension: "legal", id: `a${60 + k}`, text: `Another legal force, number ${["one", "two", "three", "four", "five"][k]}` });
@@ -86,6 +88,16 @@ let im = clone(x.a.analyst); im.impacts.pop();
 check(G.checkImpacts(im, { factors: x.challenged, sector: x.run.company.sector, evidence: x.evidence }).problems.some((p) => p.code === "count"), "an impact missing for one factor is refused: the Analyst prices every factor");
 im = clone(x.a.analyst); { const t = im.impacts.find((y) => y.eur_year_low !== null); [t.eur_year_low, t.eur_year_high] = [t.eur_year_high + 10, t.eur_year_low]; }
 check(G.checkImpacts(im, { factors: x.challenged, sector: x.run.company.sector, evidence: x.evidence }).problems.some((p) => p.code === "range"), "a euro range whose low is above its high is refused");
+// Negative euro figures: the format cannot forbid them, so the checks do, before the engine reads them.
+const rangeRefused = (result) => result.problems.some((p) => p.code === "range");
+im = clone(x.a.analyst); im.impacts.find((y) => y.upside).upside.eur_year_low = -100000;
+check(rangeRefused(G.checkImpacts(im, { factors: x.challenged, sector: x.run.company.sector, evidence: x.evidence })), "an opportunity's upside below zero is refused");
+r = clone(x.a.strategist); r.responses.find((y) => y.kind === "mitigate").mitigate.residual_eur_year_low = -200000;
+const belowZero = G.checkResponses(r, { factors: x.challenged, impacts: x.a.analyst.impacts, evidence: x.evidence }).problems.find((p) => p.code === "range");
+check(rangeRefused(G.checkResponses(r, { factors: x.challenged, impacts: x.a.analyst.impacts, evidence: x.evidence })) && /below zero/.test(belowZero?.message) && !/above/.test(belowZero?.message),
+  `a mitigation's residual below zero is refused, and the message names that case alone ("${belowZero?.message}")`);
+r = clone(x.a.strategist); r.responses.find((y) => y.kind === "advantage").advantage.eur_year_low = -100000;
+check(rangeRefused(G.checkResponses(r, { factors: x.challenged, impacts: x.a.analyst.impacts, evidence: x.evidence })), "an advantage's upside below zero is refused");
 r = clone(x.a.strategist); r.responses.filter((y) => y.factor === "u2").forEach((y) => { y.factor = "zz8"; });
 check(G.checkResponses(r, { factors: x.challenged, impacts: x.a.analyst.impacts, evidence: x.evidence }).problems.some((p) => /u2/.test(p.message)), "a factor marked out of date still needs its responses, so an Undo needs no other request");
 w = clone(x.a.writer); w.summary.findings.pop();

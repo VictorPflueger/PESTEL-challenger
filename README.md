@@ -4,14 +4,14 @@ AI agents complete a PESTEL analysis, challenge it, put a figure on each outside
 
 <https://victorpflueger.github.io/PESTEL-challenger/>
 
-Version 0.4.0 ends every run in a report: saved as PDF with the footer on every page, as an HTML file
-that opens offline, and as a JSON file the Prototype Ideator reads. It runs the agents live on your own
-company with your own Claude API key; without a key it plays three recorded runs on fictional companies,
-in English and German: a shipping line, a maker of industrial drives and a municipal utility. The key
-figures show what is at stake before anything plays. [PLAN.md](PLAN.md) holds the plan;
+Version 1.0.0 runs the agents live on your own company with your own Claude API key; without a key it
+plays three recorded runs on fictional companies, in English and German: a shipping line, a maker of
+industrial drives and a municipal utility. The key figures show what is at stake before anything plays,
+and every run ends in a report: saved as PDF with the footer on every page, as an HTML file that opens
+offline, and as a JSON file the Prototype Ideator reads. [PLAN.md](PLAN.md) holds the plan;
 [DEMO_SCRIPT.md](DEMO_SCRIPT.md) and [DEMO_SCRIPT.de.md](DEMO_SCRIPT.de.md) show it in five minutes.
 
-## What it will do
+## What it does
 
 A person names a company and lists the outside forces they see under six headings: political, economic,
 social, technological, environmental and legal. AI agents complete and rate them, challenge the analysis,
@@ -62,18 +62,17 @@ what is done; you can go on, or take it with you as a report that says on every 
 
 The Summary shows the report page by page, from the cover and the management summary with the key
 figures before and after to the watch list, the method with what you decided, the sources and About this
-report. "Save as PDF" opens the print dialog
-on the report alone; choose Save as PDF as the printer. Every page carries "Created with PESTEL
-Challenger", the address, "Built by Victor Pflüger" and the page number; Firefox and Safari, which cannot
-number pages yet, print the footer without the number. The HTML file is the same report with no script,
+report. "Save as PDF" opens the print dialog on the report alone; choose Save as PDF as the printer.
+Every page carries "Created with PESTEL Challenger", the address, "Built by Victor Pflüger" and the page
+number in Chrome and Edge; Firefox and Safari, untested, should print the footer without the number. The HTML file is the same report with no script,
 and opens offline; the JSON file is checked against the shared schema before it downloads.
 
 ## Running it
 
-It is a static page: serve the folder with any web server, such as `python3 -m http.server`, and open it.
-Press Play, or use the arrow keys or a clicker; `?scenario=s1&step=4` opens a scenario at a step. A live
-run has no address, so a reload ends it. The tests, which never call the real API, and how to run them
-are in [TECH_NOTES.md](TECH_NOTES.md) section 7.
+It is a static page: serve the folder with any web server, such as `python3 -m http.server`, and open it;
+opened as a file, it says so. Press Play, or use the arrow keys or a clicker; `?scenario=s1&step=4` opens
+a scenario at a step. A live run has no address, so a reload ends it. The tests never call the real API;
+[TECH_NOTES.md](TECH_NOTES.md) section 7 says how to run them.
 
 ## Part of a set of four
 

@@ -12,7 +12,7 @@
 
 import { h } from "./dom.js";
 import { t, tn, inLang } from "./i18n/index.js";
-import { DIMENSIONS } from "./engine.js";
+import { DIMENSIONS, priced } from "./engine.js";
 import * as R from "./run.js";
 import { ring, uncheckedTag } from "./hexagon.js";
 import { riskMatrix, horizonStrip } from "./matrix.js";
@@ -146,7 +146,8 @@ function summaryPage(run, o, { page, H, live, step, fill, byId }) {
   const s = run.summary;
   const k = kpiValues(run, { estimate: o.estimate, live, lang });
   const both = (v) => `${v.value}${v.tail ? ` ${v.tail}` : ""}`;
-  const before = (v) => (v.state === "waiting" ? t("report.notReached") : v.was ?? both(v));
+  // The old value keeps its qualifier in the table, such as "on 7 of 8 threats"; the tile has no room for it.
+  const before = (v) => (v.state === "waiting" ? t("report.notReached") : v.was ? `${v.was}${v.wasTail ? ` ${v.wasTail}` : ""}` : both(v));
   const after = (v) => (v.state === "waiting" ? t("report.notReached") : run.decided ? both(v) : t("report.notDecided"));
   const row = (key, v) => h("tr", { dataset: { kpi: key } },
     h("th", { scope: "row" }, t(`kpi.${key === "stake" ? "atStake" : key}`)),
@@ -294,8 +295,14 @@ function responsesPage(run, o, { page, H, byId }) {
   const accepted = run.decided ? decisions.filter((d) => d.kind === "accept").map((d) => byId.get(d.factor)).filter(Boolean) : [];
   const effect = (x) => {
     const f = byId.get(x.factor);
-    if (x.kind === "mitigate" && x.mitigate) return t("report.r.mitigate", { a: f?.readiness ?? "?", b: x.mitigate.readiness, la: f?.likelihood ?? "?", lb: x.mitigate.residual_likelihood, range: moneyRange(x.mitigate.residual_eur_year_low, x.mitigate.residual_eur_year_high) });
-    if (x.kind === "advantage" && x.advantage) return t("opt.upside", { range: moneyRange(x.advantage.eur_year_low, x.advantage.eur_year_high), n: x.advantage.likelihood });
+    if (x.kind === "mitigate" && x.mitigate) {
+      const left = f ? R.residualOf(f, x.mitigate) : { readiness: x.mitigate.readiness, likelihood: x.mitigate.residual_likelihood, eur_year_low: x.mitigate.residual_eur_year_low, eur_year_high: x.mitigate.residual_eur_year_high };
+      const words = { a: f?.readiness ?? "?", b: left.readiness, la: f?.likelihood ?? "?", lb: left.likelihood, range: moneyRange(left.eur_year_low, left.eur_year_high) };
+      // A threat without a euro figure counts in readiness, not in money: no residual range.
+      return t(f && !priced(f) ? "report.r.mitigate.unpriced" : "report.r.mitigate", words);
+    }
+    // The report shows no factor line with figures above it, so the upside names the Analyst's.
+    if (x.kind === "advantage" && x.advantage) return t("report.r.advantage", { range: moneyRange(x.advantage.eur_year_low, x.advantage.eur_year_high), n: x.advantage.likelihood });
     if (x.kind === "monitor" && x.monitor) return t("report.r.monitor", { signal: x.monitor.signal, trigger: x.monitor.trigger });
     return "";
   };

@@ -102,7 +102,21 @@
 
   <p class="vc-visually-hidden" id="announce" aria-live="polite"></p>
 
-  <main id="stage" class="stage" tabindex="-1" data-step="start" data-layout="split"></main>
+  <main id="stage" class="stage" tabindex="-1" data-step="start" data-layout="split">
+    <!-- js/main.js draws the steps over this note as the page starts. Opened from a file (file://), where
+         browsers block the page's modules, nothing replaces it, and after two seconds it says what to do,
+         in the page's language. -->
+    <section class="from-file">
+      <div class="from-file-lang" data-lang-only="en" lang="en-GB">
+        <h2 class="from-file-title">Open the page from its web address</h2>
+        <p>This browser won't run the page's program from a file. Open <a href="https://victorpflueger.github.io/PESTEL-challenger/">victorpflueger.github.io/PESTEL-challenger</a>, or serve this folder with <code>python3 -m http.server 8000</code> and open <code>http://localhost:8000</code>.</p>
+      </div>
+      <div class="from-file-lang" data-lang-only="de" lang="de">
+        <h2 class="from-file-title">Öffnen Sie die Seite über ihre Webadresse</h2>
+        <p>Aus einer Datei führt dieser Browser das Programm der Seite nicht aus. Öffnen Sie <a href="https://victorpflueger.github.io/PESTEL-challenger/">victorpflueger.github.io/PESTEL-challenger</a>, oder liefern Sie diesen Ordner mit <code>python3 -m http.server 8000</code> aus und öffnen Sie <code>http://localhost:8000</code>.</p>
+      </div>
+    </section>
+  </main>
 
   <div id="banners" class="banner-stack" aria-live="polite"></div>
 
@@ -205,7 +219,7 @@
             <tr><th scope="row">At stake a year</th><td>Each priced threat's euro range at its midpoint, times its likelihood, added up</td><td><span data-fig="stake.before">€3.8m</span>, then <span data-fig="stake.after">€2.2m</span></td></tr>
             <tr><th scope="row">Dimensions under pressure</th><td>Dimensions with a threat of medium band or higher that the company is not ready for</td><td><span data-fig="pressure.before">3 of 6</span>, then <span data-fig="pressure.after">1 of 6</span></td></tr>
             <tr><th scope="row">Readiness</th><td>0 to 100: how much of its threats' weight the company is ready for</td><td><span data-fig="readiness.before">51</span>, then <span data-fig="readiness.after">72</span></td></tr>
-            <tr><th scope="row">Session cost</th><td>What the agents cost: measured live against your cap, estimated here</td><td><span data-fig="cost.balanced">≈ €0.06</span> on Balanced, <span data-fig="cost.thorough">≈ €0.27</span> on Thorough</td></tr>
+            <tr><th scope="row">Session cost</th><td>What the agents cost: measured live against your cap, estimated here</td><td><span data-fig="cost.balanced">≈&nbsp;€0.06</span> on Balanced, <span data-fig="cost.thorough">≈&nbsp;€0.27</span> on Thorough</td></tr>
           </tbody>
         </table></div>
       </section>
@@ -286,7 +300,7 @@
             <tr><th scope="row">Auf dem Spiel pro Jahr</th><td>Euro-Spanne jedes bezifferten Risikos in der Mitte, mal Wahrscheinlichkeit, summiert</td><td><span data-fig="stake.before">3,8 Mio. €</span>, dann <span data-fig="stake.after">2,2 Mio. €</span></td></tr>
             <tr><th scope="row">Dimensionen unter Druck</th><td>Dimensionen mit einem mindestens mittleren Risiko, auf das das Unternehmen nicht vorbereitet ist</td><td><span data-fig="pressure.before">3 von 6</span>, dann <span data-fig="pressure.after">1 von 6</span></td></tr>
             <tr><th scope="row">Vorbereitungsgrad</th><td>0 bis 100: auf wie viel vom Gewicht seiner Risiken das Unternehmen vorbereitet ist</td><td><span data-fig="readiness.before">51</span>, dann <span data-fig="readiness.after">72</span></td></tr>
-            <tr><th scope="row">Sitzungskosten</th><td>Was die Agenten kosten: live gemessen gegen Ihre Obergrenze, hier geschätzt</td><td><span data-fig="cost.balanced">≈ 0,06 €</span> mit Ausgewogen, <span data-fig="cost.thorough">≈ 0,27 €</span> mit Gründlich</td></tr>
+            <tr><th scope="row">Sitzungskosten</th><td>Was die Agenten kosten: live gemessen gegen Ihre Obergrenze, hier geschätzt</td><td><span data-fig="cost.balanced">≈&nbsp;0,06 €</span> mit Ausgewogen, <span data-fig="cost.thorough">≈&nbsp;0,27 €</span> mit Gründlich</td></tr>
           </tbody>
         </table></div>
       </section>

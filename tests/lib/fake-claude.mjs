@@ -48,7 +48,7 @@ const echoOf = (blocks) => blocks.map((b) => (b.type === "text" ? { type: "text"
 /**
  * The stand-in. options: id and lang of the scenario whose answers it gives; expect { model, effort,
  * thinking } the setting every request must send (thinking null: no field); faults [{ agent, attempt,
- * error | network | answer | mutate | stop | scout }], the attempt counted per agent from 1; usage per
+ * error | network | answer | mutate | stop | cut | streamError | scout }], the attempt counted per agent from 1; usage per
  * response; requests and violations for the suite to read. REQUESTS and webSearchTool come from the page's
  * own modules, so the checks follow the code they test.
  */
@@ -163,7 +163,12 @@ export function createStandIn({ id = "s3", lang = "en", sector = true, expect = 
       if (fault?.answer) answer = fault.answer;
       if (fault?.mutate) answer = fault.mutate(answer) ?? answer;
       const text = typeof answer === "string" ? answer : JSON.stringify(answer);
-      return stream(agent, [{ type: "text", text: fault?.stop === "max_tokens" ? text.slice(0, 200) : text }], fault?.stop || "end_turn");
+      const out = stream(agent, [{ type: "text", text: fault?.stop === "max_tokens" ? text.slice(0, 200) : text }], fault?.stop || "end_turn");
+      // A connection cut mid-stream: message_start and the text arrive, the stop reason never does.
+      if (fault?.cut) return { ...out, body: out.body.slice(0, out.body.indexOf("event: message_delta")) };
+      // An error the API reports inside the stream, after the text began (an overload, say).
+      if (fault?.streamError) return { ...out, body: `${out.body.slice(0, out.body.indexOf("event: message_delta"))}event: error\ndata: ${JSON.stringify({ type: "error", error: fault.streamError })}\n\n` };
+      return out;
     },
   };
 }

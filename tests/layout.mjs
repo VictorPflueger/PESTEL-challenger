@@ -1,7 +1,8 @@
 // Every step on a presenter's screen (the layout part of AC-14): at 1920 × 1080 and 1280 × 720, in the
 // light and the dark theme, in English and German, on each of the six steps of the default scenario (the
-// other two scenarios in the light theme), as it opens and again with every closed part of the stage
-// opened (factor items, signals, the tables behind the risk matrix and the horizon strip),
+// other two scenarios in the light theme), and at 1600 × 900 and 1366 × 768 between them (the default
+// scenario, light, both languages), as it opens and again with every closed part of the stage opened
+// (factor items, signals, the tables behind the risk matrix and the horizon strip),
 //   fit       no sideways scroll, and the page fits the screen without scrolling (a long list scrolls
 //             inside its panel); no panel scrolls sideways, and the risk matrix and the horizon strip keep
 //             to their own width with their numbers open;
@@ -9,7 +10,8 @@
 //   header    the brand, the actions and the four figures don't overlap, every figure keeps its name, the
 //             actions keep one row, every figure's value keeps one line, and at 1920 the four figures
 //             stand at the top right, beside the name and its actions;
-//   targets   every button and link is at least 40 px high and wide;
+//   targets   every button, link, disclosure and control is at least 40 px high and wide (a segmented
+//             option's radio, a switch, a slider, a checkbox and a choice at Respond counted by their target);
 //   contrast  every piece of text reaches 4.5:1 against its background (3:1 when large);
 //   assess    the risk matrix, its key and the horizon strip are in view without scrolling;
 //   respond   at 1280 × 720 every option of every factor shows in full above the "Your turn" bar;
@@ -55,8 +57,9 @@ const measure = (page, { dialog = false } = {}) => page.evaluate((inDialog) => {
     const [a, ra] = parts[i]; const [b, rb] = parts[j];
     if (ra.left < rb.right - 0.5 && rb.left < ra.right - 0.5 && ra.top < rb.bottom - 0.5 && rb.top < ra.bottom - 0.5) out.overlap.push(`${a} and ${b}`);
   }
-  // targets: buttons and links, 40 px each way
-  for (const el of document.querySelectorAll("button, a[href]")) {
+  // targets: buttons, links, disclosures and the controls Vici draws smaller than their target (a segmented
+  // option's radio, a switch, a slider, a checkbox), 40 px each way
+  for (const el of document.querySelectorAll("button, a[href], summary, .vc-segmented input, .vc-switch, .vc-slider, .vc-checkbox, select, input.vc-input, textarea, label.option")) {
     if (!visible(el) || outside(el) || el.classList.contains("vc-skip-link")) continue;
     const r = el.getBoundingClientRect();
     if (r.width < 39.5 || r.height < 39.5) out.small.push(`${el.textContent.trim() || el.getAttribute("aria-label") || el.className} ${Math.round(r.width)}×${Math.round(r.height)}`);
@@ -159,9 +162,11 @@ async function summaryProblems(page) {
     p.style.cssText = "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px";
     document.querySelector(".lang-option").style.cssText = "min-width:0;height:20px;padding:0;--_h:20px";
     document.querySelector(".brand").style.cssText = "position:relative;left:1500px";
+    // A segmented option back to its 32 px label: its radio no longer reaches into the control's padding.
+    document.querySelector(".vc-segmented input").style.setProperty("inset", "0", "important");
   });
   const m = await measure(page);
-  check(m.cut.length > 0 && m.small.length > 0 && m.sideways, `control: a planted ellipsis, a small button and an overflow are caught (${m.cut[0]}; ${m.small[0]})`);
+  check(m.cut.length > 0 && m.small.length > 1 && m.small.some((x) => /×3\d$/.test(x) && !/^EN|^DE/.test(x)) && m.sideways, `control: a planted ellipsis, a small button, a segmented option without its reach and an overflow are caught (${m.cut[0]}; ${m.small.join("; ")})`);
   await context.close();
 }
 {
@@ -206,6 +211,8 @@ for (const [width, height] of [[1920, 1080], [1280, 720]]) {
   for (const theme of ["light", "dark"]) for (const lang of ["en", "de"]) RUNS.push({ width, height, theme, lang, sc: "s3" });
   for (const sc of ["s1", "s2"]) for (const lang of ["en", "de"]) RUNS.push({ width, height, theme: "light", lang, sc });
 }
+// Two common laptop and office screens between the two ends.
+for (const [width, height] of [[1600, 900], [1366, 768]]) for (const lang of ["en", "de"]) RUNS.push({ width, height, theme: "light", lang, sc: "s3" });
 for (const { width, height, theme, lang, sc } of RUNS) {
   // The theme as a visitor left it, and a record of every transition that starts while the page loads.
   const init = { fn: (dark) => {

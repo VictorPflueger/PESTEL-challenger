@@ -68,7 +68,8 @@ export function workView(ctx) {
       h("div", { class: "story-foot" },
         h("button", { type: "button", class: "vc-button vc-button--secondary work-abort", id: "btn-abort", on: { click: handlers.abort } }, icon("stop"), t("work.abort"))),
     ],
-    side: ring(run, Math.max(0, step - 1), { selected: null }),
+    // Once the person has adopted the responses, the ring shows where they leave the company, as the tiles do.
+    side: ring(run, run.decided ? 5 : Math.max(0, step - 1), { selected: null }),
   };
 }
 
@@ -78,12 +79,22 @@ export function stopWords(run) {
   const stepName = (n) => t(`step.${STEP_KEYS[n]}`);
   const at = stepName(s.agent ? AGENT_STEP[s.agent] : 1);
   const after = s.after && s.after !== "start" ? t(`step.${s.after}`) : null;
-  if (s.reason === "cap") return { tone: "warning", title: t("stop.cap.title"), message: after ? t("stop.cap", { step: after }) : t("stop.cap.first") };
-  if (s.reason === "aborted") return { tone: "warning", title: t("stop.aborted.title"), message: t("stop.aborted", { step: at }) };
-  if (s.reason === "checks") return { tone: "danger", title: t(s.repaired === false ? "stop.checks.noRepair.title" : "stop.checks.title"), message: t(s.repaired === false ? "stop.checks.noRepair" : "stop.checks", { agent: t(`agent.${s.agent}`), step: at }), next: t("stop.checks.next") };
-  if (s.reason === "requests") return { tone: "danger", title: t("stop.requests.title"), message: t("stop.requests", { step: at }) };
-  const m = apiMessage(s.error || {});
-  return { tone: "danger", title: t("stop.error.title"), message: t(m.key, m.vars) };
+  // A request that broke off, went unanswered or was aborted under way counts against the cap at its worst case:
+  // every stop says so while the run holds one.
+  const held = run.unmetered > 0 ? t("stop.unmetered") : null;
+  if (s.reason === "cap") {
+    // "Before the first request" only while none was sent; after one, no step was done yet.
+    const message = s.retry ? t("stop.cap.retry") : after ? t("stop.cap", { step: after }) : t(run.requests > 0 ? "stop.cap.noStep" : "stop.cap.first");
+    return { tone: "warning", title: t("stop.cap.title"), message, next: held };
+  }
+  if (s.reason === "aborted") return { tone: "warning", title: t("stop.aborted.title"), message: t("stop.aborted", { step: at }), next: held };
+  if (s.reason === "checks") return { tone: "danger", title: t(s.repaired === false ? "stop.checks.noRepair.title" : "stop.checks.title"), message: t(s.repaired === false ? "stop.checks.noRepair" : "stop.checks", { agent: t(`agent.${s.agent}`), step: at }), next: [t("stop.checks.next"), held] };
+  if (s.reason === "requests") return { tone: "danger", title: t("stop.requests.title"), message: t("stop.requests", { step: at }), next: held };
+  // A stream that broke off mid-answer reached the API: the shared client calls it a network error, which reads as
+  // if nothing had been sent, whatever the stream's own error said. An overload said inside the stream is still
+  // the busy service.
+  const m = s.error?.midStream ? { key: s.error.type === "overloaded_error" ? "api.overloaded" : "stop.error.cut", vars: null } : apiMessage(s.error || {});
+  return { tone: "danger", title: t("stop.error.title"), message: t(m.key, m.vars), next: held };
 }
 
 export function stopView(ctx) {
@@ -91,6 +102,7 @@ export function stopView(ctx) {
   const w = stopWords(run);
   const s = run.stopped;
   const step = s.agent ? AGENT_STEP[s.agent] : 1;
+  const final = run.requests >= MAX_REQUESTS;
   return {
     story: [
       head(w.title, t(run.scan || run.signals?.length ? "stop.lead" : "stop.lead.none")),
@@ -99,11 +111,13 @@ export function stopView(ctx) {
           icon(w.tone === "danger" ? "error" : "warning"),
           h("div", { class: "stop-body" },
             h("p", { class: "stop-message" }, w.message),
-            w.next ? h("p", {}, w.next) : null,
+            [].concat(w.next || []).filter(Boolean).map((x) => h("p", {}, x)),
             s.problems?.length ? h("details", { class: "stop-problems" },
               h("summary", {}, t("stop.problems")),
               h("ul", {}, s.problems.map((p) => h("li", {}, p)))) : null)),
-        h("p", { class: "stop-kept" }, t("stop.kept", { spent: fmtCost(run.spend.eur) })),
+        // A run that has used all its requests cannot go on: what is done leaves with the person, or a new run
+        // starts from the form.
+        h("p", { class: "stop-kept" }, t(final ? "stop.kept.final" : "stop.kept", { spent: fmtCost(run.spend.eur) })),
         // What is done leaves as a report that says on every page where the run stopped (brief §5.5).
         ctx.report?.can ? (() => {
           const { pdf, files } = downloads(handlers, { handoff: ctx.report.handoff, primary: false });
@@ -111,8 +125,9 @@ export function stopView(ctx) {
         })() : null),
       h("div", { class: "story-foot stop-actions" },
         h("button", { type: "button", class: "vc-button vc-button--ghost", id: "btn-back-sim", on: { click: handlers.backToSimulation } }, icon("chevron-left"), t("live.back")),
-        withNotice(h("button", { type: "button", class: "vc-button cta", id: "btn-cta", on: { click: handlers.goOn } }, t(s.reason === "checks" ? "stop.goOn.thorough" : "stop.goOn"), icon("chevron-right")))),
+        final ? null : withNotice(h("button", { type: "button", class: "vc-button cta", id: "btn-cta", on: { click: handlers.goOn } }, t(s.reason === "checks" ? "stop.goOn.thorough" : "stop.goOn"), icon("chevron-right")))),
     ],
-    side: ring(run, Math.max(0, step - 1), { selected: null }),
+    // Once the person has adopted the responses, the ring shows where they leave the company, as the tiles do.
+    side: ring(run, run.decided ? 5 : Math.max(0, step - 1), { selected: null }),
   };
 }

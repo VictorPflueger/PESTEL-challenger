@@ -5,18 +5,25 @@
 //   - the handoff file's at stake, left, readiness and dimensions under pressure, formatted as the tiles format
 //     them, read as the tiles do;
 //   - every chosen watch response is a row of the report's watch list and a watch entry of the handoff file,
-//     and a changed choice moves all three together; the figures follow brief §6.5 as the engine computes them.
+//     and a changed choice moves all three together; the figures follow brief §6.5 as the engine computes them;
+//   - every AI figure under an option at Respond, and in the report's responses, says that it is an AI estimate
+//     and what it rests on (standing requirement 11), in both languages.
 // Usage: node tests/report-figures.mjs
 import { readFile } from "node:fs/promises";
 import { launchBrowser, serveStatic, APP_ROOT, report } from "./lib/harness.mjs";
 import { SCENARIOS, runFromScenario, freshState } from "../js/simulation.js";
 import * as R from "../js/run.js";
 import { money } from "../js/format.js";
-import { readinessText } from "../js/engine.js";
+import { readinessText, moneyText } from "../js/engine.js";
 import { kpiValues } from "../js/kpis.js";
 
 const results = [];
 const check = (ok, what) => results.push([!!ok, what]);
+/** What an AI figure says it rests on, on screen and in the report. */
+const BASIS = {
+  screen: { en: /AI estimate from the (range above|factor and figures above)/, de: /KI-Schätzung aus (der Spanne oben|dem Faktor und den Zahlen oben)/ },
+  report: { en: /AI estimate from the (Analyst's range|factor and the Analyst's figures)/, de: /KI-Schätzung aus (der Spanne des Analysten|dem Faktor und den Zahlen des Analysten)/ },
+};
 const squash = (s) => String(s ?? "").replace(/\s+/g, " ").trim();
 
 /** The tiles as the page shows them, and the report's figures table and watch list. */
@@ -43,11 +50,14 @@ async function handoff(page) {
 }
 
 function compare(where, s, file, run) {
-  // The report's table: before, then after, as the tiles show them (the tile's "was" is the old value).
+  // The report's table: before, then after, as the tiles show them (the tile's "was" is the old value). The
+  // table has room for the old money's qualifier, such as "on 7 of 8 threats", which the tile leaves out.
   for (const k of ["stake", "pressure", "readiness"]) {
     const tile = s.tiles[k];
     const [before, after] = s.table[k];
-    check(squash(after) === squash(tile.value) && squash(before) === squash(tile.was ?? tile.value), `${where}: the report's ${k}, ${before} → ${after}, reads as the tile (${tile.was ?? "…"} → ${tile.value})`);
+    const was = k === "stake" && tile.was ? moneyText(R.figures(run, { decided: false }).before, "en") : tile.was ?? tile.value;
+    check(squash(after) === squash(tile.value) && squash(before) === squash(was) && (!tile.was || squash(before).startsWith(squash(tile.was))),
+      `${where}: the report's ${k}, ${before} → ${after}, reads as the tile (${tile.was ?? "…"} → ${tile.value})`);
     check(tile.was === null || tile.struck === "line-through", `${where}: the ${k} tile strikes its old value through`);
   }
   check(squash(s.table.cost[0]).startsWith(squash(s.tiles.cost.value)), `${where}: the report's session cost reads as the tile (${s.tiles.cost.value})`);
@@ -109,6 +119,27 @@ for (const sc of SCENARIOS) {
     const recorded = runFromScenario(sc, "en", Object.assign(freshState(), { decided: true }));
     check(R.figures(run).after.atStake > R.figures(recorded).after.atStake, `${where}: more stays at stake than along the recorded choices, as brief §6.5 says for a threat no longer mitigated`);
     if (watch) check(s.watch.includes(f.id), `${where}: the force joins the watch list`);
+  }
+  // Every AI figure says what it rests on: what a mitigation leaves, from the Analyst's range; an advantage's
+  // upside, from the factor and the Analyst's figures.
+  for (const lang of ["en", "de"]) {
+    await page.goto(`${base}?guide=0&lang=${lang}&scenario=${sc.id}&step=4`);
+    await page.waitForSelector('#stage[data-step="respond"]');
+    const n = await page.$$eval(".decide-list .decide-item", (els) => els.length);
+    const bare = [];
+    let seen = 0;
+    for (let k = 0; k < n; k += 1) {
+      await page.click(`.decide-list li:nth-child(${k + 1}) .decide-item`);
+      const texts = await page.$$eval(".option .ai-figure", (els) => els.map((e) => e.textContent.replace(/\s+/g, " ").trim()));
+      seen += texts.length;
+      bare.push(...texts.filter((x) => !BASIS.screen[lang].test(x)));
+    }
+    check(seen > 0 && !bare.length, `${sc.id} (${lang}): each of the ${seen} AI figures under the options says what it rests on${bare.length ? `; not: ${bare.slice(0, 2).join(" | ")}` : ""}`);
+    await page.goto(`${base}?guide=0&lang=${lang}&scenario=${sc.id}&step=5`);
+    await page.waitForSelector("#report");
+    const lines = (await page.$$eval("#report .report-response .ai-text", (els) => els.map((e) => e.textContent.replace(/\s+/g, " ").trim()))).filter((x) => /€/.test(x));
+    const bareR = lines.filter((x) => !BASIS.report[lang].test(x));
+    check(lines.length > 0 && !bareR.length, `${sc.id} (${lang}): each of the report's ${lines.length} AI figures under a chosen response says what it rests on${bareR.length ? `; not: ${bareR.slice(0, 2).join(" | ")}` : ""}`);
   }
 }
 check(!errors.length, `no page error${errors.length ? `: ${errors.slice(0, 3).join("; ")}` : ""}`);

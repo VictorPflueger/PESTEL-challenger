@@ -32,8 +32,9 @@ export function guideFigures(lang) {
     "pressure.scan": t("fig.pressure", { n: scan }, lang),
     "readiness.before": readinessText(r.before.readiness, lang),
     "readiness.after": readinessText(r.after.readiness, lang),
-    "cost.balanced": `≈ ${fmtCost(balanced.eur, lang)}`,
-    "cost.thorough": `≈ ${fmtCost(thorough.eur, lang)}`,
+    // A no-break space keeps "≈" with its figure when the line wraps.
+    "cost.balanced": `≈\u00a0${fmtCost(balanced.eur, lang)}`,
+    "cost.thorough": `≈\u00a0${fmtCost(thorough.eur, lang)}`,
     "team.count": String(run.team.length),
     "issues.count": String(run.issues.length),
     "top.threat": top ? top.f.text : "",

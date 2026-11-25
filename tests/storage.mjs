@@ -24,7 +24,11 @@ const suite = await liveSuite();
   await challenge(p);
   await p.click('.vc-step[data-step="respond"] .vc-step__button');
   await p.click(".decide-list li:nth-child(2) .decide-item");
-  await p.click(".option:not([data-chosen='true']) input").catch(() => {});
+  // The person changes a choice: the option's label takes the click, as a person's does.
+  const before = await p.$eval(".option[data-chosen='true'] .option-title", (el) => el.textContent);
+  await p.click(".option:not([data-chosen='true'])");
+  const after = await p.$eval(".option[data-chosen='true'] .option-title", (el) => el.textContent);
+  check(after !== before, `the run holds a choice the person changed ("${before}" to "${after}")`);
   await adopt(p);
   const [download] = await Promise.all([p.waitForEvent("download"), p.click("#btn-save-run")]);
   const saved = await readFile(await download.path(), "utf8");
