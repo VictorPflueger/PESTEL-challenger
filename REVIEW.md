@@ -141,8 +141,9 @@ validator's anyOf wording, and the fix sat on its branch with no pull request op
 again at `2cf021c`, after version 1.0.1, N21's fix and the documented anyOf rule in the schema suite, and gave
 the same verdict. It found two low findings, N22 and N23, both in this file, and made two observations, O17
 and O18: the suite's anyOf rule read the documentation more narrowly than it is written, and a probe run just
-after a merge can read a cached file. The table holds every finding of the eight looks and of the live run,
-and what became of it:
+after a merge can read a cached file. `308163d` fixes those four, and the same agent looks a third time at the
+commit that records them here. The table holds every finding of the eight looks and of the live run, and what
+became of it:
 
 | ID | Severity | What | Where | State |
 |---|---|---|---|---|
@@ -201,6 +202,10 @@ and what became of it:
 | N21 | low | The probe in TECH_NOTES section 8 read the formats from `main`, which still held the formats the API refused, so run before the merge it would have reported the Scanner and the Red team refused | `TECH_NOTES.md` | fixed in `85ec193`: section 8 says the probe reads `main`, the branch the live site is built from, and to put a branch or a commit in its place to check one before a merge |
 | O15 | observation | A repair line for a nullable value now reads in the validator's anyOf wording rather than "must be one of ..., null"; the Scan and Issues formats grew by 28 and 42 characters in the estimate and the cap's worst case | `js/schema.js`, `js/estimate.js` | kept: the line still names every allowed value and null, structured outputs keep the answer inside its format so the line is rare, and no verdict changed |
 | O16 | observation | The fix sat on `m5-release` with no pull request open, while `main` and the live site still sent the formats the API refused | GitHub, pull request #6 | done: pull request #6 brings the fix to `main` as 1.0.1 |
+| N22 | low | The N20 row still said "proposed for 1.0.1", though 1.0.1 ships the fix alone and TECH_NOTES section 8 says a later release; the docs suite leaves this file out of its version rule | `REVIEW.md` | fixed in `308163d`: the row proposes a later release |
+| N23 | low | This part did not record the eighth look: it said a confirming look would follow, counted seven looks, and had no row for N21, O15 or O16, which TECH_NOTES cites | `REVIEW.md`, `TECH_NOTES.md` | fixed in `308163d`: the paragraph on the eighth look's two looks and the rows N21, O15 and O16 |
+| O17 | observation | The suite's anyOf rule and TECH_NOTES section 2 read the documentation as "beside type or properties", while it allows only annotations beside an anyOf, and the row left out the page's two allOf entries and an external $ref; no format was affected | `tests/schemas.mjs`, `TECH_NOTES.md` | fixed in `308163d`: only annotations may stand beside an anyOf, with a planted case beside an enum, and the row lists every entry |
+| O18 | observation | raw.githubusercontent.com serves the file with a five-minute cache, so a probe run just after a merge, or after an earlier run in the same browser, may still read the old formats from `main` | `TECH_NOTES.md` | fixed in `308163d`: section 8 says so, and that a commit's name avoids it |
 
 ## Part 3. Steve Jobs review and partner review
 
